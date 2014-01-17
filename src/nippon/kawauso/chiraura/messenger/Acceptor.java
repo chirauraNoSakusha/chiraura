@@ -1,0 +1,291 @@
+/**
+ * 
+ */
+package nippon.kawauso.chiraura.messenger;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.ConnectException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketTimeoutException;
+import java.security.Key;
+import java.security.KeyPair;
+import java.security.PublicKey;
+import java.util.Arrays;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import nippon.kawauso.chiraura.lib.concurrent.ConcurrentFunctions;
+import nippon.kawauso.chiraura.lib.connection.InetAddressFunctions;
+import nippon.kawauso.chiraura.lib.exception.MyRuleException;
+
+/**
+ * 受け入れた接続を準備する。
+ * @author chirauraNoSakusha
+ */
+final class Acceptor implements Callable<Void> {
+
+    private static final Logger LOG = Logger.getLogger(Acceptor.class.getName());
+
+    // 参照。
+    // 入出力。
+    private final BlockingQueue<MessengerReport> messengerReportSink;
+    private final ConnectionPool<AcceptedConnection> acceptedConnectionPool;
+
+    // 通信周り。
+    private final int sendBufferSize;
+    private final long connectionTimeout;
+    private final long operationTimeout;
+    private final AcceptedConnection acceptedConnection;
+    private final Transceiver transceiver;
+
+    // プロトコル周り。
+    private final KeyPair id;
+    private final long version;
+    private final PublicKeyManager keyManager;
+
+    // 主に後続のために。
+    private final ExecutorService executor;
+    private final SendQueuePool sendQueuePool;
+    private final BlockingQueue<ReceivedMail> receivedMailSink;
+    private final BoundConnectionPool<Connection> connectionPool;
+    private final long keyLifetime;
+
+    private final AtomicReference<InetSocketAddress> self;
+
+    Acceptor(final BlockingQueue<MessengerReport> messengerReportSink, final ConnectionPool<AcceptedConnection> acceptedConnectionPool,
+            final int sendBufferSize, final long connectionTimeout, final long operationTimeout, final AcceptedConnection acceptedConnection,
+            final Transceiver transceiver, final KeyPair id, final long version, final PublicKeyManager keyManager, final ExecutorService executor,
+            final SendQueuePool sendQueuePool, final BlockingQueue<ReceivedMail> receivedMailSink, final BoundConnectionPool<Connection> connectionPool,
+            final long keyLifetime, final AtomicReference<InetSocketAddress> self) {
+        if (messengerReportSink == null) {
+            throw new IllegalArgumentException("Null messenger report sink.");
+        } else if (acceptedConnectionPool == null) {
+            throw new IllegalArgumentException("Null accepted connection pool.");
+        } else if (connectionTimeout < 0) {
+            throw new IllegalArgumentException("Invalid connection timeout ( " + connectionTimeout + " ).");
+        } else if (operationTimeout < 0) {
+            throw new IllegalArgumentException("Invalid operation timeout ( " + operationTimeout + " ).");
+        } else if (acceptedConnection == null) {
+            throw new IllegalArgumentException("Null connection.");
+        } else if (transceiver == null) {
+            throw new IllegalArgumentException("Null transceiver.");
+        } else if (id == null) {
+            throw new IllegalArgumentException("Null id.");
+        } else if (keyManager == null) {
+            throw new IllegalArgumentException("Null key manager.");
+        } else if (executor == null) {
+            throw new IllegalArgumentException("Null executor.");
+        } else if (sendQueuePool == null) {
+            throw new IllegalArgumentException("Null send queue pool.");
+        } else if (receivedMailSink == null) {
+            throw new IllegalArgumentException("Null received mail sink.");
+        } else if (connectionPool == null) {
+            throw new IllegalArgumentException("Null connection pool.");
+        } else if (keyLifetime < 0) {
+            throw new IllegalArgumentException("Invalid key lifetime ( " + keyLifetime + " ).");
+        } else if (self == null) {
+            throw new IllegalArgumentException("Null self.");
+        }
+
+        this.messengerReportSink = messengerReportSink;
+        this.acceptedConnectionPool = acceptedConnectionPool;
+
+        this.sendBufferSize = sendBufferSize;
+        this.connectionTimeout = connectionTimeout;
+        this.operationTimeout = operationTimeout;
+        this.acceptedConnection = acceptedConnection;
+        this.transceiver = transceiver;
+
+        this.id = id;
+        this.version = version;
+        this.keyManager = keyManager;
+
+        this.executor = executor;
+        this.receivedMailSink = receivedMailSink;
+        this.sendQueuePool = sendQueuePool;
+        this.connectionPool = connectionPool;
+        this.keyLifetime = keyLifetime;
+        this.self = self;
+    }
+
+    @Override
+    public Void call() {
+        LOG.log(Level.FINE, "{0}: こんにちは。", this.acceptedConnection);
+
+        try {
+            subCall();
+        } catch (final Exception e) {
+            if (!Thread.currentThread().isInterrupted() && !this.acceptedConnection.isClosed()) {
+                // 別プロセスが接続を閉じて終了を報せてくれたわけでもない。
+                LOG.log(Level.FINEST, "{0}: 異常発生: {1}", new Object[] { this.acceptedConnection, e.toString() });
+                this.acceptedConnection.close();
+                ConcurrentFunctions.completePut(new AcceptanceError(this.acceptedConnection.getSocket().getInetAddress(), e), this.messengerReportSink);
+            }
+        } finally {
+            // 登録の削除。
+            this.acceptedConnectionPool.remove(this.acceptedConnection.getIdNumber());
+        }
+
+        LOG.log(Level.FINE, "{0}: さようなら。", this.acceptedConnection);
+        return null;
+    }
+
+    private void subCall() throws IOException, MyRuleException {
+
+        // 受信の時間制限を設定。
+        this.acceptedConnection.getSocket().setSoTimeout((int) this.operationTimeout);
+
+        // 送信バッファサイズを設定。
+        // 受信バッファサイズは Server で設定してある。
+        final int oldSendBufferSize = this.acceptedConnection.getSocket().getSendBufferSize();
+        if (this.acceptedConnection.getSocket().getSendBufferSize() < this.sendBufferSize) {
+            this.acceptedConnection.getSocket().setSendBufferSize(this.sendBufferSize);
+            LOG.log(Level.FINEST, "{0}: 送信バッファサイズを {1} から {2} に変更しました。",
+                    new Object[] { this.acceptedConnection, Integer.toString(oldSendBufferSize), Integer.toString(this.sendBufferSize) });
+        }
+
+        final InputStream input = new BufferedInputStream(this.acceptedConnection.getSocket().getInputStream(),
+                this.acceptedConnection.getSocket().getReceiveBufferSize());
+        final OutputStream output = new BufferedOutputStream(this.acceptedConnection.getSocket().getOutputStream(),
+                this.acceptedConnection.getSocket().getSendBufferSize());
+
+        // 一言目を受信。
+        final Message message1 = StartingProtocol.receiveFirst(this.transceiver, input);
+
+        if (message1 instanceof FirstMessage) {
+            acceptSequence((FirstMessage) message1, input, output);
+        } else if (message1 instanceof PortCheckMessage) {
+            portCheckReaction((PortCheckMessage) message1, output);
+        } else {
+            throw new MyRuleException("Invalid first message.");
+        }
+    }
+
+    private void acceptSequence(final FirstMessage message, final InputStream input, final OutputStream output) throws IOException, MyRuleException {
+        final PublicKey destinationPublicKey = message.getKey();
+
+        // 一言目への相槌を送信。
+        final Key communicationKey = CryptographicKeys.newCommonKey();
+        StartingProtocol.sendFirstReply(this.transceiver, output, destinationPublicKey, communicationKey);
+
+        // 二言目を受信。
+        final SecondMessage message2 = StartingProtocol.receiveSecond(this.transceiver, input, communicationKey);
+        final PublicKey destinationId = message2.getId();
+        final byte[] signedCommunicationKeyBytes = message2.getEncryptedKey();
+        final byte[] watchword = message2.getWatchword();
+        final long destinationVersion = message2.getVersion();
+        final int destinationPort = message2.getPort();
+        final int connectionType = message2.getType();
+        final InetSocketAddress declaredSelf = message2.getPeer();
+
+        // 相手が識別用鍵の所持者かどうか検査。
+        if (!Arrays.equals(communicationKey.getEncoded(), CryptographicFunctions.decrypt(destinationId, signedCommunicationKeyBytes))) {
+            throw new MyRuleException("Invalid destination id.");
+        }
+
+        if (destinationVersion != this.version) {
+            // 動作規約の版だけが合わない。
+            if (this.version < destinationVersion) {
+                ConcurrentFunctions.completePut(new NewProtocolWarning(this.version, destinationVersion), this.messengerReportSink);
+            } else {
+                LOG.log(Level.FINEST, "{0}: 自分の動作規約 ( 第 {1} 版 ) とは異なる動作規約 ( 第 {2} 版 ) の個体を検知しました。",
+                        new Object[] { this.acceptedConnection, Long.toString(this.version), Long.toString(destinationVersion) });
+            }
+            this.acceptedConnection.close();
+            return;
+        }
+
+        // ポート検査。
+        final InetSocketAddress destination = new InetSocketAddress(this.acceptedConnection.getSocket().getInetAddress(), destinationPort);
+        if (portCheck(destination, destinationId)) {
+            // 二言目への相槌を送信。
+            final KeyPair keyPair = this.keyManager.getPublicKeyPair();
+            StartingProtocol.sendSecondReply(this.transceiver, output, communicationKey, this.id, watchword, keyPair.getPublic(), this.version, destination);
+
+            // 準備が終わったので報告。
+            updateSelf(declaredSelf);
+            ConcurrentFunctions.completePut(new ConnectReport(destinationId, destination, connectionType), this.messengerReportSink);
+
+            // 無通信での接続保持期間を設定。
+            this.acceptedConnection.getSocket().setSoTimeout((int) this.connectionTimeout);
+
+            // 本格的な送受信の開始。
+            final Connection connection = new Connection(this.acceptedConnection.getIdNumber(), destination, destinationId, connectionType,
+                    this.acceptedConnection.getSocket());
+            this.connectionPool.add(connection);
+            LOG.log(Level.FINER, "{0}: {1} と種別 {2} で通信を開始します。", new Object[] { this.acceptedConnection, destination, Integer.toString(connectionType) });
+            connection.setSender(this.executor.submit(new Sender(this.sendQueuePool, this.messengerReportSink, this.connectionPool, this.connectionTimeout,
+                    connection, this.transceiver, output, keyPair.getPrivate(), destinationPublicKey, this.keyLifetime, communicationKey)));
+            this.executor.submit(new Receiver(this.receivedMailSink, this.messengerReportSink, this.connectionTimeout, connection, this.transceiver, input,
+                    keyPair.getPrivate(), destinationPublicKey, communicationKey));
+        } else {
+            // ポート異常を通知。
+            StartingProtocol.sendPortError(this.transceiver, output, communicationKey);
+
+            this.acceptedConnection.close();
+        }
+    }
+
+    private boolean portCheck(final InetSocketAddress destination, final PublicKey destinationId) throws IOException, MyRuleException {
+        try (final Socket socket = new Socket()) {
+            socket.setSoTimeout((int) this.operationTimeout);
+
+            try {
+                socket.connect(destination, (int) this.operationTimeout);
+            } catch (final IOException e) {
+                if (e instanceof SocketTimeoutException) {
+                    LOG.log(Level.FINEST, "{0}: {1} への接続は時間切れしました。", new Object[] { this.acceptedConnection, destination });
+                } else if (e instanceof ConnectException) {
+                    LOG.log(Level.FINEST, "{0}: {1} への接続が拒否されました。", new Object[] { this.acceptedConnection, destination });
+                } else {
+                    LOG.log(Level.FINEST, this.acceptedConnection + ": " + destination + " への接続が失敗しました", e);
+                }
+                return false;
+            }
+            LOG.log(Level.FINEST, "{0}: ポート検査用に {1} に接続しました。", new Object[] { this.acceptedConnection, destination });
+
+            final InputStream input = new BufferedInputStream(socket.getInputStream());
+            final OutputStream output = new BufferedOutputStream(socket.getOutputStream());
+
+            // 検査用の言付けを送信。
+            final Key communicationKey = CryptographicKeys.newCommonKey();
+            StartingProtocol.sendPortCheck(this.transceiver, output, destinationId, communicationKey);
+
+            // 検査用の言付けへの相槌を受信。
+            final PortCheckReply reply = StartingProtocol.receivePortCheckReply(this.transceiver, input, communicationKey);
+            if (reply == null) {
+                return false;
+            }
+
+            return reply.getValue() == Arrays.hashCode(communicationKey.getEncoded());
+        }
+    }
+
+    private void portCheckReaction(final PortCheckMessage message, final OutputStream output) throws IOException {
+        // 検査用の言付けへの相槌を送信。
+        final Key communicationKey = CryptographicKeys.getCommonKey(CryptographicFunctions.decrypt(this.id.getPrivate(), message.getEncryptedKey()));
+        StartingProtocol.sendPortCheckReply(this.transceiver, output, communicationKey);
+
+        this.acceptedConnection.close();
+    }
+
+    private void updateSelf(final InetSocketAddress declaredSelf) {
+        // 外聞の更新。
+        final InetSocketAddress oldSelf = this.self.get();
+        final InetSocketAddress newSelf = InetAddressFunctions.selectBetter(oldSelf, declaredSelf);
+        if (!newSelf.equals(oldSelf)) {
+            this.self.set(newSelf);
+            ConcurrentFunctions.completePut(new SelfReport(newSelf), this.messengerReportSink);
+        }
+    }
+
+}

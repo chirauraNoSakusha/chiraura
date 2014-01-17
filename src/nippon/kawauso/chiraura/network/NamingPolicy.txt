@@ -1,0 +1,2 @@
+InetSocketAddress と AddressedPeer と CcPeer の汎用名はいずれも peer とする。
+同時に使用される場合は AddressedPeer は addrPeer、CcPeer は ccPeer とする。

@@ -1,0 +1,24 @@
+ContentResponse
+
+PartialContentResponse
+
+  NotModifiedResponse
+
+  RangeNotSatisfiableResponse
+
+PostResponse
+
+  PostErrorResponse
+
+(ErrorResponse)
+
+  InternalServerErrorResponse
+
+  (HttpErrorResponse)
+
+    NotImplementResponse
+
+    NotFoundResponse
+
+    BadRequestResponse
+

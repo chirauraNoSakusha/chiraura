@@ -1,0 +1,25 @@
+(GetRequest)
+
+  GetBoardRequest
+
+  GetThreadRequest
+
+(PostRequest)
+
+  AddThreadRequest
+
+  AddCommentRequest
+
+(ErrorRequest)
+
+  (BbsErrorRequest)
+
+    PostErrorRequest
+
+  (HttpErrorRequest)
+
+    NotImplementedRequest // 未対応のメソッド。
+
+    NotFoundRequest       // 対象が無い。
+
+    BadHttpRequest        // その他の HTTP レベルの間違い。

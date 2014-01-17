@@ -1,0 +1,7 @@
+SEVERE 実行が続けられなくなるエラー
+WARNING 実行が続けられるエラー
+INFO ユーザーへのお知らせ
+CONFIG
+FINE プロセスの起動・終了
+FINER 個々の仕事の報告
+FINEST デバッグメッセージ

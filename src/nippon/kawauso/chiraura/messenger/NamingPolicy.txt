@@ -1,0 +1,4 @@
+単体の Message は message とか。
+List<Message> などの複数の Message は、まとめて送受信するようなら mail とか、そうでなければ messages とか。
+mail 相当が複数なら mails とか。
+mail を送受信するときは Envelope に入れて envelope とか。
