@@ -73,6 +73,8 @@ public final class StringFunctions {
                 i += 2;
             } else if (allowed(encoded.charAt(i))) {
                 buff[buffIndex++] = (byte) encoded.charAt(i);
+            } else if (encoded.charAt(i) == '+') { // %エンコーディングごちゃまぜ。
+                buff[buffIndex++] = ' ';
             } else {
                 throw new MyRuleException("Invalid character ( " + encoded.charAt(i) + " ) at " + i + ".");
             }
