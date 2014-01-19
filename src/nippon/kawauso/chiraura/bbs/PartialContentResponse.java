@@ -17,7 +17,7 @@ final class PartialContentResponse extends BasicResponse {
         final Map<Http.Field, String> fields = new EnumMap<>(Http.Field.class);
         fields.put(Http.Field.LAST_MODIFIED, Http.formatDate(content.getUpdateDate()));
         fields.put(Http.Field.ETAG, Long.toString(content.getNetworkTag()));
-        fields.put(Http.Field.CONTENT_TYPE, "text/html; charset=" + Constants.CONTENT_CHARSET.name());
+        fields.put(Http.Field.CONTENT_TYPE, "text/plain; charset=" + Constants.CONTENT_CHARSET.name());
         fields.put(Http.Field.CONTENT_RANGE,
                 "bytes " + Integer.toString(rangeHead) + "-" + Integer.toString(contentBytes.length - 1) + "/" + Integer.toString(contentBytes.length));
         return fields;
