@@ -24,7 +24,7 @@ final class CheckStockDriver {
 
     private static final Logger LOG = Logger.getLogger(CheckStockDriver.class.getName());
 
-    private static final int STOCK_ENTRY_LIMIT = 1_000;
+    private static final int STOCK_ENTRY_LIMIT = 200;
 
     // 参照。
     private final NetworkWrapper network;
