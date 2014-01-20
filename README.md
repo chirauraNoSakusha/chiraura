@@ -6,11 +6,19 @@ http://chiraura0.web.fc2.com/
 使い方
 ----------
 
-コンパイルは、src のあるディレクトリで、bin の中にクラスファイルをつくるなら、
+### コンパイル
+
+src のあるディレクトリで、bin の中にクラスファイルをつくるなら、
 
     $ javac -sourcepath src -d bin src/nippon/kawauso/chiraura/a/A.java
 
-実行は
+とします。
+Windows など文字コードが UTF-8 ではない環境では、
+
+    $ javac -sourcepath src -d bin -encoding UTF-8 src/nippon/kawauso/chiraura/a/A.java
+
+とします。
+### 実行
 
     $ java -classpath bin nippon.kawauso.chiraura.a.A
 
