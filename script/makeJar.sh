@@ -10,7 +10,6 @@ MOSAICER=${MOSAICER:=nippon.kawauso.chiraura.util.PeerMosaicer}
 UNMOSAICER=${UNMOSAICER:=nippon.kawauso.chiraura.util.PeerUnmosaicer}
 
 AUTHOR_HOST=${AUTHOR_HOST:=""}
-PROGUARD=${PROGUARD:=""}
 
 DIR=$(date +%F-%H-%M-%S)
 
@@ -26,8 +25,8 @@ mkdir -p ${CLASS}
 javac -sourcepath ${SOURCE} -d ${CLASS} ${SOURCE}/$(echo ${MAIN} | sed 's/\./\//g').java
 
 
-echo "生 JAR 作成開始"
-RAW=${DESTINATION}/${DIR}/raw.jar
+echo "JAR 作成開始"
+RAW=${DESTINATION}/${DIR}/chiraura.jar
 
 jar cfe ${RAW} ${MAIN} -C ${CLASS} .
 
@@ -39,21 +38,10 @@ TEST_STATE=$(java -classpath ${CLASS} ${TEST_CHECKER})
 
 if [ ${TEST_STATE} = "true" ]; then
     echo "非制限状態です。"
-    # exit 1
+    exit 1
 fi
 
-if [ -z "${PROGUARD}" ]; then
-    echo "環境変数 PROGUARD として ProGuard のパスが指定されていません。"
-    echo "ここまでで終了します。"
-    exit
-fi
-
-echo "難読化開始"
 JAR=${DESTINATION}/${DIR}/chiraura.jar
-MAP=${DESTINATION}/${DIR}/chiraura.map
-
-java -jar ${PROGUARD} -include $(dirname "${0}")/proguard.conf -injars ${RAW} -outjars ${JAR} -printmapping ${MAP} > /dev/null
-
 
 if [ -z "${AUTHOR_HOST}" ]; then
     echo "環境変数 AUTHOR_HOST として 初期個体が指定されていません。"
