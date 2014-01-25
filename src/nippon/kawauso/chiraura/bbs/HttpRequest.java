@@ -172,6 +172,7 @@ final class HttpRequest {
                 .append('[').append(headerToNetworkString(System.lineSeparator()));
         if (this.content != null) {
             buff.append("...");
+            // buff.append(new String(this.content));
         }
         return buff.append(']').toString();
     }
