@@ -72,10 +72,10 @@ public final class StringFunctions {
                 || c == ')'
                 || c == '*'
                 // || c == '+'
-                // || c == '&'
                 || c == ','
                 || c == ';'
-                || c == '=';
+        // || c == '='
+        ;
     }
 
     /**
