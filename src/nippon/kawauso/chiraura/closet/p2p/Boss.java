@@ -102,6 +102,10 @@ final class Boss extends Chief {
                 this.drivers.getFirstAccessSelect());
     }
 
+    private Unpartitioner newUnpartitioner() {
+        return new Unpartitioner(getReportQueue(), this.network, this.sleepTime, this.operationTimeout, this.drivers.getFirstAccessSelect());
+    }
+
     private BackupperMaster newBackupperMaster() {
         return new BackupperMaster(getReportQueue(), this.network, this.maintenanceInterval, this.backupInterval, this.operationTimeout, this.backupeerPool,
                 this.executor, this.drivers);
@@ -114,6 +118,7 @@ final class Boss extends Chief {
         this.executor.submit(newNetworkManager());
         this.executor.submit(newWorker());
         this.executor.submit(newLonely());
+        this.executor.submit(newUnpartitioner());
         this.executor.submit(newBackupperMaster());
     }
 
@@ -131,6 +136,8 @@ final class Boss extends Chief {
                 this.executor.submit(newWorker());
             } else if (report.getSource() == Lonely.class) {
                 this.executor.submit(newLonely());
+            } else if (report.getSource() == Unpartitioner.class) {
+                this.executor.submit(newUnpartitioner());
             } else if (report.getSource() == BackupperMaster.class) {
                 this.executor.submit(newBackupperMaster());
             } else {
