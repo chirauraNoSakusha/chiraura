@@ -187,6 +187,7 @@ public final class A implements AutoCloseable {
 
         // 終了判定に使う。
         ExecutorService executor = null;
+        boolean gui = false;
 
         try {
             LoggingFunctions.startLogging();
@@ -226,6 +227,7 @@ public final class A implements AutoCloseable {
 
             // 異常時の強制終了のために保存。
             executor = environment.getExecutor();
+            gui = environment.getGui();
 
             instance.execute();
 
@@ -256,7 +258,8 @@ public final class A implements AutoCloseable {
         // 俺の環境では、トレイアイコンの PopupMenu を表示すると終了できなくなる。
         // それに対する暫定的な処置。
         // 気持ち悪いが、本来、正常終了している位置だから特に問題無いはず。
-        System.exit(0);
+        if (gui) {
+            System.exit(0);
+        }
     }
-
 }
