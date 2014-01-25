@@ -89,6 +89,8 @@ final class Http {
 
         MIME_VERSION,
 
+        DNT, // Do Not Track の略らしい。
+
         ;
 
         private static Field fromNetworkString(final String networkString) {
