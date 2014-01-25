@@ -61,7 +61,7 @@ public final class ATest {
      * ヘルプの表示検査。
      * @throws Exception 異常
      */
-    @Test
+    // @Test
     public void testHelp() throws Exception {
         A.main("-help -port 9999".split(" "));
     }
@@ -89,7 +89,7 @@ public final class ATest {
             }
         });
 
-        Thread.sleep(1_000L);
+        Thread.sleep(3_000L);
 
         executor.shutdownNow();
         Assert.assertTrue(executor.awaitTermination(1L, TimeUnit.MINUTES));
