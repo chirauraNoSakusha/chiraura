@@ -53,6 +53,13 @@ public interface Messenger {
     public ReceivedMail takeIfExists();
 
     /**
+     * 接続があるかどうか調べる。
+     * @param destination 調べる接続先
+     * @return 接続があった場合のみ true
+     */
+    public boolean containsConnection(InetSocketAddress destination);
+
+    /**
      * 接続をブチ切る。
      * @param destination ブチ切る接続の宛先
      * @return ブチ切る接続があった場合のみ true

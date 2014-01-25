@@ -30,6 +30,16 @@ final class ConnectionPool<T extends SkeletalConnection> {
     }
 
     /**
+     * 接続があるかどうか。
+     * @param destination 調べる接続先
+     * @return ある場合のみ true
+     */
+    boolean contains(final InetSocketAddress destination) {
+        // TODO InetAddress だけを利用する方法も考えられるが保留。
+        return false;
+    }
+
+    /**
      * 通信相手を指定して接続を得る。
      * @param destination 通信相手
      * @return 接続。

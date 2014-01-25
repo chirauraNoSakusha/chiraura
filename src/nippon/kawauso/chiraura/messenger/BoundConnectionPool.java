@@ -35,9 +35,18 @@ final class BoundConnectionPool<T extends BoundConnection> {
     }
 
     /**
+     * 接続があるかどうか。
+     * @param destination 接続先
+     * @return ある場合のみ true
+     */
+    boolean contains(final InetSocketAddress destination) {
+        return this.destinationToConnections.containsKey(destination);
+    }
+
+    /**
      * 通信相手を指定して接続を得る。
      * @param destination 通信相手
-     * @return 接続。
+     * @return 接続
      */
     synchronized List<T> get(final InetSocketAddress destination) {
         final Set<T> family = this.destinationToConnections.get(destination);

@@ -128,6 +128,13 @@ final class ThreadMessenger implements Messenger {
     }
 
     @Override
+    public boolean containsConnection(final InetSocketAddress destination) {
+        return this.acceptedConnectionPool.contains(destination) ||
+                this.contactingConnectionPool.contains(destination) ||
+                this.connectionPool.contains(destination);
+    }
+
+    @Override
     public boolean removeConnection(final InetSocketAddress destination) {
         boolean removed = false;
 
@@ -151,7 +158,8 @@ final class ThreadMessenger implements Messenger {
 
     @Override
     public void start(final ExecutorService executor) {
-        executor.submit(new Boss(this.self, this.receivedMailSink, this.sendQueuePool, this.connectRequestQueue, this.messengerReportSink, this.acceptedConnectionPool,
+        executor.submit(new Boss(this.self, this.receivedMailSink, this.sendQueuePool, this.connectRequestQueue, this.messengerReportSink,
+                this.acceptedConnectionPool,
                 this.contactingConnectionPool, this.connectionPool, this.port, this.receveBufferSize, this.sendBufferSize, this.connectionTimeout,
                 this.operationTimeout, this.id, this.version, this.publicKeyLifetime, this.commonKeyLifetime, this.messageSizeLimit, this.registry, executor));
     }

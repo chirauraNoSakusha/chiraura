@@ -229,6 +229,10 @@ final class NetworkWrapper {
         return this.messenger.takeIfExists();
     }
 
+    boolean containsConnection(final InetSocketAddress destination) {
+        return this.messenger.containsConnection(destination);
+    }
+
     boolean removeConnection(final InetSocketAddress destination) {
         return this.messenger.removeConnection(destination);
     }
