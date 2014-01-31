@@ -54,12 +54,19 @@ final class Unpartitioner extends Reporter<Void> {
          */
 
         while (!Thread.currentThread().isInterrupted()) {
+            if (this.network.isEmpty()) {
+                // まだ誰とも接続していないなら安心して休む。今は Lonely の時間。
+                Thread.sleep(this.interval);
+                continue;
+            }
+
             final InetSocketAddress peer = this.network.getReservedPeer();
 
             if (peer == null) {
                 // 接続候補が無いなら寝て待つ。
                 Thread.sleep(this.interval);
             } else if (this.network.containsConnection(peer)) {
+                // 既に接続している相手なら寝る。
                 Thread.sleep(this.interval);
             } else if (this.network.inBlacklist(peer)) {
                 // 拒否対象の場合は飛ばす。
@@ -79,5 +86,4 @@ final class Unpartitioner extends Reporter<Void> {
 
         return null;
     }
-
 }
