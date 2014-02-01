@@ -81,7 +81,7 @@ final class Communicator implements Callable<Void> {
             LOG.log(Level.FINEST, "リクエストを受信: {0}", httpRequest);
 
             // if (httpRequest.getContent() != null) {
-            // System.out.println("AhoBakaChinaDebuEroFunGeroHageIboJiKuso[" + new String(httpRequest.getContent()) + "]");
+            // System.out.println("AhoBakaChinaDebuEroFunGeroHageIboJiKuso[" + new String(httpRequest.getContent(), Constants.CONTENT_CHARSET) + "]");
             // }
 
             Response response;
@@ -99,6 +99,12 @@ final class Communicator implements Callable<Void> {
             response.toStream(output);
             output.flush();
             LOG.log(Level.FINEST, "応答を送信: {0}", response);
+
+            final String connectField = httpRequest.getFields().get(Http.Field.CONNECTION);
+            if (connectField != null && connectField.toLowerCase().equals("close")) {
+                // 閉じ宣言されてたら即閉じ。
+                break;
+            }
         }
     }
 }
