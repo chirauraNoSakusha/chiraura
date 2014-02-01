@@ -35,6 +35,8 @@ final class ResponseMaker {
             return new PostErrorResponse(request1.getTitle(), request1.getComment());
         } else if (request instanceof BadHttpRequest) {
             return new BadRequestResponse(((BadHttpRequest) request).getComment());
+        } else if (request instanceof ForbiddenRequest) {
+            return new ForbiddenResponse(((ForbiddenRequest) request).getTarget());
         } else if (request instanceof NotFoundRequest) {
             return new NotFoundResponse(((NotFoundRequest) request).getTarget());
         } else if (request instanceof NotImplementedRequest) {

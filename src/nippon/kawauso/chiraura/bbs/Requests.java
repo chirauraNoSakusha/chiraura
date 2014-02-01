@@ -45,6 +45,11 @@ final class Requests {
     }
 
     private static Request makeGetRequest(final String target, final Map<Field, String> fields) {
+        if (target.charAt(target.length() - 1) == '/') {
+            // ディレクトリアクセスは不許可。
+            return new ForbiddenRequest(target);
+        }
+
         final String[] tokens = target.split("/");
         if (tokens.length == 3) {
             // 板 (スレタイ一覧)。

@@ -94,7 +94,7 @@ final class Http {
         ;
 
         private static Field fromNetworkString(final String networkString) {
-            return valueOf(networkString.toUpperCase().replaceAll("-", "_"));
+            return valueOf(networkString.trim().toUpperCase().replaceAll("-", "_"));
         }
 
         String toNetworkString() {
@@ -107,7 +107,7 @@ final class Http {
                 throw new ProtocolException("Invalid field \"" + line + "\".");
             }
             final Field field = fromNetworkString(line.substring(0, index));
-            final String value = line.substring(index + 1).replaceFirst("^[ \t]+", "");
+            final String value = line.substring(index + 1).trim();
             return new Pair<>(field, value);
         }
 
@@ -123,6 +123,7 @@ final class Http {
         Not_Modified(304),
 
         Bad_Request(400),
+        Forbidden(403),
         Not_Found(404),
         Method_Not_Allowed(405),
         Requested_Range_Not_Satisfiable(416),

@@ -6,9 +6,9 @@ package nippon.kawauso.chiraura.bbs;
 /**
  * @author chirauraNoSakusha
  */
-final class NotFoundRequest extends InvalidTargetRequest {
+final class ForbiddenRequest extends InvalidTargetRequest {
 
-    NotFoundRequest(final String target) {
+    ForbiddenRequest(final String target) {
         super(target);
     }
 
