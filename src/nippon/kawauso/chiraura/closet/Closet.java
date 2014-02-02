@@ -59,6 +59,17 @@ public interface Closet extends AutoCloseable {
     public <T extends Chunk> T getChunk(Chunk.Id<T> id, long timeout) throws InterruptedException;
 
     /**
+     * データ片を取得する。
+     * すぐ取得できない分は取得しない。
+     * @param <T> データ片の型
+     * @param id 取得するデータ片の識別子
+     * @return データ片。
+     *         取得できなかった場合は null
+     * @throws InterruptedException 割り込まれた場合
+     */
+    public <T extends Chunk> T getChunkImmediately(Chunk.Id<T> id) throws InterruptedException;
+
+    /**
      * データ片を追加する。
      * @param chunk 追加するデータ片
      * @param timeout 制限時間

@@ -531,6 +531,16 @@ public final class P2pCloset implements Closet {
     }
 
     @Override
+    public <T extends Chunk> T getChunkImmediately(final Chunk.Id<T> id) throws InterruptedException {
+        try {
+            return this.storage.read(id);
+        } catch (final IOException e) {
+            LOG.log(Level.WARNING, "異常発生。でも、無視します。", e);
+            return null;
+        }
+    }
+
+    @Override
     public boolean addChunk(final Chunk chunk, final long timeout) throws InterruptedException {
         AddCacheResult result;
         try {

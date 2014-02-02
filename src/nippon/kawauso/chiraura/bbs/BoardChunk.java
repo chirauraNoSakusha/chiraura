@@ -222,17 +222,17 @@ final class BoardChunk extends SkeletalChunk implements Mountain, Content {
      * スレ概要を日時順に保存するための、異なるスレでは重複しない日時。
      * @author chirauraNoSakusha
      */
-    private static final class EntryDate implements Comparable<EntryDate> {
+    private static final class UniqueDate implements Comparable<UniqueDate> {
         private final long date;
         private final long thread;
 
-        private EntryDate(final long date, final long thread) {
+        private UniqueDate(final long date, final long thread) {
             this.date = date;
             this.thread = thread;
         }
 
         @Override
-        public int compareTo(final EntryDate o) {
+        public int compareTo(final UniqueDate o) {
             if (this.date < o.date) {
                 return -1;
             } else if (this.date > o.date) {
@@ -259,10 +259,10 @@ final class BoardChunk extends SkeletalChunk implements Mountain, Content {
         public boolean equals(final Object obj) {
             if (this == obj) {
                 return true;
-            } else if (!(obj instanceof EntryDate)) {
+            } else if (!(obj instanceof UniqueDate)) {
                 return false;
             }
-            final EntryDate other = (EntryDate) obj;
+            final UniqueDate other = (UniqueDate) obj;
             return this.date == other.date && this.thread == other.thread;
         }
     }
@@ -275,7 +275,7 @@ final class BoardChunk extends SkeletalChunk implements Mountain, Content {
 
     private final Id id;
     private final Map<Long, Entry> threadToEntry;
-    private final NavigableMap<EntryDate, Entry> dateToEntry;
+    private final NavigableMap<UniqueDate, Entry> dateToEntry;
 
     private int entrySize;
 
@@ -284,7 +284,7 @@ final class BoardChunk extends SkeletalChunk implements Mountain, Content {
     private boolean notHashed;
     private HashValue hashValue;
 
-    private BoardChunk(final Id id, final Map<Long, Entry> threadToEntry, final NavigableMap<EntryDate, Entry> dateToEntry, final int entrySize,
+    private BoardChunk(final Id id, final Map<Long, Entry> threadToEntry, final NavigableMap<UniqueDate, Entry> dateToEntry, final int entrySize,
             final long updateDate, final boolean notHashed, final HashValue hashValue) {
         if (id == null) {
             throw new IllegalArgumentException("Null id.");
@@ -303,7 +303,7 @@ final class BoardChunk extends SkeletalChunk implements Mountain, Content {
     }
 
     private BoardChunk(final Id id) {
-        this(id, new HashMap<Long, Entry>(), new TreeMap<EntryDate, Entry>(), 0, System.currentTimeMillis(), true, null);
+        this(id, new HashMap<Long, Entry>(), new TreeMap<UniqueDate, Entry>(), 0, System.currentTimeMillis(), true, null);
     }
 
     BoardChunk(final String boardName) {
@@ -351,7 +351,11 @@ final class BoardChunk extends SkeletalChunk implements Mountain, Content {
 
     @Override
     public List<Entry> getDiffsAfter(final long date) {
-        return new ArrayList<>(this.dateToEntry.tailMap(new EntryDate(date, 0), false).values());
+        return new ArrayList<>(this.dateToEntry.tailMap(new UniqueDate(date, 0), false).values());
+    }
+
+    Entry getEntry(final long thread) {
+        return this.threadToEntry.get(thread);
     }
 
     List<Entry> getEntries() {
@@ -387,15 +391,15 @@ final class BoardChunk extends SkeletalChunk implements Mountain, Content {
         if (old == null) {
             // 新規。
             this.threadToEntry.put(entry.name, entry);
-            this.dateToEntry.put(new EntryDate(entry.date, entry.name), entry);
+            this.dateToEntry.put(new UniqueDate(entry.date, entry.name), entry);
             this.entrySize += entry.byteSize();
             this.notHashed = true;
             return true;
         } else if (old.date < entry.date || (old.date == entry.date && old.numOfComments < entry.numOfComments)) {
             // 更新。
             this.threadToEntry.put(entry.name, entry);
-            this.dateToEntry.remove(new EntryDate(old.date, old.name));
-            this.dateToEntry.put(new EntryDate(entry.date, entry.name), entry);
+            this.dateToEntry.remove(new UniqueDate(old.date, old.name));
+            this.dateToEntry.put(new UniqueDate(entry.date, entry.name), entry);
             this.entrySize += entry.byteSize() - old.byteSize();
             this.notHashed = true;
             return true;
@@ -408,6 +412,7 @@ final class BoardChunk extends SkeletalChunk implements Mountain, Content {
         while (ContentConstants.BYTE_SIZE_LIMIT < byteSize() || ENTRY_LIMIT < this.threadToEntry.size()) {
             final Entry entry = this.dateToEntry.pollFirstEntry().getValue();
             this.threadToEntry.remove(entry.name);
+            this.dateToEntry.remove(new UniqueDate(entry.date, entry.name));
             this.entrySize -= entry.byteSize();
             this.notHashed = true;
         }
@@ -478,7 +483,6 @@ final class BoardChunk extends SkeletalChunk implements Mountain, Content {
         final int prime = 31;
         int result = 1;
         result = prime * result + this.id.hashCode();
-        result = prime * result + this.dateToEntry.hashCode();
         result = prime * result + this.threadToEntry.hashCode();
         return result;
     }
@@ -491,7 +495,7 @@ final class BoardChunk extends SkeletalChunk implements Mountain, Content {
             return false;
         }
         final BoardChunk other = (BoardChunk) obj;
-        return baseEquals(other) && this.entrySize == other.entrySize && this.dateToEntry.equals(other.dateToEntry);
+        return baseEquals(other) && this.entrySize == other.entrySize && this.threadToEntry.equals(other.threadToEntry);
     }
 
     @Override
@@ -509,19 +513,28 @@ final class BoardChunk extends SkeletalChunk implements Mountain, Content {
     public String toString() {
         return (new StringBuilder(this.getClass().getSimpleName()))
                 .append('[').append(this.id.name)
-                .append(", numOfEntries=").append(Integer.toString(this.dateToEntry.size()))
+                .append(", numOfEntries=").append(Integer.toString(this.threadToEntry.size()))
                 .append(']').toString();
     }
 
     public static void main(final String[] args) throws InterruptedException {
         final String name = "test";
         final BoardChunk instance = new BoardChunk(name);
+
         System.out.println("[" + instance.toNetworkString() + "]");
-        instance.patch(new Entry(System.currentTimeMillis(), System.currentTimeMillis() / 1_000L, "ああああうえ", 1));
+
+        Entry entry = new Entry(System.currentTimeMillis(), System.currentTimeMillis() / 1_000L, "ああああうえ", 1);
+        System.out.println("add " + entry);
+        instance.patch(entry);
         System.out.println("[" + instance.toNetworkString() + "]");
+
         Thread.sleep(1_001L);
-        instance.patch(new Entry(System.currentTimeMillis(), System.currentTimeMillis() / 1_000L, "てすと", 1));
+
+        entry = new Entry(System.currentTimeMillis(), System.currentTimeMillis() / 1_000L, "てすと", 1);
+        System.out.println("add " + entry);
+        instance.patch(entry);
         System.out.println("[" + instance.toNetworkString() + "]");
+
         System.out.println("[" + instance + "]");
     }
 

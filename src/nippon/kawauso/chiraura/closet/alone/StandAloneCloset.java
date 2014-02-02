@@ -82,6 +82,19 @@ public final class StandAloneCloset implements Closet {
     }
 
     @Override
+    public <T extends Chunk> T getChunkImmediately(final Chunk.Id<T> id) throws InterruptedException {
+        try {
+            return this.storage.read(id);
+        } catch (final MyRuleException e) {
+            LOG.log(Level.WARNING, id + "が壊れています", e);
+            return null;
+        } catch (final IOException e) {
+            LOG.log(Level.WARNING, "異常発生", e);
+            return null;
+        }
+    }
+
+    @Override
     public boolean addChunk(final Chunk chunk, final long timeout) throws InterruptedException {
         this.storage.lock(chunk.getId());
         try {

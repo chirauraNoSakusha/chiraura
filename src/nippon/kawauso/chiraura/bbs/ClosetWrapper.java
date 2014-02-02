@@ -3,9 +3,6 @@
  */
 package nippon.kawauso.chiraura.bbs;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -25,56 +22,6 @@ final class ClosetWrapper {
 
     private final Closet base;
 
-    /*
-     * 以下の ThreadKey, ThreadInfo とそれを利用する numOfCommentsCache は
-     * スレが埋まった後に、それを板に反映するためだけにある。
-     */
-    private static final class ThreadKey {
-        private final String board;
-        private final long name;
-
-        private ThreadKey(final String board, final long name) {
-            if (board == null) {
-                throw new IllegalArgumentException("Null name.");
-            }
-            this.board = board;
-            this.name = name;
-        }
-
-        @Override
-        public int hashCode() {
-            final int prime = 31;
-            int result = 1;
-            result = prime * result + this.board.hashCode();
-            result = prime * result + (int) (this.name ^ (this.name >>> 32));
-            return result;
-        }
-
-        @Override
-        public boolean equals(final Object obj) {
-            if (this == obj) {
-                return true;
-            } else if (!(obj instanceof ThreadKey)) {
-                return false;
-            }
-            final ThreadKey other = (ThreadKey) obj;
-            return this.board.equals(other.board) && this.name == other.name;
-        }
-    }
-
-    private static final class ThreadInfo {
-        private final int numOfComments;
-        private final long date;
-
-        private ThreadInfo(final int numOfComments, final long date) {
-            this.numOfComments = numOfComments;
-            this.date = date;
-        }
-    }
-
-    private static final int CACHE_CAPACITY = 10_000;
-    private final Map<ThreadKey, ThreadInfo> numOfCommentsCache;
-
     ClosetWrapper(final Closet base) {
         if (base == null) {
             throw new IllegalArgumentException("Null base.");
@@ -82,15 +29,6 @@ final class ClosetWrapper {
 
         this.base = base;
         Register.init(this.base);
-
-        @SuppressWarnings("serial")
-        final Map<ThreadKey, ThreadInfo> map = new LinkedHashMap<ThreadKey, ThreadInfo>() {
-            @Override
-            protected boolean removeEldestEntry(final Map.Entry<ThreadKey, ThreadInfo> eldest) {
-                return this.size() > CACHE_CAPACITY;
-            }
-        };
-        this.numOfCommentsCache = Collections.synchronizedMap(map);
     }
 
     /**
@@ -112,10 +50,6 @@ final class ClosetWrapper {
         final Chunk.Id<BoardChunk> id = new BoardChunk.Id(boardName);
         final BoardChunk board = this.base.getChunk(id, timeout);
         if (board != null) {
-            final long date = System.currentTimeMillis();
-            for (final BoardChunk.Entry entry : board.getEntries()) {
-                this.numOfCommentsCache.put(new ThreadKey(boardName, entry.getName()), new ThreadInfo(entry.getNumOfComments(), date));
-            }
             return board;
         }
 
@@ -129,8 +63,6 @@ final class ClosetWrapper {
         }
     }
 
-    // void updateBoard(final String boardName, final long threadName, final String title, final int numOfComments, final long date, final long timeout)
-    // throws InterruptedException {
     void updateBoard(final ThreadChunk thread, final long timeout)
             throws InterruptedException {
         final long start = System.currentTimeMillis();
@@ -147,21 +79,10 @@ final class ClosetWrapper {
             final Closet.PatchOrAddResult<BoardChunk> result2 = this.base.patchOrAddChunk(board, start + timeout - System.currentTimeMillis());
             if (result2.isGivenUp()) {
                 LOG.log(Level.WARNING, "{0} による板 {1} の作成を諦めました。", new Object[] { boardEntry, boardId });
-            } else {
-                // this.numOfCommentsCache.put(new ThreadKey(thread.getBoard(), thread.getName()), new ThreadInfo(numOfComments, System.currentTimeMillis()));
-                final long date = System.currentTimeMillis();
-                for (final BoardChunk.Entry entry : result2.getChunk().getEntries()) {
-                    this.numOfCommentsCache.put(new ThreadKey(thread.getBoard(), entry.getName()), new ThreadInfo(entry.getNumOfComments(), date));
-                }
             }
         } else {
             if (!result1.isSuccess()) {
                 LOG.log(Level.WARNING, "{0} による板 {1} の更新に失敗しました。", new Object[] { boardEntry, boardId });
-            }
-            // this.numOfCommentsCache.put(new ThreadKey(thread.getBoard(), thread.getName()), new ThreadInfo(numOfComments, System.currentTimeMillis()));
-            final long date = System.currentTimeMillis();
-            for (final BoardChunk.Entry entry : result1.getChunk().getEntries()) {
-                this.numOfCommentsCache.put(new ThreadKey(thread.getBoard(), entry.getName()), new ThreadInfo(entry.getNumOfComments(), date));
             }
         }
     }
@@ -186,12 +107,14 @@ final class ClosetWrapper {
         }
 
         if (thread.isFull()) {
-            final ThreadInfo info = this.numOfCommentsCache.get(new ThreadKey(boardName, threadName));
-            if (info != null && info.numOfComments < thread.getNumOfComments() + 1 && thread.getDate() < info.date) {
-                // 埋まってるのに板に反映されていない。
-                // updateBoard(boardName, threadName, thread.getTitle(), thread.getNumOfComments(), thread.getDate(), start + timeout -
-                // System.currentTimeMillis());
-                updateBoard(thread, start + timeout - System.currentTimeMillis());
+            final Chunk.Id<BoardChunk> boardId = new BoardChunk.Id(boardName);
+            final BoardChunk board = this.base.getChunkImmediately(boardId);
+            if (board != null && thread.getDate() <= board.getDate()) {
+                final BoardChunk.Entry entry = board.getEntry(thread.getName());
+                if (entry != null && entry.getNumOfComments() < thread.getNumOfComments() + 1) {
+                    // 埋まってるのに板に反映されていない。
+                    updateBoard(thread, start + timeout - System.currentTimeMillis());
+                }
             }
         }
 
@@ -244,7 +167,6 @@ final class ClosetWrapper {
         }
 
         // 板を更新。
-        // updateBoard(boardName, threadName, threadTitle, 1, thread.getDate(), start + timeout - System.currentTimeMillis());
         updateBoard(thread, start + timeout - System.currentTimeMillis());
 
         return true;
@@ -279,12 +201,28 @@ final class ClosetWrapper {
             return false;
         }
 
-        // 板の更新。
+        /*
+         * 板の更新。
+         * TODO 以下の場合だけ更新しなくする予定。
+         * - sage、かつ、時間が経っていない。
+         * - sage、かつ、板に登録してある書き込み数が分からない。
+         * - sage、かつ、何らかの手違いにより、板に登録してある書き込み数が変わらない。
+         */
+        final ThreadChunk thread = result.getChunk();
         if (!mail.equals(NOT_UPDATE_MAIL)) {
-            final ThreadChunk thread = result.getChunk();
-            // updateBoard(boardName, threadName, thread.getTitle(), thread.getNumOfComments(), thread.getDate(), start + timeout - System.currentTimeMillis());
             updateBoard(thread, start + timeout - System.currentTimeMillis());
+        } else if (thread.isFull()) {
+            final Chunk.Id<BoardChunk> boardId = new BoardChunk.Id(boardName);
+            final BoardChunk board = this.base.getChunkImmediately(boardId);
+            if (board != null && thread.getDate() <= board.getDate()) {
+                final BoardChunk.Entry entry = board.getEntry(thread.getName());
+                if (entry != null && entry.getNumOfComments() < thread.getNumOfComments() + 1) {
+                    // 埋まってるのに板に反映されていない。
+                    updateBoard(thread, start + timeout - System.currentTimeMillis());
+                }
+            }
         }
+
         return true;
     }
 

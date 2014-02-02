@@ -69,6 +69,12 @@ public final class BasicBbsTest {
                 return (T) this.chunks.get(id);
             }
 
+            @SuppressWarnings("unchecked")
+            @Override
+            public synchronized <T extends Chunk> T getChunkImmediately(final Chunk.Id<T> id) {
+                return (T) this.chunks.get(id);
+            }
+
             @Override
             public synchronized boolean addChunk(final Chunk chunk, final long timeout) {
                 if (this.chunks.containsKey(chunk.getId())) {
