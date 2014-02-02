@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.net.ProtocolException;
 import java.nio.charset.Charset;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,7 +28,9 @@ final class HttpRequest {
         private final String target;
         private final String version;
 
-        private Header(final Http.Method method, final String target, final String version) {
+        private final Map<String, String> queries;
+
+        private Header(final Http.Method method, final String target, final String version, final Map<String, String> queries) {
             if (method == null) {
                 throw new IllegalArgumentException("Null method.");
             } else if (target == null) {
@@ -39,6 +42,7 @@ final class HttpRequest {
             this.method = method;
             this.target = target;
             this.version = version;
+            this.queries = queries;
         }
 
         public static Header decode(final String line) throws ProtocolException {
@@ -56,9 +60,38 @@ final class HttpRequest {
                 throw new ProtocolException("Invalid method ( " + tokens[0] + " ).");
             }
 
-            return new Header(method, tokens[1], tokens[2]);
+            String target;
+            Map<String, String> queries;
+            final int sepPos = tokens[1].indexOf('?');
+            if (sepPos < 0) {
+                target = tokens[1];
+                queries = new HashMap<>();
+            } else {
+                target = tokens[1].substring(0, sepPos);
+                queries = decodeQueries(tokens[1].substring(sepPos + 1));
+            }
+
+            return new Header(method, target, tokens[2], queries);
         }
 
+        private static Map<String, String> decodeQueries(final String str) {
+            final Map<String, String> queries = new HashMap<>();
+            final String[] tokens = str.split("&");
+            for (final String token : tokens) {
+                final Pair<String, String> query = decodeQuery(token);
+                queries.put(query.getFirst(), query.getSecond());
+            }
+            return queries;
+        }
+
+        private static Pair<String, String> decodeQuery(final String str) {
+            final int sepPos = str.indexOf('=');
+            if (sepPos < 0) {
+                return new Pair<>(str, "");
+            } else {
+                return new Pair<>(str.substring(0, sepPos), str.substring(sepPos + 1));
+            }
+        }
     }
 
     private static final Logger LOG = Logger.getLogger(HttpRequest.class.getName());
@@ -89,6 +122,10 @@ final class HttpRequest {
 
     String getVersion() {
         return this.header.version;
+    }
+
+    Map<String, String> getQueries() {
+        return this.header.queries;
     }
 
     Map<Http.Field, String> getFields() {
@@ -149,8 +186,22 @@ final class HttpRequest {
     }
 
     private StringBuilder headerToNetworkString(final String separator) {
-        final StringBuilder buff = (new StringBuilder(this.header.method.name())).append(" ").append(this.header.target).append(" ")
-                .append(this.header.version).append(separator);
+        final StringBuilder buff = (new StringBuilder(this.header.method.name())).append(" ").append(this.header.target);
+        boolean hasQuery = false;
+        for (final Map.Entry<String, String> entry : this.header.queries.entrySet()) {
+            if (!hasQuery) {
+                buff.append('?');
+                hasQuery = true;
+            } else {
+                buff.append('&');
+            }
+            buff.append(entry.getKey());
+            if (entry.getValue() != null && entry.getValue().length() > 0) {
+                buff.append('=').append(entry.getValue());
+            }
+        }
+
+        buff.append(" ").append(this.header.version).append(separator);
         for (final Map.Entry<Http.Field, String> entry : this.fields.entrySet()) {
             buff.append(entry.getKey().toNetworkString()).append(": ").append(entry.getValue()).append(separator);
         }
@@ -178,7 +229,7 @@ final class HttpRequest {
     }
 
     public static void main(final String[] args) throws MyRuleException, IOException {
-        final String sample = "POST /test/bbs.cgi HTTP/1.0"
+        final String sample = "POST /test/bbs.cgi?aho=1&kuso=2 HTTP/1.0"
                 + Http.SEPARATOR
                 + "MIME-Version: 1.0"
                 + Http.SEPARATOR
@@ -196,7 +247,7 @@ final class HttpRequest {
                 + "bbs=namazuplus&subject=%82%C4%82%B7%82%C6%83X%83%8C&time=1230144297&FROM=%96%BC%96%B3%82%B5&mail=sage&MESSAGE=%82%C4%82%B7%82%C6&submit=%90V%8BK%83X%83%8C%83b%83h%8D%EC%90%AC";
         try (InputStreamWrapper input = new InputStreamWrapper(new ByteArrayInputStream(sample.getBytes()), Charset.forName("US-ASCII"), Http.SEPARATOR, 1024)) {
             final HttpRequest request = fromStream(input);
-            System.out.println("[" + request.toNetworkString() + "]");
+            System.out.println(request.getTarget() + "[" + request.toNetworkString() + "]");
         }
     }
 
