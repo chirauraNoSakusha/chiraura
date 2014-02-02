@@ -83,7 +83,8 @@ public final class A implements AutoCloseable {
                         .setActiveAddressDuration(environment.getActiveAddressDuration())
                 );
 
-        this.bbs = new BasicBbs(environment.getBbsPort(), environment.getBbsConnectionTimeout(), environment.getBbsInternalTimeout(), this.closet);
+        this.bbs = new BasicBbs(environment.getBbsPort(), environment.getBbsConnectionTimeout(), environment.getBbsInternalTimeout(), this.closet,
+                environment.getBbsUpdateThreshold());
 
         this.gui = (environment.getGui() ? new TrayGui(environment.getRootPath(), environment.getBbsPort()) : null);
 

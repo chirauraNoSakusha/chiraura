@@ -15,50 +15,50 @@ import org.junit.Test;
 /**
  * @author chirauraNoSakusha
  */
-public final class BoardChunkTest extends BytesConvertibleTest<BoardChunk> {
+public final class SimpleBoardChunkTest extends BytesConvertibleTest<SimpleBoardChunk> {
 
     private final long start;
 
     /**
      * 初期化。
      */
-    public BoardChunkTest() {
+    public SimpleBoardChunkTest() {
         this.start = System.currentTimeMillis();
     }
 
     @Override
-    protected BoardChunk[] getInstances() {
-        final List<BoardChunk> list = new ArrayList<>();
+    protected SimpleBoardChunk[] getInstances() {
+        final List<SimpleBoardChunk> list = new ArrayList<>();
         {
-            final BoardChunk instance = new BoardChunk("aaaaa");
-            instance.patch(new BoardChunk.Entry(this.start, this.start / 1_000L, "ああああうえ", 1));
-            instance.patch(new BoardChunk.Entry(this.start + 1, this.start + 1 / 1_000L, "てすと", 1));
+            final SimpleBoardChunk instance = new SimpleBoardChunk("aaaaa");
+            instance.patch(new SimpleBoardChunk.Entry(this.start, this.start / 1_000L, "ああああうえ", 1));
+            instance.patch(new SimpleBoardChunk.Entry(this.start + 1, this.start + 1 / 1_000L, "てすと", 1));
             list.add(instance);
         }
         {
-            final BoardChunk instance = new BoardChunk("bbbbb");
+            final SimpleBoardChunk instance = new SimpleBoardChunk("bbbbb");
             list.add(instance);
         }
         {
-            final BoardChunk instance = new BoardChunk("ccccc");
-            instance.patch(new BoardChunk.Entry(this.start + 5, this.start + 5 / 1_000L, "ああああうえ", 1));
+            final SimpleBoardChunk instance = new SimpleBoardChunk("ccccc");
+            instance.patch(new SimpleBoardChunk.Entry(this.start + 5, this.start + 5 / 1_000L, "ああああうえ", 1));
             list.add(instance);
         }
-        return list.toArray(new BoardChunk[0]);
+        return list.toArray(new SimpleBoardChunk[0]);
     }
 
     @Override
-    protected BoardChunk getInstance(final int seed) {
-        final BoardChunk instance = new BoardChunk(Integer.toString(seed));
+    protected SimpleBoardChunk getInstance(final int seed) {
+        final SimpleBoardChunk instance = new SimpleBoardChunk(Integer.toString(seed));
         for (int i = 0; i < 5; i++) {
-            instance.patch(new BoardChunk.Entry(this.start + seed + i, this.start / 1_000L + seed + i, Integer.toString(seed + i), i));
+            instance.patch(new SimpleBoardChunk.Entry(this.start + seed + i, this.start / 1_000L + seed + i, Integer.toString(seed + i), i));
         }
         return instance;
     }
 
     @Override
-    protected BytesConvertible.Parser<BoardChunk> getParser() {
-        return BoardChunk.getParser();
+    protected BytesConvertible.Parser<SimpleBoardChunk> getParser() {
+        return SimpleBoardChunk.getParser();
     }
 
     @Override
@@ -72,11 +72,11 @@ public final class BoardChunkTest extends BytesConvertibleTest<BoardChunk> {
     @Test
     public void testLimit() {
         final String board = "test";
-        final BoardChunk instance = new BoardChunk(board);
-        final List<BoardChunk.Entry> pool = new ArrayList<>();
+        final SimpleBoardChunk instance = new SimpleBoardChunk(board);
+        final List<SimpleBoardChunk.Entry> pool = new ArrayList<>();
         for (int i = 0;; i++) {
             final int beforeSize = instance.byteSize();
-            final BoardChunk.Entry entry = new BoardChunk.Entry(this.start + i, this.start / 1_000L + i, Integer.toString(i), 1);
+            final SimpleBoardChunk.Entry entry = new SimpleBoardChunk.Entry(this.start + i, this.start / 1_000L + i, Integer.toString(i), 1);
             pool.add(entry);
             Assert.assertTrue(instance.patch(entry));
             final int afterSize = instance.byteSize();
@@ -85,7 +85,7 @@ public final class BoardChunkTest extends BytesConvertibleTest<BoardChunk> {
                 break;
             }
         }
-        final List<BoardChunk.Entry> entries = instance.getEntries();
+        final List<SimpleBoardChunk.Entry> entries = instance.getEntries();
         Assert.assertEquals(pool.get(pool.size() - 1), entries.get(entries.size() - 1));
         Assert.assertNotEquals(pool.get(0), entries.get(0));
         int offset = 1;

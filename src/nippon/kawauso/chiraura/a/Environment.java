@@ -102,6 +102,7 @@ final class Environment {
     private final int bbsPort;
     private final long bbsConnectionTimeout;
     private final long bbsInternalTimeout;
+    private final long bbsUpdateThreshold;
 
     private final File selfFile;
     private final boolean gui;
@@ -218,6 +219,7 @@ final class Environment {
         this.bbsPort = Integer.parseInt(option.get(Option.Item.bbsPort));
         this.bbsConnectionTimeout = getDefaultLong(option, Option.Item.bbsConnectionTimeout);
         this.bbsInternalTimeout = getLargerLong(option, Option.Item.bbsInternalTimeout);
+        this.bbsUpdateThreshold = getLargerLong(option, Option.Item.bbsUpdateThreshold);
 
         this.selfFile = loadFile(new File(this.root, "self.txt"));
         this.gui = Boolean.parseBoolean(option.get(Option.Item.gui));
@@ -390,6 +392,10 @@ final class Environment {
 
     long getBbsInternalTimeout() {
         return this.bbsInternalTimeout;
+    }
+
+    long getBbsUpdateThreshold() {
+        return this.bbsUpdateThreshold;
     }
 
     boolean getGui() {

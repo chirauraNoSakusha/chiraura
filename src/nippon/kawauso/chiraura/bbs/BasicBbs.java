@@ -24,14 +24,17 @@ public final class BasicBbs implements Bbs {
      * @param connectionTimeout クライアントからの通信を待つ時間 (ミリ秒)
      * @param internalTimeout 内部動作を待つ時間 (ミリ秒)
      * @param closet 四次元押し入れ
+     * @param updateThreshold 板更新自粛期間
      */
-    public BasicBbs(final int port, final long connectionTimeout, final long internalTimeout, final Closet closet) {
+    public BasicBbs(final int port, final long connectionTimeout, final long internalTimeout, final Closet closet, final long updateThreshold) {
         if (!PortFunctions.isValid(port)) {
             throw new IllegalArgumentException("Invalid port ( " + port + " ).");
         } else if (connectionTimeout < 0) {
-            throw new IllegalArgumentException("Invalid connection timeout ( " + connectionTimeout + " ).");
+            throw new IllegalArgumentException("Negative connection timeout ( " + connectionTimeout + " ).");
         } else if (internalTimeout < 0) {
-            throw new IllegalArgumentException("Invalid internal timeout ( " + internalTimeout + " ).");
+            throw new IllegalArgumentException("Negative internal timeout ( " + internalTimeout + " ).");
+        } else if (updateThreshold < 0) {
+            throw new IllegalArgumentException("Negative update threshold ( " + updateThreshold + " ).");
         } else if (closet == null) {
             throw new IllegalArgumentException("Null closet.");
         }
@@ -39,7 +42,7 @@ public final class BasicBbs implements Bbs {
         this.port = port;
         this.connectionTimeout = connectionTimeout;
         this.internalTimeout = internalTimeout;
-        this.closet = new ClosetWrapper(closet);
+        this.closet = new ClosetWrapper(closet, updateThreshold);
     }
 
     @Override

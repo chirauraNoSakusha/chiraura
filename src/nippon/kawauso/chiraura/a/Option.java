@@ -68,6 +68,7 @@ final class Option {
         bbsPort(Integer.toString(22_266), "BBS の待機ポート番号"),
         bbsConnectionTimeout(Long.toString(10 * 60 * 1_000L) /* 10 分 */, "BBS の非通信接続を切断するまでの時間 (ミリ秒)"),
         bbsInternalTimeout(Long.toString(3 * 60 * 1_000L) /* 3 分 */, "BBS の応答を諦めるまでの時間 (ミリ秒)"),
+        bbsUpdateThreshold(Long.toString(10 * 60 * 1_000L) /* 10 分 */, "BBS の更新を自粛する期間 (ミリ秒)"),
         gui(Boolean.toString(!Global.isDebug()), "GUI を使用するや否や"),
 
         ;

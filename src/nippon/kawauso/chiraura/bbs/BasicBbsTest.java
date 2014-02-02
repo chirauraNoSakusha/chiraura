@@ -31,6 +31,7 @@ public final class BasicBbsTest {
     private static final InetSocketAddress server = new InetSocketAddress("localhost", 11111);
     private static final long clientTimeout = 30_000L;
     private static final long workTimeout = 10_000L;
+    private static final long updateThreshold = 5 * 60_000L;
 
     private final Closet closet;
     private final ExecutorService executor;
@@ -195,8 +196,8 @@ public final class BasicBbsTest {
             final String threadTitle = "くそスレ";
             final ThreadChunk thread = new ThreadChunk(this.boardName, threadName, threadTitle, "創造神", "age", this.start, 0, "崇めよ");
             this.initialThreads.add(thread);
-            final BoardChunk board = new BoardChunk(this.boardName);
-            board.patch(new BoardChunk.Entry(this.start, threadName, threadTitle, 1));
+            final BoardChunk board = new SimpleBoardChunk(this.boardName);
+            board.patch(new SimpleBoardChunk.Entry(this.start, threadName, threadTitle, 1));
             this.closet.addChunk(board, 100L);
             this.closet.addChunk(thread, 100L);
         }
@@ -210,7 +211,7 @@ public final class BasicBbsTest {
      */
     @Test
     public void testBoot() throws Exception {
-        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet);
+        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold);
 
         instance.start(this.executor);
         Thread.sleep(100L);
@@ -226,7 +227,7 @@ public final class BasicBbsTest {
      */
     @Test
     public void testGetExistBoard() throws Exception {
-        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet);
+        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold);
 
         instance.start(this.executor);
         Thread.sleep(100L);
@@ -246,7 +247,7 @@ public final class BasicBbsTest {
      */
     @Test
     public void testGetNewBoard() throws Exception {
-        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet);
+        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold);
 
         instance.start(this.executor);
         Thread.sleep(100L);
@@ -266,7 +267,7 @@ public final class BasicBbsTest {
      */
     @Test
     public void testGetExistTread() throws Exception {
-        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet);
+        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold);
 
         instance.start(this.executor);
         Thread.sleep(100L);
@@ -289,7 +290,7 @@ public final class BasicBbsTest {
      */
     @Test
     public void testGetNotExistTread() throws Exception {
-        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet);
+        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold);
 
         instance.start(this.executor);
         Thread.sleep(100L);
@@ -308,7 +309,7 @@ public final class BasicBbsTest {
      */
     @Test
     public void testAddThread() throws Exception {
-        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet);
+        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold);
 
         instance.start(this.executor);
         Thread.sleep(100L);
@@ -336,7 +337,7 @@ public final class BasicBbsTest {
      */
     @Test
     public void testAddComment() throws Exception {
-        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet);
+        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold);
 
         instance.start(this.executor);
         Thread.sleep(100L);
@@ -365,7 +366,7 @@ public final class BasicBbsTest {
      */
     // @Test
     public void testCommunication() throws Exception {
-        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet);
+        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold);
         instance.start(this.executor);
         Thread.sleep(600_000L);
 
