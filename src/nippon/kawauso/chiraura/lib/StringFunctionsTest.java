@@ -29,7 +29,6 @@ public final class StringFunctionsTest {
     /**
      * 文字列幅の検査。
      */
-    
     @Test
     public void testGetWidth() {
         Assert.assertEquals(5, StringFunctions.getWidth("あsか"));
@@ -39,7 +38,6 @@ public final class StringFunctionsTest {
     /**
      * @throws MyRuleException 変換規約違反
      */
-    
     @Test
     public void testUrlDecode() throws MyRuleException {
         Assert.assertEquals("てすとスレ", StringFunctions.urlDecode("%82%C4%82%B7%82%C6%83X%83%8C", Charset.forName("Shift_JIS")));
@@ -52,7 +50,6 @@ public final class StringFunctionsTest {
     /**
      * @throws Exception 異常
      */
-    
     @Test
     public void testUrlEncoderPerformance() throws Exception {
         final int loop = 100_000;
