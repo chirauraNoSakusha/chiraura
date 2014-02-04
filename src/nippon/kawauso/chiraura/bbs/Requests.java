@@ -136,8 +136,8 @@ final class Requests {
         final String comment = entries.get(Post.Entry.MESSAGE);
 
         final long date = Long.parseLong(entries.get(Post.Entry.TIME));
-        if ((entries.get(Post.Entry.SUBMIT).equals(SUBMIT_LABEL_1) && entries.containsKey(Post.Entry.SUBJECT))
-                || (entries.get(Post.Entry.SUBMIT).equals(SUBMIT_LABEL_2) && entries.containsKey(Post.Entry.SUBJECT))) {
+        if ((entries.containsKey(Post.Entry.SUBJECT) && !entries.get(Post.Entry.SUBJECT).isEmpty()) // ギコナビは空の SUBJECT を送ってくるので、それへの対処。
+                && (entries.get(Post.Entry.SUBMIT).equals(SUBMIT_LABEL_1) || entries.get(Post.Entry.SUBMIT).equals(SUBMIT_LABEL_2))) {
             // スレ作成。
             // bbs=[板名]&subject=[スレのタイトル]&FROM=[名前]&mail=[メール]&MESSAGE=[本文]&submit=新規スレ作成&time=[投稿時間]
             // navi2ch 形式。

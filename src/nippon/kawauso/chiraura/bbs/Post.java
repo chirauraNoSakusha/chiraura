@@ -60,8 +60,15 @@ final class Post {
         }
 
         static Map<Entry, String> decodeEntries(final String line) throws ProtocolException {
+            final String str;
+            if (line.endsWith(Http.SEPARATOR)) {
+                // ギコナビが、なぜかコンテンツの末尾にCRLFを含めてくるので、応急処置。
+                str = line.substring(0, line.length() - Http.SEPARATOR.length());
+            } else {
+                str = line;
+            }
             final Map<Entry, String> entries = new EnumMap<>(Entry.class);
-            for (final String token : line.split("&")) {
+            for (final String token : str.split("&")) {
                 final Pair<Entry, String> entry = decode(token);
                 if (entry != null) {
                     entries.put(entry.getFirst(), entry.getSecond());
