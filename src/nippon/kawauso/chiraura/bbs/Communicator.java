@@ -101,7 +101,7 @@ final class Communicator implements Callable<Void> {
             LOG.log(Level.FINEST, "応答を送信: {0}", response);
 
             final String connectField = httpRequest.getFields().get(Http.Field.CONNECTION);
-            if (connectField != null && connectField.toLowerCase().equals("close")) {
+            if (connectField != null && connectField.toLowerCase().equals("close") || httpRequest.getVersion().equals("HTTP/1.0")) {
                 // 閉じ宣言されてたら即閉じ。
                 break;
             }
