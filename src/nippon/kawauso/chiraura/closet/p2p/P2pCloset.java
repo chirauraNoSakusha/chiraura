@@ -501,10 +501,14 @@ public final class P2pCloset implements Closet {
                 LOG.log(Level.WARNING, "異常発生。でも、無視します。", e);
                 return null;
             }
-            if (result.isGivenUp()) {
-                return null;
-            } else if (result.isNotFound()) {
-                return null;
+            if (result.isGivenUp() || result.isNotFound()) {
+                try {
+                    // 古いキャッシュで我慢。
+                    return getLocal(id);
+                } catch (final IOException e) {
+                    LOG.log(Level.WARNING, "異常発生。でも、無視します。", e);
+                    return null;
+                }
             } else {
                 @SuppressWarnings("unchecked")
                 final T chunk = (T) result.getChunk();
@@ -533,7 +537,7 @@ public final class P2pCloset implements Closet {
     @Override
     public <T extends Chunk> T getChunkImmediately(final Chunk.Id<T> id) throws InterruptedException {
         try {
-            return this.storage.read(id);
+            return getLocal(id);
         } catch (final IOException e) {
             LOG.log(Level.WARNING, "異常発生。でも、無視します。", e);
             return null;
