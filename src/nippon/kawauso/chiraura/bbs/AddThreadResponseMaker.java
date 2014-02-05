@@ -34,7 +34,7 @@ final class AddThreadResponseMaker {
             return new PostErrorResponse(e.getComment(), e.getComment());
         }
         if (result) {
-            return new PostResponse("書きこみました。", "スレッドを作成しました。");
+            return new PostTrueResponse("書きこみました。", "スレッドを作成しました。");
         } else {
             /*
              * 失敗原因を調べる。

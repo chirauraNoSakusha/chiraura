@@ -80,4 +80,20 @@ final class Post {
         }
     }
 
+    static enum Result {
+        TRUE,
+        FALSE,
+        ERROR,
+        CHECK,
+        COOKIE,
+
+        ;
+
+        @Override
+        public String toString() {
+            return this.name().toLowerCase();
+        }
+
+    }
+
 }

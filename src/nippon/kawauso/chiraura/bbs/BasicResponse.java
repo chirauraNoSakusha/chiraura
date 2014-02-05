@@ -65,6 +65,7 @@ abstract class BasicResponse implements Response {
                 .append('[').append(headerToNetworkString(System.lineSeparator()));
         if (this.content != null) {
             buff.append("...");
+            // buff.append(new String(this.content, Constants.CONTENT_CHARSET));
         }
         return buff.append(']').toString();
     }

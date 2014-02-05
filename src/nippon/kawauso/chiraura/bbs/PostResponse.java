@@ -11,7 +11,7 @@ import java.util.Map;
 /**
  * @author chirauraNoSakusha
  */
-class PostResponse extends BasicResponse {
+abstract class PostResponse extends BasicResponse {
 
     private static Map<Http.Field, String> getFields() {
         final Map<Http.Field, String> fields = new EnumMap<>(Http.Field.class);
@@ -19,9 +19,9 @@ class PostResponse extends BasicResponse {
         return fields;
     }
 
-    PostResponse(final String title, final String comment) {
+    PostResponse(final Post.Result result, final String title, final String comment) {
         super(Http.Status.OK, getFields(),
-                (new StringBuilder("<HTML>"))
+                (new StringBuilder("<html><!-- 2ch_X:")).append(result).append(" -->")
                         .append("<HEAD>")
                         .append("<TITLE>").append(title).append("</TITLE>")
                         .append("</HEAD>")
@@ -38,7 +38,7 @@ class PostResponse extends BasicResponse {
 
     public static void main(final String[] args) throws IOException {
         final ByteArrayOutputStream output = new ByteArrayOutputStream();
-        (new PostResponse("ばーか。", "死んでください。")).toStream(output);
+        (new PostResponse(Post.Result.FALSE, "ばーか。", "死んでください。") {}).toStream(output);
         System.out.println(new String(output.toByteArray(), Constants.CONTENT_CHARSET));
     }
 

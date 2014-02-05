@@ -33,7 +33,7 @@ final class AddCommentResponseMaker {
             return new PostErrorResponse(e.getComment(), e.getComment());
         }
         if (result) {
-            return new PostResponse("書きこみました。", "レスを追加しました。");
+            return new PostTrueResponse("書きこみました。", "レスを追加しました。");
         } else {
             /*
              * 書き込みが失敗した場合はその理由を調べる。
@@ -49,7 +49,7 @@ final class AddCommentResponseMaker {
                     return new InternalServerErrorResponse("ごめんなさい。");
                 }
             } else if (thread.isFull()) {
-                return new PostResponse("このスレッドには書き込めません。", "もういっぱいです。");
+                return new PostErrorResponse("このスレッドには書き込めません。", "もういっぱいです。");
             } else {
                 return new InternalServerErrorResponse("ごめんなさい。");
             }
