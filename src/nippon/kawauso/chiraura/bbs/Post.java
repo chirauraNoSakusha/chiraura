@@ -24,6 +24,9 @@ final class Post {
 
     private static final Charset CHARSET = Charset.forName("Shift_JIS");
 
+    static final String SUBMIT_LABEL_1 = "新規スレッド作成";
+    static final String SUBMIT_LABEL_2 = "書き込む";
+
     static enum Entry {
         BBS,
         SUBJECT,
@@ -49,11 +52,16 @@ final class Post {
                 return null;
             }
 
-            final String value;
+            final String str = token.substring(index + 1);
+            String value;
             try {
-                value = StringFunctions.urlDecode(token.substring(index + 1), CHARSET);
+                value = StringFunctions.urlDecode(str, CHARSET);
             } catch (final MyRuleException e) {
-                throw (ProtocolException) (new ProtocolException()).initCause(e);
+                if (entry == SUBMIT && (str.equals(SUBMIT_LABEL_1) || str.equals(SUBMIT_LABEL_2))) { // なぜかエンコードしないで送ってくるブラウザがある。
+                    value = str;
+                } else {
+                    throw (ProtocolException) (new ProtocolException()).initCause(e);
+                }
             }
 
             return new Pair<>(entry, value);

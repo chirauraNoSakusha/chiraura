@@ -31,9 +31,6 @@ final class Requests {
     private static final String POST_DIR = "test";
     private static final String POST_FILE = "bbs.cgi";
 
-    private static final String SUBMIT_LABEL_1 = "新規スレッド作成";
-    private static final String SUBMIT_LABEL_2 = "書き込む";
-
     static Request fromHttpRequest(final HttpRequest request) throws ProtocolException, IOException {
         if (request.getMethod() == Http.Method.GET) {
             return makeGetRequest(request.getTarget(), request.getFields());
@@ -115,7 +112,7 @@ final class Requests {
             return new BadHttpRequest("投稿の中身がありません。");
         }
 
-        final Map<Post.Entry, String> entries = Post.Entry.decodeEntries(new String(content));
+        final Map<Post.Entry, String> entries = Post.Entry.decodeEntries(new String(content, Constants.CONTENT_CHARSET));
 
         if (!entries.containsKey(Post.Entry.SUBMIT)) {
             return new PostErrorRequest("投稿指定がありません。", "投稿指定 ( " + Post.Entry.SUBMIT.name() + " ) がありません。");
@@ -137,13 +134,13 @@ final class Requests {
 
         final long date = Long.parseLong(entries.get(Post.Entry.TIME));
         if ((entries.containsKey(Post.Entry.SUBJECT) && !entries.get(Post.Entry.SUBJECT).isEmpty()) // ギコナビは空の SUBJECT を送ってくるので、それへの対処。
-                && (entries.get(Post.Entry.SUBMIT).equals(SUBMIT_LABEL_1) || entries.get(Post.Entry.SUBMIT).equals(SUBMIT_LABEL_2))) {
+                && (entries.get(Post.Entry.SUBMIT).equals(Post.SUBMIT_LABEL_1) || entries.get(Post.Entry.SUBMIT).equals(Post.SUBMIT_LABEL_2))) {
             // スレ作成。
             // bbs=[板名]&subject=[スレのタイトル]&FROM=[名前]&mail=[メール]&MESSAGE=[本文]&submit=新規スレ作成&time=[投稿時間]
             // navi2ch 形式。
             // bbs=[板名]&subject=[スレのタイトル]&FROM=[名前]&mail=[メール]&MESSAGE=[本文]&submit=書き込む&time=[投稿時間]
             return new AddThreadRequest(entries.get(Post.Entry.BBS), entries.get(Post.Entry.SUBJECT), author, mail, date, comment);
-        } else if (entries.get(Post.Entry.SUBMIT).equals(SUBMIT_LABEL_2)) {
+        } else if (entries.get(Post.Entry.SUBMIT).equals(Post.SUBMIT_LABEL_2)) {
             // 書き込み。
             // bbs=[板名]&key=[スレ名]&FROM=[名前]&mail=[メール]&MESSAGE=[本文]&submit=書き込む&time=[投稿時間]
             long thread;
