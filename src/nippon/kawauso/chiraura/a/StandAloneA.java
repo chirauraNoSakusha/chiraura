@@ -55,10 +55,10 @@ public final class StandAloneA implements AutoCloseable {
         try {
             this.stopper.await();
         } catch (final InterruptedException e) {
-            // 正常な終了信号。
+            LOG.log(Level.FINEST, "終了信号を受け取りました。");
         }
-        LOG.log(Level.FINEST, "終了処理に入ります。");
 
+        LOG.log(Level.FINEST, "終了処理に入ります。");
         this.environment.getExecutor().shutdownNow();
         try {
             if (!this.environment.getExecutor().awaitTermination(this.environment.getShutdownTimeout(), TimeUnit.MILLISECONDS)) {
@@ -82,55 +82,70 @@ public final class StandAloneA implements AutoCloseable {
      * @throws FileNotFoundException 指定の設定ファイルが無かった場合
      */
     public static void main(final String[] args) throws FileNotFoundException, IOException {
+        final CountDownLatch terminatorStopper = new CountDownLatch(1);
+
         ExecutorService executor = null;
+
         try {
-            final CountDownLatch terminatorStopper = new CountDownLatch(1);
-            try {
-                LoggingFunctions.startLogging();
+            LoggingFunctions.startLogging();
 
-                final Option option = new Option(args);
-                final Environment environment = new Environment(option);
-                environment.startLogging();
-                option.afterStartLogging();
+            final Option option = new Option(args);
 
-                LOG.log(Level.CONFIG, "以下の設定が使用されます: " + System.lineSeparator() + option.toCommandlineString());
+            if (Boolean.parseBoolean(option.get(Option.Item.help))) {
+                // ヘルプを表示して終わり。
+                System.out.println(Option.toHelpString());
+                return;
+            }
 
-                final StandAloneA instance = new StandAloneA(environment);
+            final Environment environment = new Environment(option);
+            environment.startLogging();
+            option.afterStartLogging();
 
-                Runtime.getRuntime().addShutdownHook(new Thread() {
-                    @Override
-                    public void run() {
-                        instance.stopper.countDown();
-                        try {
-                            if (!terminatorStopper.await(environment.getShutdownTimeout(), TimeUnit.MILLISECONDS)) {
-                                LOG.log(Level.SEVERE, "{0} ミリ秒以内に終処理が完了しませんでした。", environment.getShutdownTimeout());
-                            }
-                        } catch (final InterruptedException e) {
-                            // こんなところにまで終了信号が来るときは諦めて死ぬ。
-                            LOG.log(Level.SEVERE, "終処理が完了しませんでした。");
+            LOG.log(Level.CONFIG, "以下の設定が使用されます: " + System.lineSeparator() + option.toCommandlineString());
+
+            final StandAloneA instance = new StandAloneA(environment);
+
+            Runtime.getRuntime().addShutdownHook(new Thread() {
+                @Override
+                public void run() {
+                    instance.stopper.countDown();
+                    try {
+                        if (!terminatorStopper.await(environment.getShutdownTimeout(), TimeUnit.MILLISECONDS)) {
+                            LOG.log(Level.SEVERE, "{0} ミリ秒以内に終処理が完了しませんでした。", environment.getShutdownTimeout());
                         }
+                    } catch (final InterruptedException e) {
+                        // こんなところにまで終了信号が来るときは諦めて死ぬ。
+                        LOG.log(Level.SEVERE, "終処理が完了しませんでした。");
                     }
-                });
-
-                // 異常時の強制終了のために保存。
-                executor = environment.getExecutor();
-
-                instance.execute();
-
-                try {
-                    instance.close();
-                } catch (MyRuleException | InterruptedException | IOException e) {
-                    LOG.log(Level.SEVERE, "データの保管に失敗したかもしれません。", e);
                 }
-            } finally {
-                LogInitializer.reset();
-                terminatorStopper.countDown();
+            });
+
+            // 異常時の強制終了のために保存。
+            executor = environment.getExecutor();
+
+            instance.execute();
+
+            try {
+                instance.close();
+            } catch (MyRuleException | InterruptedException | IOException e) {
+                LOG.log(Level.SEVERE, "データの保管に失敗したかもしれません。", e);
             }
         } catch (final Throwable e) {
             LOG.log(Level.SEVERE, "予期せぬ異常が発生しました", e);
         } finally {
-            if (executor != null && !executor.isTerminated()) {
-                System.exit(1);
+            try {
+                if (executor != null && !executor.isTerminated()) {
+                    LOG.log(Level.SEVERE, "強制終了します。");
+                    System.exit(1);
+                } else {
+                    LogInitializer.reset();
+                }
+            } finally {
+                try {
+                    terminatorStopper.countDown();
+                } finally {
+                    LogInitializer.reset();
+                }
             }
         }
     }
