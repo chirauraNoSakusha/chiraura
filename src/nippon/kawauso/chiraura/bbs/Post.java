@@ -22,7 +22,7 @@ final class Post {
 
     private static final Logger LOG = Logger.getLogger(Post.class.getName());
 
-    private static final Charset CHARSET = Charset.forName("Shift_JIS");
+    static final Charset CHARSET = Charset.forName("Shift_JIS");
 
     static final String SUBMIT_LABEL_1 = "新規スレッド作成";
     static final String SUBMIT_LABEL_2 = "書き込む";

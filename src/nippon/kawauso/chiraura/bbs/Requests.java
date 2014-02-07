@@ -112,7 +112,7 @@ final class Requests {
             return new BadHttpRequest("投稿の中身がありません。");
         }
 
-        final Map<Post.Entry, String> entries = Post.Entry.decodeEntries(new String(content, Constants.CONTENT_CHARSET));
+        final Map<Post.Entry, String> entries = Post.Entry.decodeEntries(new String(content, Post.CHARSET));
 
         if (!entries.containsKey(Post.Entry.SUBMIT)) {
             return new PostErrorRequest("投稿指定がありません。", "投稿指定 ( " + Post.Entry.SUBMIT.name() + " ) がありません。");
