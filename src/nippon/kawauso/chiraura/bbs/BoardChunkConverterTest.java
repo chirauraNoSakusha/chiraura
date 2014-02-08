@@ -40,7 +40,7 @@ public class BoardChunkConverterTest {
         for (int i = 0; i < nBoard; i++) {
             final SimpleBoardChunk board = new SimpleBoardChunk("" + i);
             for (int j = 0; j < nEntry; j++) {
-                board.patch(new SimpleBoardChunk.Entry(i * nEntry + j, i * nEntry + j, "" + (i * nEntry + j), j));
+                board.patch(new SimpleBoardChunk.Entry(i * nEntry + j, i * nEntry + j + 1, "" + (i * nEntry + j + 2), j + 3));
             }
             storage.write(board);
         }
@@ -60,9 +60,9 @@ public class BoardChunkConverterTest {
             final List<OrderingBoardChunk.Entry> entries = board.getEntries();
             Assert.assertEquals(nEntry, entries.size());
             for (int j = 0; j < nEntry; j++) {
-                Assert.assertEquals(entries.get(j).getName(), i * nEntry + j);
-                Assert.assertEquals(entries.get(j).getTitle(), "" + (i * nEntry + j));
-                Assert.assertEquals(entries.get(j).getNumOfComments(), j);
+                Assert.assertEquals(entries.get(j).getName(), i * nEntry + j + 1);
+                Assert.assertEquals(entries.get(j).getTitle(), "" + (i * nEntry + j + 2));
+                Assert.assertEquals(entries.get(j).getNumOfComments(), j + 3);
             }
         }
 
@@ -80,9 +80,9 @@ public class BoardChunkConverterTest {
             final List<OrderingBoardChunk.Entry> entries = board.getEntries();
             Assert.assertEquals(nEntry, entries.size());
             for (int j = 0; j < nEntry; j++) {
-                Assert.assertEquals(entries.get(j).getName(), i * nEntry + j);
-                Assert.assertEquals(entries.get(j).getTitle(), "" + (i * nEntry + j));
-                Assert.assertEquals(entries.get(j).getNumOfComments(), j);
+                Assert.assertEquals(entries.get(j).getName(), i * nEntry + j + 1);
+                Assert.assertEquals(entries.get(j).getTitle(), "" + (i * nEntry + j + 2));
+                Assert.assertEquals(entries.get(j).getNumOfComments(), j + 3);
             }
         }
     }
