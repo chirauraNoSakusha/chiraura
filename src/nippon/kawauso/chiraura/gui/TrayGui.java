@@ -134,14 +134,17 @@ public final class TrayGui implements Gui {
     private synchronized String getPeerInfoString() {
         final StringBuilder buff = new StringBuilder();
         final InetSocketAddress curSelf = getSelf();
+        if (this.newProtocolWarning != null) {
+            buff.append(this.newProtocolWarning).append(", ").append(System.lineSeparator());
+        }
         if (this.jceError != null) {
-            buff.append("JCEの制限が解除されていないようです, ").append(System.lineSeparator());
+            buff.append(this.jceError).append(", ").append(System.lineSeparator());
         }
         if (this.serverError != null) {
-            buff.append("サーバーを起動できません, ").append(System.lineSeparator());
+            buff.append(this.serverError).append(", ").append(System.lineSeparator());
         } else if (curSelf == null) {
             if (this.closePortWarning != null) {
-                buff.append("ポートが開いていないかもしれません, ").append(System.lineSeparator());
+                buff.append(this.closePortWarning).append(", ").append(System.lineSeparator());
             } else {
                 buff.append("ぼっち, ").append(System.lineSeparator());
             }
@@ -323,7 +326,7 @@ public final class TrayGui implements Gui {
 
     @Override
     public void displayNewProtocolWarning(final long version, final long newVersion) {
-        setNewProtocolWarning("このバージョン(動作規約第" + Long.toString(version) + "版)より新しいバージョン(第" + Long.toString(newVersion) + "版)が出ているようです");
+        setNewProtocolWarning("これ(動作規約第" + Long.toString(version) + "版)より新しいバージョン(第" + Long.toString(newVersion) + "版)が出ているようです");
         printWarnings();
     }
 
