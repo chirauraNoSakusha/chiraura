@@ -192,8 +192,15 @@ final class Acceptor implements Callable<Void> {
             throw new MyRuleException("Invalid destination id.");
         }
 
+        final InetSocketAddress destination = new InetSocketAddress(this.acceptedConnection.getSocket().getInetAddress(), destinationPort);
+
         if (destinationVersion != this.version) {
             // 動作規約の版だけが合わない。
+
+            // さよなら (二言目への相槌) を送信。
+            final KeyPair keyPair = this.keyManager.getPublicKeyPair();
+            StartingProtocol.sendSecondReply(this.transceiver, output, communicationKey, this.id, watchword, keyPair.getPublic(), this.version, destination);
+
             if (this.version < destinationVersion) {
                 ConcurrentFunctions.completePut(new NewProtocolWarning(this.version, destinationVersion), this.messengerReportSink);
             } else {
@@ -205,7 +212,6 @@ final class Acceptor implements Callable<Void> {
         }
 
         // ポート検査。
-        final InetSocketAddress destination = new InetSocketAddress(this.acceptedConnection.getSocket().getInetAddress(), destinationPort);
         if (portCheck(destination, destinationId)) {
             // 二言目への相槌を送信。
             final KeyPair keyPair = this.keyManager.getPublicKeyPair();
