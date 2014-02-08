@@ -6,6 +6,7 @@ package nippon.kawauso.chiraura.bbs;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -133,12 +134,18 @@ final class PostFunctions {
      * 書き込んだ人の名前を整形する。
      * @param author 元の名前
      * @param boardName 板名
+     * @param boardToName 板固有の名無し
      * @return 整形した名前
      */
-    static String wrapAuthor(final String author, final String boardName) {
+    static String wrapAuthor(final String author, final String boardName, final Map<String, String> boardToName) {
         // 名無し。
         if (EMPTY_PATTERN.matcher(author).find()) {
-            return EMPTY_AUTHORS[Math.abs(boardName.hashCode() % EMPTY_AUTHORS.length)];
+            final String name = boardToName.get(boardName);
+            if (name != null) {
+                return name;
+            } else {
+                return EMPTY_AUTHORS[Math.abs(boardName.hashCode() % EMPTY_AUTHORS.length)];
+            }
         }
 
         // コテハン。

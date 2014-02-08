@@ -13,6 +13,7 @@ import java.net.InetSocketAddress;
 import java.security.KeyPair;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.ConsoleHandler;
@@ -43,6 +44,7 @@ final class Environment {
      * {root}/: 使用する最上位のディレクトリ。
      * {root}/self.txt: 自身の公開用個体情報を保存するファイル。
      * {root}/peers.txt: 公開されている個体情報を保存するファイル。
+     * {root}/names.txt: 板固有の名無しを保存するファイル。
      * {root}/storage/: Storage に使用するディレクトリ。
      * {root}/resource/: 何かと突っこんでおくディレクトリ。
      * {root}/resource/id.dat: 自身の識別用鍵を保存するファイル。
@@ -103,6 +105,8 @@ final class Environment {
     private final long bbsConnectionTimeout;
     private final long bbsInternalTimeout;
     private final long bbsUpdateThreshold;
+
+    private final File bbsNameFile;
 
     private final File selfFile;
     private final boolean gui;
@@ -221,6 +225,8 @@ final class Environment {
         this.bbsInternalTimeout = getLargerLong(option, Option.Item.bbsInternalTimeout);
         this.bbsUpdateThreshold = getLargerLong(option, Option.Item.bbsUpdateThreshold);
 
+        this.bbsNameFile = loadFile(new File(this.root, "names.txt"));
+
         this.selfFile = loadFile(new File(this.root, "self.txt"));
         this.gui = Boolean.parseBoolean(option.get(Option.Item.gui));
 
@@ -272,6 +278,10 @@ final class Environment {
             throw new IOException("Not writable directory ( " + directory.getPath() + " ).");
         }
         return directory;
+    }
+
+    String getRootPath() {
+        return this.root.getPath();
     }
 
     File getStorageRoot() {
@@ -497,6 +507,10 @@ final class Environment {
         return new Self(self, mosaic);
     }
 
+    Map<String, String> getDefaultNames() {
+        return NameIo.fromTextFile(this.bbsNameFile);
+    }
+
     void startLogging() {
         startLogging(Global.ROOT_LOGGER);
     }
@@ -543,10 +557,6 @@ final class Environment {
                 logger.addHandler(handler);
             }
         }
-    }
-
-    String getRootPath() {
-        return this.root.getPath();
     }
 
 }

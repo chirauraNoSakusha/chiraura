@@ -3,6 +3,8 @@
  */
 package nippon.kawauso.chiraura.bbs;
 
+import java.util.Map;
+
 /**
  * 2chブラウザからの書き込みリクエストへの返答を作る。
  * @author chirauraNoSakusha
@@ -10,19 +12,23 @@ package nippon.kawauso.chiraura.bbs;
 final class AddCommentResponseMaker {
 
     private final ClosetWrapper closet;
+    private final Map<String, String> boardToName;
 
-    AddCommentResponseMaker(final ClosetWrapper closet) {
+    AddCommentResponseMaker(final ClosetWrapper closet, final Map<String, String> boardToName) {
         if (closet == null) {
             throw new IllegalArgumentException("Null closet.");
+        } else if (boardToName == null) {
+            throw new IllegalArgumentException("Null default names.");
         }
 
         this.closet = closet;
+        this.boardToName = boardToName;
     }
 
     Response make(final AddCommentRequest request, final long timeout) throws InterruptedException {
         final long start = System.currentTimeMillis();
 
-        final String author = PostFunctions.wrapAuthor(request.getAuthor(), request.getBoard());
+        final String author = PostFunctions.wrapAuthor(request.getAuthor(), request.getBoard(), this.boardToName);
         final String mail = PostFunctions.wrapMail(request.getMail());
         final long authorId = PostFunctions.calculateId(request.getBoard(), start);
         final String message = PostFunctions.wrapMessage(request.getComment());

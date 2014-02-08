@@ -3,6 +3,8 @@
  */
 package nippon.kawauso.chiraura.bbs;
 
+import java.util.Map;
+
 /**
  * 2chブラウザからのリクエストへの返答を作る。
  * @author chirauraNoSakusha
@@ -14,11 +16,16 @@ final class ResponseMaker {
     private final AddThreadResponseMaker addThreadResponseMaker;
     private final AddCommentResponseMaker addCommentResponseMaker;
 
-    ResponseMaker(final ClosetWrapper closet) {
+    ResponseMaker(final ClosetWrapper closet, final Map<String, String> boardToName) {
+        if (closet == null) {
+            throw new IllegalArgumentException("Null closet.");
+        } else if (boardToName == null) {
+            throw new IllegalArgumentException("Null default names.");
+        }
         this.getBoardResponseMaker = new GetBoardResponseMaker(closet);
         this.getThreadResponseMaker = new GetThreadResponseMaker(closet);
-        this.addThreadResponseMaker = new AddThreadResponseMaker(closet);
-        this.addCommentResponseMaker = new AddCommentResponseMaker(closet);
+        this.addThreadResponseMaker = new AddThreadResponseMaker(closet, boardToName);
+        this.addCommentResponseMaker = new AddCommentResponseMaker(closet, boardToName);
     }
 
     Response make(final Request request, final long timeout) throws InterruptedException {

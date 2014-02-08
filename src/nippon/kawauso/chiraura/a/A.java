@@ -87,7 +87,7 @@ public final class A implements AutoCloseable {
                 );
 
         this.bbs = new BasicBbs(environment.getBbsPort(), environment.getBbsConnectionTimeout(), environment.getBbsInternalTimeout(), this.closet,
-                environment.getBbsUpdateThreshold());
+                environment.getBbsUpdateThreshold(), environment.getDefaultNames());
 
         this.gui = (environment.getGui() ? new TrayGui(environment.getRootPath(), environment.getBbsPort()) : null);
 

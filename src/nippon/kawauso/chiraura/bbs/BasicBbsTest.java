@@ -5,6 +5,7 @@ package nippon.kawauso.chiraura.bbs;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -32,6 +33,7 @@ public final class BasicBbsTest {
     private static final long clientTimeout = 30_000L;
     private static final long workTimeout = 10_000L;
     private static final long updateThreshold = 5 * 60_000L;
+    private static final Map<String, String> boardToName = Collections.emptyMap();
 
     private final Closet closet;
     private final ExecutorService executor;
@@ -211,7 +213,7 @@ public final class BasicBbsTest {
      */
     @Test
     public void testBoot() throws Exception {
-        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold);
+        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold, boardToName);
 
         instance.start(this.executor);
         Thread.sleep(100L);
@@ -227,7 +229,7 @@ public final class BasicBbsTest {
      */
     @Test
     public void testGetExistBoard() throws Exception {
-        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold);
+        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold, boardToName);
 
         instance.start(this.executor);
         Thread.sleep(100L);
@@ -247,7 +249,7 @@ public final class BasicBbsTest {
      */
     @Test
     public void testGetNewBoard() throws Exception {
-        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold);
+        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold, boardToName);
 
         instance.start(this.executor);
         Thread.sleep(100L);
@@ -267,7 +269,7 @@ public final class BasicBbsTest {
      */
     @Test
     public void testGetExistTread() throws Exception {
-        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold);
+        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold, boardToName);
 
         instance.start(this.executor);
         Thread.sleep(100L);
@@ -290,7 +292,7 @@ public final class BasicBbsTest {
      */
     @Test
     public void testGetNotExistTread() throws Exception {
-        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold);
+        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold, boardToName);
 
         instance.start(this.executor);
         Thread.sleep(100L);
@@ -309,7 +311,7 @@ public final class BasicBbsTest {
      */
     @Test
     public void testAddThread() throws Exception {
-        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold);
+        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold, boardToName);
 
         instance.start(this.executor);
         Thread.sleep(100L);
@@ -337,7 +339,7 @@ public final class BasicBbsTest {
      */
     @Test
     public void testAddComment() throws Exception {
-        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold);
+        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold, boardToName);
 
         instance.start(this.executor);
         Thread.sleep(100L);
@@ -366,7 +368,7 @@ public final class BasicBbsTest {
      */
     // @Test
     public void testCommunication() throws Exception {
-        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold);
+        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold, boardToName);
         instance.start(this.executor);
         Thread.sleep(600_000L);
 
