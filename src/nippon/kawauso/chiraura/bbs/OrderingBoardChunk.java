@@ -30,7 +30,7 @@ import nippon.kawauso.chiraura.storage.SkeletalChunk;
  * 差分取得を妨げず、sage でも更新できるように、表示順位と日時を別に持つ。
  * @author chirauraNoSakusha
  */
-final class OrderingBoardChunk extends SkeletalChunk implements Mountain, Content {
+final class OrderingBoardChunk extends SkeletalChunk implements BoardChunk {
 
     /**
      * 識別子。
@@ -115,7 +115,7 @@ final class OrderingBoardChunk extends SkeletalChunk implements Mountain, Conten
      * スレ概要。
      * @author chirauraNoSakusha
      */
-    static final class Entry implements Mountain.Dust<OrderingBoardChunk> {
+    static final class Entry implements BoardChunk.Entry<OrderingBoardChunk> {
 
         private final long date;
         private final long order;
@@ -148,8 +148,19 @@ final class OrderingBoardChunk extends SkeletalChunk implements Mountain, Conten
             return this.title;
         }
 
-        int getNumOfComments() {
+        @Override
+        public int getNumOfComments() {
             return this.numOfComments;
+        }
+
+        @Override
+        public long getDate() {
+            return this.date;
+        }
+
+        @Override
+        public long getOrder() {
+            return this.order;
         }
 
         @Override
@@ -365,7 +376,8 @@ final class OrderingBoardChunk extends SkeletalChunk implements Mountain, Conten
         return new ArrayList<>(this.dateToEntry.tailMap(new UniqueValue(date, 0), false).values());
     }
 
-    Entry getEntry(final long thread) {
+    @Override
+    public Entry getEntry(final long thread) {
         return this.threadToEntry.get(thread);
     }
 

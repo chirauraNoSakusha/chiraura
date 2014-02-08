@@ -196,8 +196,8 @@ public final class BasicBbsTest {
             final String threadTitle = "くそスレ";
             final ThreadChunk thread = new ThreadChunk(this.boardName, threadName, threadTitle, "創造神", "age", this.start, 0, "崇めよ");
             this.initialThreads.add(thread);
-            final BoardChunk board = new SimpleBoardChunk(this.boardName);
-            board.patch(new SimpleBoardChunk.Entry(this.start, threadName, threadTitle, 1));
+            final BoardChunk board = new OrderingBoardChunk(this.boardName);
+            board.patch(new OrderingBoardChunk.Entry(this.start, this.start, threadName, threadTitle, 1));
             this.closet.addChunk(board, 100L);
             this.closet.addChunk(thread, 100L);
         }

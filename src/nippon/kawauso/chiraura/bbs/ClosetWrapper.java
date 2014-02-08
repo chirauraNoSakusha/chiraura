@@ -22,7 +22,6 @@ final class ClosetWrapper {
 
     private final Closet base;
 
-    @SuppressWarnings("unused")
     private final long updateThreshold;
 
     ClosetWrapper(final Closet base, final long updateThreshold) {
@@ -53,16 +52,14 @@ final class ClosetWrapper {
         final long start = System.currentTimeMillis();
 
         // 取得。
-        final Chunk.Id<? extends BoardChunk> id = new SimpleBoardChunk.Id(boardName);
-        // final Chunk.Id<? extends BoardChunk> id = new OrderingBoardChunk.Id(boardName);
+        final Chunk.Id<? extends BoardChunk> id = new OrderingBoardChunk.Id(boardName);
         final BoardChunk board = this.base.getChunk(id, timeout);
         if (board != null) {
             return board;
         }
 
         // 取得できなかったので新規作成。
-        final BoardChunk newBoard = new SimpleBoardChunk(boardName);
-        // final BoardChunk newBoard = new OrderingBoardChunk(boardName);
+        final BoardChunk newBoard = new OrderingBoardChunk(boardName);
         if (this.base.addChunk(newBoard, start + timeout - System.currentTimeMillis())) {
             return newBoard;
         } else {
@@ -71,25 +68,21 @@ final class ClosetWrapper {
         }
     }
 
-    <T extends BoardChunk> void updateBoard(final ThreadChunk thread, @SuppressWarnings("unused") final long order, final long timeout)
+    <T extends BoardChunk> void updateBoard(final ThreadChunk thread, final long order, final long timeout)
             throws InterruptedException {
         final long start = System.currentTimeMillis();
         final int numOfComments = thread.getNumOfComments() + (thread.isFull() ? 1 : 0);
         @SuppressWarnings("unchecked")
-        final Chunk.Id<T> boardId = (Chunk.Id<T>) new SimpleBoardChunk.Id(thread.getBoard());
+        final Chunk.Id<T> boardId = (Chunk.Id<T>) new OrderingBoardChunk.Id(thread.getBoard());
         @SuppressWarnings("unchecked")
-        final BoardChunk.Entry<T> boardEntry = (BoardChunk.Entry<T>) new SimpleBoardChunk.Entry(thread.getDate(), thread.getName(), thread.getTitle(),
-                numOfComments);
-        // final Chunk.Id<? extends BoardChunk> boardId = new OrderingBoardChunk.Id(thread.getBoard());
-        // final BoardChunk.Entry<?> boardEntry = new OrderingBoardChunk.Entry(System.currentTimeMillis(), order, thread.getName(), thread.getTitle(),
-        // numOfComments);
+        final BoardChunk.Entry<T> boardEntry = (BoardChunk.Entry<T>) new OrderingBoardChunk.Entry(System.currentTimeMillis(), order, thread.getName(),
+                thread.getTitle(), numOfComments);
         final Closet.PatchResult<? extends BoardChunk> result1 = this.base.patchChunk(boardId, boardEntry, start + timeout - System.currentTimeMillis());
         if (result1.isGivenUp()) {
             LOG.log(Level.WARNING, "{0} による板 {1} の更新を諦めました。", new Object[] { boardEntry, boardId });
         } else if (result1.isNotFound()) {
             // 板が無いならつくる。
-            final BoardChunk board = new SimpleBoardChunk(thread.getBoard());
-            // final BoardChunk board = new OrderingBoardChunk(thread.getBoard());
+            final BoardChunk board = new OrderingBoardChunk(thread.getBoard());
             board.patch(boardEntry);
             final Closet.PatchOrAddResult<BoardChunk> result2 = this.base.patchOrAddChunk(board, start + timeout - System.currentTimeMillis());
             if (result2.isGivenUp()) {
@@ -120,8 +113,7 @@ final class ClosetWrapper {
         }
 
         if (thread.isFull()) {
-            final Chunk.Id<? extends BoardChunk> boardId = new SimpleBoardChunk.Id(boardName);
-            // final Chunk.Id<? extends BoardChunk> boardId = new OrderingBoardChunk.Id(boardName);
+            final Chunk.Id<? extends BoardChunk> boardId = new OrderingBoardChunk.Id(boardName);
             final BoardChunk board = this.base.getChunkImmediately(boardId);
             if (board != null && thread.getDate() <= board.getDate()) {
                 final BoardChunk.Entry<?> entry = board.getEntry(thread.getName());
@@ -217,7 +209,7 @@ final class ClosetWrapper {
 
         /*
          * 板の更新。
-         * TODO 以下の場合だけ更新しなくする予定。
+         * 以下の場合だけ更新しない。
          * - sage、かつ、時間が経っていない。
          * - sage、かつ、板に登録してある書き込み数が分からない。
          * - sage、かつ、何らかの手違いにより、板に登録してある書き込み数が変わらない。
@@ -225,17 +217,16 @@ final class ClosetWrapper {
         final ThreadChunk thread = result.getChunk();
         if (!mail.equals(NOT_UPDATE_MAIL)) {
             updateBoard(thread, thread.getDate(), start + timeout - System.currentTimeMillis());
-            // } else {
-            // final Chunk.Id<? extends BoardChunk> boardId = new SimpleBoardChunk.Id(boardName);
-            // // final Chunk.Id<? extends BoardChunk> boardId = new OrderingBoardChunk.Id(boardName);
-            // final BoardChunk board = this.base.getChunkImmediately(boardId);
-            // if (board != null) {
-            // final BoardChunk.Entry<?> entry = board.getEntry(thread.getName());
-            // if (entry != null && entry.getDate() + this.updateThreshold < thread.getDate() && entry.getNumOfComments() < thread.getNumOfComments()) {
-            // // 板に登録してある書き込み数は分かっているし、時間は経ってるし、書き込み数は増えてる。
-            // updateBoard(thread, entry.getOrder(), start + timeout - System.currentTimeMillis());
-            // }
-            // }
+        } else {
+            final Chunk.Id<? extends BoardChunk> boardId = new OrderingBoardChunk.Id(boardName);
+            final BoardChunk board = this.base.getChunkImmediately(boardId);
+            if (board != null) {
+                final BoardChunk.Entry<?> entry = board.getEntry(thread.getName());
+                if (entry != null && entry.getDate() + this.updateThreshold < thread.getDate() && entry.getNumOfComments() < thread.getNumOfComments()) {
+                    // 板に登録してある書き込み数は分かっているし、時間は経ってるし、書き込み数は増えてる。
+                    updateBoard(thread, entry.getOrder(), start + timeout - System.currentTimeMillis());
+                }
+            }
         }
 
         return true;
