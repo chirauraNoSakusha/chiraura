@@ -25,7 +25,6 @@ final class Requests {
 
     private static final Logger LOG = Logger.getLogger(Requests.class.getName());
 
-    private static final String BOARD_FILE = "subject.txt";
     private static final String THREAD_DIR = "dat";
     private static final String THREAD_SUFFIX = ".dat";
     private static final String POST_DIR = "test";
@@ -42,16 +41,21 @@ final class Requests {
     }
 
     private static Request makeGetRequest(final String target, final Map<Field, String> fields) {
-        if (target.charAt(target.length() - 1) == '/') {
-            // ディレクトリアクセスは不許可。
+        final String[] tokens = target.split("/");
+        if (tokens.length == 0) {
+            // / アクセスは不許可。
             return new ForbiddenRequest(target);
+        } else if (!tokens[0].equals("")) { // tokens.length == 1 を含む。
+            return new NotFoundRequest(target);
         }
 
-        final String[] tokens = target.split("/");
-        if (tokens.length == 3) {
+        if (tokens.length == 2) {
+            // GET /[board]/ HTTP/1.1
+            return new GetIndexRequest(tokens[1]);
+        } else if (tokens.length == 3) {
             // 板 (スレタイ一覧)。
             // GET /[board]/subject.txt HTTP/1.1
-            if (!tokens[0].equals("") || !tokens[2].equals(BOARD_FILE)) {
+            if (!tokens[2].equals(Constants.BOARD_FILE)) {
                 return new NotFoundRequest(target);
             }
             Long ifModifiedSince = null;
@@ -66,7 +70,7 @@ final class Requests {
         } else if (tokens.length == 4) {
             // スレ。
             // GET /[board]/dat/[thread].dat HTTP/1.1
-            if (!tokens[0].equals("") || !tokens[2].equals(THREAD_DIR) || !tokens[3].endsWith(THREAD_SUFFIX)) {
+            if (!tokens[2].equals(THREAD_DIR) || !tokens[3].endsWith(THREAD_SUFFIX)) {
                 return new NotFoundRequest(target);
             }
             long thread;

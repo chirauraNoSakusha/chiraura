@@ -22,7 +22,9 @@ final class ResponseMaker {
     }
 
     Response make(final Request request, final long timeout) throws InterruptedException {
-        if (request instanceof GetBoardRequest) {
+        if (request instanceof GetIndexRequest) {
+            return new IndexResponse(((GetIndexRequest) request).getBoard());
+        } else if (request instanceof GetBoardRequest) {
             return this.getBoardResponseMaker.make((GetBoardRequest) request, timeout);
         } else if (request instanceof GetThreadRequest) {
             return this.getThreadResponseMaker.make((GetThreadRequest) request, timeout);

@@ -17,4 +17,6 @@ final class Constants {
 
     static final String SERVER_LABEL = "chiraura-bbs/1";
 
+    static final String BOARD_FILE = "subject.txt";
+
 }
