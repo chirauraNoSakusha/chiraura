@@ -72,10 +72,18 @@ fi
 cp $(dirname "${0}")/peers.txt ${PEER}
 
 
+echo "名無しの準備開始"
+NAME=${DESTINATION}/${DIR}/names.txt
+if [ -e $(dirname "${0}")/names.txt ]; then
+    # CRLF に。長い物に巻かれる。改行として解釈されなくなることはないし。
+    sed 's/$/\r/' $(dirname "${0}")/names.txt > ${NAME}
+fi
+
+
 echo "書庫作成開始"
 OUTPUT=${DESTINATION}/${DIR}/chiraura_$(date +%F).zip
 
-zip -q9 ${OUTPUT} -j ${JAR} ${PEER}
+zip -q9 ${OUTPUT} -j ${JAR} ${PEER} ${NAME}
 
 
 echo "チェックサム計算開始"
