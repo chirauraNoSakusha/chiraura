@@ -22,7 +22,7 @@ public final class Global {
     /**
      * 通信プロトコルバージョン。
      */
-    public static final long PROTOCOL_VERSION = 6L; // 2013/11/19.
+    public static final long PROTOCOL_VERSION = 7L; // 2014/02/08.
 
     /**
      * 内部で使う文字コード。
