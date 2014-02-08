@@ -13,7 +13,7 @@ import java.io.IOException;
 final class RangeNotSatisfiableResponse extends BasicResponse {
 
     RangeNotSatisfiableResponse(final String target) {
-        super(Http.Status.Not_Modified, null, null);
+        super(Http.Status.Requested_Range_Not_Satisfiable, null, null);
         if (target == null) {
             throw new IllegalArgumentException("Null target.");
         }
