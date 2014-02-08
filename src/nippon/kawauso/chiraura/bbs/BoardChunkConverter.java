@@ -31,6 +31,7 @@ public final class BoardChunkConverter {
      */
     public static void convert(final Storage storage) throws IOException, InterruptedException {
         storage.registerChunk(0L, SimpleBoardChunk.class, SimpleBoardChunk.getParser(), SimpleBoardChunk.Id.class, SimpleBoardChunk.Id.getParser());
+        storage.registerChunk(1L, ThreadChunk.class, ThreadChunk.getParser(), ThreadChunk.Id.class, ThreadChunk.Id.getParser());
         storage.registerChunk(2L, OrderingBoardChunk.class, OrderingBoardChunk.getParser(), OrderingBoardChunk.Id.class, OrderingBoardChunk.Id.getParser());
         for (final Chunk.Id<?> id : storage.getIndices(Address.ZERO, Address.MAX).keySet()) {
             if (!(id instanceof SimpleBoardChunk.Id)) {
