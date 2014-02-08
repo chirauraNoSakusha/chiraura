@@ -334,6 +334,9 @@ public final class AcceptorTest {
         StartingProtocol.sendSecond(transceiver, this.testerOutput, testerId, communicationKey, watchword, version - 1, testerPort, connectionType,
                 (InetSocketAddress) this.testerSocket.getRemoteSocketAddress());
 
+        // 二言目への相槌を受信。
+        StartingProtocol.receiveSecondReply(transceiver, this.testerInput, communicationKey);
+
         // 切断待ち。
         Assert.assertEquals(-1, this.testerInput.read());
 
@@ -365,6 +368,9 @@ public final class AcceptorTest {
         random.nextBytes(watchword);
         StartingProtocol.sendSecond(transceiver, this.testerOutput, testerId, communicationKey, watchword, version + 1, testerPort, connectionType,
                 (InetSocketAddress) this.testerSocket.getRemoteSocketAddress());
+
+        // 二言目への相槌を受信。
+        StartingProtocol.receiveSecondReply(transceiver, this.testerInput, communicationKey);
 
         // 切断待ち。
         Assert.assertEquals(-1, this.testerInput.read());
