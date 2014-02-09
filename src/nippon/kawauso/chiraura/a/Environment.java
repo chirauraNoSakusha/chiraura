@@ -6,9 +6,11 @@ package nippon.kawauso.chiraura.a;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.InetSocketAddress;
 import java.security.KeyPair;
 import java.util.ArrayList;
@@ -478,7 +480,7 @@ final class Environment {
         if (!this.selfFile.exists()) {
             return null;
         }
-        try (BufferedReader buff = new BufferedReader(new FileReader(this.selfFile))) {
+        try (BufferedReader buff = new BufferedReader(new InputStreamReader(new FileInputStream(this.selfFile), Global.INTERNAL_CHARSET))) {
             final String line = buff.readLine();
             if (line == null || line.charAt(0) != '^') {
                 return null;
@@ -499,7 +501,7 @@ final class Environment {
             }
         }
         final String mosaic = Mosaic.peerTo(self);
-        try (BufferedWriter buff = new BufferedWriter(new FileWriter(this.selfFile))) {
+        try (BufferedWriter buff = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(this.selfFile), Global.INTERNAL_CHARSET))) {
             buff.append('^');
             buff.append(mosaic);
             buff.flush();

@@ -5,7 +5,8 @@ package nippon.kawauso.chiraura.a;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
+import nippon.kawauso.chiraura.Global;
 import nippon.kawauso.chiraura.bbs.Client;
 import nippon.kawauso.chiraura.lib.logging.LoggingFunctions;
 import nippon.kawauso.chiraura.lib.math.MathFunctions;
@@ -201,7 +203,7 @@ public final class ATest {
                 resource.mkdirs();
                 Assert.assertTrue(resource.exists());
                 final File host = new File(root, "peers.txt");
-                try (BufferedWriter output = new BufferedWriter(new FileWriter(host))) {
+                try (BufferedWriter output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(host), Global.INTERNAL_CHARSET))) {
                     output.write("localhost " + environments[0].getPort());
                     output.newLine();
                 }
@@ -317,7 +319,7 @@ public final class ATest {
                 resource.mkdirs();
                 Assert.assertTrue(resource.exists());
                 final File host = new File(root, "peers.txt");
-                try (BufferedWriter output = new BufferedWriter(new FileWriter(host))) {
+                try (BufferedWriter output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(host), Global.INTERNAL_CHARSET))) {
                     output.write("localhost " + environments[0].getPort());
                     output.newLine();
                 }

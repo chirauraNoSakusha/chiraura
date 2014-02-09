@@ -9,9 +9,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -20,6 +20,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
+import nippon.kawauso.chiraura.Global;
 import nippon.kawauso.chiraura.lib.Mosaic;
 import nippon.kawauso.chiraura.lib.connection.PeerCell;
 import nippon.kawauso.chiraura.lib.converter.BytesConversion;
@@ -107,7 +108,7 @@ final class PeerIo {
             return new ArrayList<>(0);
         }
         final List<InetSocketAddress> list = new ArrayList<>();
-        try (BufferedReader buff = new BufferedReader(new FileReader(input))) {
+        try (BufferedReader buff = new BufferedReader(new InputStreamReader(new FileInputStream(input), Global.INTERNAL_CHARSET))) {
             final Pattern empty = Pattern.compile("^\\s*$");
             for (String line; (line = buff.readLine()) != null;) {
                 if (!empty.matcher(line).matches()) {
