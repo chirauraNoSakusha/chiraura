@@ -5,13 +5,15 @@ package nippon.kawauso.chiraura.a;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import nippon.kawauso.chiraura.Global;
 import nippon.kawauso.chiraura.lib.container.Pair;
 import nippon.kawauso.chiraura.lib.exception.MyRuleException;
 import nippon.kawauso.chiraura.lib.logging.LoggingFunctions;
@@ -54,7 +56,7 @@ final class NameIo {
             return result;
         }
 
-        try (BufferedReader buff = new BufferedReader(new FileReader(input))) {
+        try (BufferedReader buff = new BufferedReader(new InputStreamReader(new FileInputStream(input), Global.INTERNAL_CHARSET))) {
             for (String line; (line = buff.readLine()) != null;) {
                 try {
                     final Pair<String, String> entry = fromText(line);
