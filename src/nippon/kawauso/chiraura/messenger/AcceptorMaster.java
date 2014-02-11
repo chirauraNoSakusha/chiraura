@@ -28,9 +28,8 @@ final class AcceptorMaster extends Reporter<Void> {
     // 入出力。
     private final BlockingQueue<Socket> acceptedSocketSource;
 
-    private final AtomicInteger serialGenerator;
-
     // 主に後続のために。
+    private final AtomicInteger serialGenerator;
     private final ExecutorService executor;
 
     private final BlockingQueue<ReceivedMail> receivedMailSink;
@@ -44,19 +43,18 @@ final class AcceptorMaster extends Reporter<Void> {
     private final long operationTimeout;
     private final Transceiver transceiver;
 
-    private final KeyPair id;
     private final long version;
     private final long versionGapThreshold;
+    private final KeyPair id;
     private final PublicKeyManager keyManager;
     private final long keyLifetime;
-
     private final AtomicReference<InetSocketAddress> self;
 
     AcceptorMaster(final BlockingQueue<Reporter.Report> reportSink, final BlockingQueue<Socket> acceptedSocketSource, final AtomicInteger serialGenerator,
             final ExecutorService executor, final BlockingQueue<ReceivedMail> receivedMailSink, final SendQueuePool sendQueuePool,
             final BlockingQueue<MessengerReport> messengerReportSink, final ConnectionPool<AcceptedConnection> acceptedConnectionPool,
             final BoundConnectionPool<Connection> connectionPool, final int sendBufferSize, final long connectionTimeout, final long operationTimeout,
-            final Transceiver transceiver, final KeyPair id, final long version, final long versionGapThreshold, final PublicKeyManager keyManager,
+            final Transceiver transceiver, final long version, final long versionGapThreshold, final KeyPair id, final PublicKeyManager keyManager,
             final long keyLifetime, final AtomicReference<InetSocketAddress> self) {
         super(reportSink);
 
@@ -82,10 +80,10 @@ final class AcceptorMaster extends Reporter<Void> {
             throw new IllegalArgumentException("Negative operation timeout ( " + operationTimeout + " ).");
         } else if (transceiver == null) {
             throw new IllegalArgumentException("Null transceiver.");
-        } else if (id == null) {
-            throw new IllegalArgumentException("Null id.");
         } else if (versionGapThreshold < 1) {
             throw new IllegalArgumentException("Invalid version gap threshold ( " + versionGapThreshold + " ).");
+        } else if (id == null) {
+            throw new IllegalArgumentException("Null id.");
         } else if (keyManager == null) {
             throw new IllegalArgumentException("Null key manager.");
         } else if (keyLifetime < 0) {
@@ -106,9 +104,9 @@ final class AcceptorMaster extends Reporter<Void> {
         this.connectionTimeout = connectionTimeout;
         this.operationTimeout = operationTimeout;
         this.transceiver = transceiver;
-        this.id = id;
         this.version = version;
         this.versionGapThreshold = versionGapThreshold;
+        this.id = id;
         this.keyManager = keyManager;
         this.keyLifetime = keyLifetime;
         this.self = self;
@@ -126,8 +124,8 @@ final class AcceptorMaster extends Reporter<Void> {
 
                 LOG.log(Level.FINER, "接続番号 {0} で {1} の受け入れ作業を始めます。", new Object[] { Integer.toString(idNumber), socket.getInetAddress() });
                 final Acceptor acceptor = new Acceptor(this.messengerReportSink, this.acceptedConnectionPool, this.sendBufferSize, this.connectionTimeout,
-                        this.operationTimeout, connection, this.transceiver, this.id, this.version, this.versionGapThreshold, this.keyManager, this.executor,
-                        this.sendQueuePool, this.receivedMailSink, this.connectionPool, this.keyLifetime, this.self);
+                        this.operationTimeout, this.transceiver, connection, this.version, this.versionGapThreshold, this.id, this.keyManager, this.self,
+                        this.executor, this.sendQueuePool, this.receivedMailSink, this.connectionPool, this.keyLifetime);
                 this.executor.submit(acceptor);
             } catch (final InterruptedException e) {
                 break;

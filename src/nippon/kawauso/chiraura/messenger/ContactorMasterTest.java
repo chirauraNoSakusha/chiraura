@@ -49,7 +49,8 @@ public final class ContactorMasterTest {
     private static final long connectionTimeout = 10_000L;
     private static final long operationTimeout = 10_000L;
     private static final int connectionType = ConnectionTypes.DEFAULT;
-    private static final long version = 1;
+    private static final long version = 1L;
+    private static final long versionGapThreshold = 1L;
     private static final long keyLifetime = 10_000L;
 
     private static final int testerPort = 12345;
@@ -133,9 +134,9 @@ public final class ContactorMasterTest {
     @Test
     public void testSample() throws Exception {
         final ContactorMaster instance = new ContactorMaster(this.subjectReportQueue, this.subjectConnectRequestQueue, this.subjectSerialGenerator,
-                this.subjectContactingConnectionPool, this.executor, transceiver, subjectPort, connectionTimeout, operationTimeout, receiveBufferSize,
-                sendBufferSize, this.subjectConnectionPool, this.subjectReceivedMailQueue, this.subjectMessengerReportQueue, this.subjectSendQueuePool,
-                subjectId, this.subjectKeyManager, version, keyLifetime, this.subjectSelf);
+                this.executor, this.subjectReceivedMailQueue, this.subjectSendQueuePool, this.subjectMessengerReportQueue,
+                this.subjectContactingConnectionPool, this.subjectConnectionPool, receiveBufferSize, sendBufferSize, connectionTimeout, operationTimeout,
+                transceiver, version, versionGapThreshold, subjectPort, subjectId, this.subjectKeyManager, keyLifetime, this.subjectSelf);
         this.executor.submit(instance);
 
         // 接続要請。

@@ -401,7 +401,7 @@ public final class P2pCloset implements Closet {
         this.storage = new StorageWrapper(rawStorage, this.operationQueue, param.cacheLogCapacity, param.cacheDuration);
 
         final Messenger messenger = Messengers.newInstance(param.port, param.receiveBufferSize, param.sendBufferSize, param.connectionTimeout,
-                param.operationTimeout, param.messageSizeLimit, param.id, VERSION, VERSION_GAP_THRESHOLD, param.publicKeyLifetime, param.commonKeyLifetime);
+                param.operationTimeout, param.messageSizeLimit, VERSION, VERSION_GAP_THRESHOLD, param.id, param.publicKeyLifetime, param.commonKeyLifetime);
         final AddressableNetwork rawNetwork = AddressableNetworks.newInstance(param.calculator.calculate(param.id.getPublic()), param.peerCapacity,
                 param.maintenanceInterval);
         final PeerBlacklist blacklist = new TimeLimitedPeerBlacklist(param.blacklistCapacity, param.blacklistTimeout);

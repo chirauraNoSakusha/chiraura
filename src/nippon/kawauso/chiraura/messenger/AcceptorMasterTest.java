@@ -50,7 +50,8 @@ public final class AcceptorMasterTest {
     private static final long connectionTimeout = 10_000L;
     private static final long operationTimeout = 10_000L;
     private static final long keyLifetime = 10_000L;
-    private static final long version = 1;
+    private static final long version = 1L;
+    private static final long versionGapThreshold = 1L;
     private static final int connectionType = ConnectionTypes.DATA;
 
     private static final int testerPort = 12345;
@@ -140,8 +141,8 @@ public final class AcceptorMasterTest {
     public void testSample() throws Exception {
         final AcceptorMaster instance = new AcceptorMaster(this.subjectReportQueue, this.subjectAcceptedSocketQueue, this.subjectSerialGenerator,
                 this.executor, this.subjectReceivedMailQueue, this.subjectSendQueuePool, this.subjectMessengerReportQueue, this.subjectAcceptedConnectionPool,
-                this.subjectConnectionPool, sendBufferSize, connectionTimeout, operationTimeout, transceiver, subjectId, version, this.subjectKeyManager,
-                keyLifetime, this.subjectSelf);
+                this.subjectConnectionPool, sendBufferSize, connectionTimeout, operationTimeout, transceiver, version, versionGapThreshold, subjectId,
+                this.subjectKeyManager, keyLifetime, this.subjectSelf);
         this.executor.submit(instance);
 
         this.subjectAcceptedSocketQueue.put(this.subjectSocket);

@@ -36,11 +36,12 @@ public final class NetworkWrapperTest {
         final long operationTimeout = 10 * 1_000L;
         final int messageSizeLimit = 1024 * 1024 + 1024;
         final KeyPair id = CryptographicKeys.newPublicKeyPair();
-        final long version = 1;
+        final long version = 1L;
+        final long versionGapThreshold = 1L;
         final long publicKeyLifetime = 60 * 60 * 1_000L;
         final long commonKeyLifetime = 10 * 60 * 1_000L;
-        return Messengers.newInstance(port, receivBufferSize, sendBufferSize, connectionTimeout, operationTimeout, messageSizeLimit, id, version,
-                publicKeyLifetime, commonKeyLifetime);
+        return Messengers.newInstance(port, receivBufferSize, sendBufferSize, connectionTimeout, operationTimeout, messageSizeLimit, version, versionGapThreshold,
+                id, publicKeyLifetime, commonKeyLifetime);
     }
 
     static NetworkWrapper sample(final Random random, final AddressCalculator calculator) {

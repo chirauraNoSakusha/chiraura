@@ -59,7 +59,7 @@ public final class ServerTest {
      */
     @Test
     public void testSample() throws Exception {
-        final Server instance = new Server(null, this.port, this.receiveBufferSize, this.acceptedSocketQueue);
+        final Server instance = new Server(null, this.acceptedSocketQueue, this.port, this.receiveBufferSize);
 
         this.executor.submit(instance);
 

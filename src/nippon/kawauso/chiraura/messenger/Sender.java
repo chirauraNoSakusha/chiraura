@@ -32,19 +32,22 @@ final class Sender implements Callable<Void> {
 
     // 通信周り。
     private final long timeout;
-    private final Connection connection;
     private final Transceiver transceiver;
+
+    private final Connection connection;
     private final OutputStream output;
 
     // 暗号化周り。
+    private final long keyLifetime;
+
     private final PrivateKey myKey;
     private final PublicKey destinationKey;
-    private final long keyLifetime;
+
     private Key encryptionKey;
 
     Sender(final SendQueuePool mailSource, final BlockingQueue<MessengerReport> messengerReportSink, final BoundConnectionPool<Connection> connectionPool,
-            final long timeout, final Connection connection, final Transceiver transceiver, final OutputStream output, final PrivateKey myKey,
-            final PublicKey destinationKey, final long keyLifetime, final Key firstEncryptionKey) {
+            final long timeout, final Transceiver transceiver, final Connection connection, final OutputStream output, final long keyLifetime,
+            final PrivateKey myKey, final PublicKey destinationKey, final Key firstEncryptionKey) {
         if (mailSource == null) {
             throw new IllegalArgumentException("Null mail source.");
         } else if (messengerReportSink == null) {
@@ -53,18 +56,18 @@ final class Sender implements Callable<Void> {
             throw new IllegalArgumentException("Null connection pool.");
         } else if (timeout < 0) {
             throw new IllegalArgumentException("Invalid timeout ( " + timeout + " ).");
-        } else if (connection == null) {
-            throw new IllegalArgumentException("Null connection.");
         } else if (transceiver == null) {
             throw new IllegalArgumentException("Null transceiver.");
+        } else if (connection == null) {
+            throw new IllegalArgumentException("Null connection.");
         } else if (output == null) {
             throw new IllegalArgumentException("Null output.");
+        } else if (keyLifetime < 0) {
+            throw new IllegalArgumentException("Invalid key lifetime ( " + keyLifetime + " ).");
         } else if (myKey == null) {
             throw new IllegalArgumentException("Null my key.");
         } else if (destinationKey == null) {
             throw new IllegalArgumentException("Null destination key.");
-        } else if (keyLifetime < 0) {
-            throw new IllegalArgumentException("Invalid key lifetime ( " + keyLifetime + " ).");
         } else if (firstEncryptionKey == null) {
             throw new IllegalArgumentException("Null first encryption key.");
         }
@@ -73,12 +76,12 @@ final class Sender implements Callable<Void> {
         this.messengerReportSink = messengerReportSink;
         this.connectionPool = connectionPool;
         this.timeout = timeout;
-        this.connection = connection;
         this.transceiver = transceiver;
+        this.connection = connection;
         this.output = output;
+        this.keyLifetime = keyLifetime;
         this.myKey = myKey;
         this.destinationKey = destinationKey;
-        this.keyLifetime = keyLifetime;
         this.encryptionKey = firstEncryptionKey;
     }
 

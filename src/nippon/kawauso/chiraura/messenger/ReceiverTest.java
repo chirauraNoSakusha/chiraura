@@ -118,7 +118,7 @@ public final class ReceiverTest {
      */
     @Test
     public void testSample() throws Exception {
-        final Receiver instance = new Receiver(this.subjectReceivedMailQueue, this.subjectMessengerReportQueue, timeout, this.subjectConnection, transceiver,
+        final Receiver instance = new Receiver(this.subjectReceivedMailQueue, this.subjectMessengerReportQueue, timeout, transceiver, this.subjectConnection,
                 this.subjectInput, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
         this.executor.submit(instance);
 
@@ -151,7 +151,7 @@ public final class ReceiverTest {
      */
     @Test
     public void testKeyUpdate() throws Exception {
-        final Receiver instance = new Receiver(this.subjectReceivedMailQueue, this.subjectMessengerReportQueue, timeout, this.subjectConnection, transceiver,
+        final Receiver instance = new Receiver(this.subjectReceivedMailQueue, this.subjectMessengerReportQueue, timeout, transceiver, this.subjectConnection,
                 this.subjectInput, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
         this.executor.submit(instance);
 
@@ -189,8 +189,8 @@ public final class ReceiverTest {
         final int errorThreshold = 5;
         final InputStream subjectErrorInput = InputStreamWrapper.getErrorStream(this.subjectInput, errorThreshold);
 
-        final Receiver instance = new Receiver(this.subjectReceivedMailQueue, this.subjectMessengerReportQueue, errorThreshold, this.subjectConnection,
-                transceiver, subjectErrorInput, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
+        final Receiver instance = new Receiver(this.subjectReceivedMailQueue, this.subjectMessengerReportQueue, errorThreshold, transceiver,
+                this.subjectConnection, subjectErrorInput, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
         final Future<Void> future = this.executor.submit(instance);
 
         for (int i = 0; i < errorThreshold; i++) {
@@ -226,7 +226,7 @@ public final class ReceiverTest {
      */
     @Test
     public void testInvalidMail() throws Exception {
-        final Receiver instance = new Receiver(this.subjectReceivedMailQueue, this.subjectMessengerReportQueue, timeout, this.subjectConnection, transceiver,
+        final Receiver instance = new Receiver(this.subjectReceivedMailQueue, this.subjectMessengerReportQueue, timeout, transceiver, this.subjectConnection,
                 this.subjectInput, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
         final Future<Void> future = this.executor.submit(instance);
 
@@ -248,8 +248,8 @@ public final class ReceiverTest {
     public void testTimeout() throws Exception {
         final long shortTimeout = 100L;
         this.subjectSocket.setSoTimeout((int) shortTimeout);
-        final Receiver instance = new Receiver(this.subjectReceivedMailQueue, this.subjectMessengerReportQueue, shortTimeout, this.subjectConnection,
-                transceiver, this.subjectInput, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
+        final Receiver instance = new Receiver(this.subjectReceivedMailQueue, this.subjectMessengerReportQueue, shortTimeout, transceiver,
+                this.subjectConnection, this.subjectInput, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
         final Future<Void> future = this.executor.submit(instance);
 
         // 時間切れ待ち。

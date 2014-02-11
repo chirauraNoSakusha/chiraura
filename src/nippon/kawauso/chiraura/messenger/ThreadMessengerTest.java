@@ -32,7 +32,8 @@ public final class ThreadMessengerTest {
     private static final int messageSizeLimit = 1024 * 1024;
     private static final long publicKeyLifetime = 24L * 3600L * 1_000L;
     private static final long commonKeyLifetime = 24L * 3600L * 1_000L;
-    private static final long version = 1;
+    private static final long version = 1L;
+    private static final long versionGapThreshold = 1L;
 
     private final ExecutorService executor;
 
@@ -53,9 +54,9 @@ public final class ThreadMessengerTest {
         // LoggingFunctions.startDebugLogging();
 
         final ThreadMessenger messenger1 = new ThreadMessenger(port1, receiveBufferSize, sendBufferSize, connectionTimeout, operationTimeout, messageSizeLimit,
-                id1, version, publicKeyLifetime, commonKeyLifetime);
+                version, versionGapThreshold, id1, publicKeyLifetime, commonKeyLifetime);
         final ThreadMessenger messenger2 = new ThreadMessenger(port2, receiveBufferSize, sendBufferSize, connectionTimeout, operationTimeout, messageSizeLimit,
-                id2, version, publicKeyLifetime, commonKeyLifetime);
+                version, versionGapThreshold, id2, publicKeyLifetime, commonKeyLifetime);
 
         messenger1.start(this.executor);
         messenger2.start(this.executor);

@@ -44,14 +44,16 @@ final class Acceptor implements Callable<Void> {
     private final int sendBufferSize;
     private final long connectionTimeout;
     private final long operationTimeout;
-    private final AcceptedConnection acceptedConnection;
     private final Transceiver transceiver;
 
+    private final AcceptedConnection acceptedConnection;
+
     // プロトコル周り。
-    private final KeyPair id;
     private final long version;
     private final long versionGapThreshold;
+    private final KeyPair id;
     private final PublicKeyManager keyManager;
+    private final AtomicReference<InetSocketAddress> self;
 
     // 主に後続のために。
     private final ExecutorService executor;
@@ -60,13 +62,12 @@ final class Acceptor implements Callable<Void> {
     private final BoundConnectionPool<Connection> connectionPool;
     private final long keyLifetime;
 
-    private final AtomicReference<InetSocketAddress> self;
-
     Acceptor(final BlockingQueue<MessengerReport> messengerReportSink, final ConnectionPool<AcceptedConnection> acceptedConnectionPool,
-            final int sendBufferSize, final long connectionTimeout, final long operationTimeout, final AcceptedConnection acceptedConnection,
-            final Transceiver transceiver, final KeyPair id, final long version, final long versionGapThreshold, final PublicKeyManager keyManager,
-            final ExecutorService executor, final SendQueuePool sendQueuePool, final BlockingQueue<ReceivedMail> receivedMailSink,
-            final BoundConnectionPool<Connection> connectionPool, final long keyLifetime, final AtomicReference<InetSocketAddress> self) {
+            final int sendBufferSize, final long connectionTimeout, final long operationTimeout, final Transceiver transceiver,
+            final AcceptedConnection acceptedConnection, final long version, final long versionGapThreshold, final KeyPair id,
+            final PublicKeyManager keyManager, final AtomicReference<InetSocketAddress> self, final ExecutorService executor,
+            final SendQueuePool sendQueuePool, final BlockingQueue<ReceivedMail> receivedMailSink, final BoundConnectionPool<Connection> connectionPool,
+            final long keyLifetime) {
         if (messengerReportSink == null) {
             throw new IllegalArgumentException("Null messenger report sink.");
         } else if (acceptedConnectionPool == null) {
@@ -79,12 +80,14 @@ final class Acceptor implements Callable<Void> {
             throw new IllegalArgumentException("Null connection.");
         } else if (transceiver == null) {
             throw new IllegalArgumentException("Null transceiver.");
-        } else if (id == null) {
-            throw new IllegalArgumentException("Null id.");
         } else if (versionGapThreshold < 1) {
             throw new IllegalArgumentException("Invalid version gap threshold ( " + versionGapThreshold + " ).");
+        } else if (id == null) {
+            throw new IllegalArgumentException("Null id.");
         } else if (keyManager == null) {
             throw new IllegalArgumentException("Null key manager.");
+        } else if (self == null) {
+            throw new IllegalArgumentException("Null self.");
         } else if (executor == null) {
             throw new IllegalArgumentException("Null executor.");
         } else if (sendQueuePool == null) {
@@ -95,8 +98,6 @@ final class Acceptor implements Callable<Void> {
             throw new IllegalArgumentException("Null connection pool.");
         } else if (keyLifetime < 0) {
             throw new IllegalArgumentException("Invalid key lifetime ( " + keyLifetime + " ).");
-        } else if (self == null) {
-            throw new IllegalArgumentException("Null self.");
         }
 
         this.messengerReportSink = messengerReportSink;
@@ -108,17 +109,17 @@ final class Acceptor implements Callable<Void> {
         this.acceptedConnection = acceptedConnection;
         this.transceiver = transceiver;
 
-        this.id = id;
         this.version = version;
         this.versionGapThreshold = versionGapThreshold;
+        this.id = id;
         this.keyManager = keyManager;
+        this.self = self;
 
         this.executor = executor;
         this.receivedMailSink = receivedMailSink;
         this.sendQueuePool = sendQueuePool;
         this.connectionPool = connectionPool;
         this.keyLifetime = keyLifetime;
-        this.self = self;
     }
 
     @Override
@@ -238,8 +239,8 @@ final class Acceptor implements Callable<Void> {
             this.connectionPool.add(connection);
             LOG.log(Level.FINER, "{0}: {1} と種別 {2} で通信を開始します。", new Object[] { this.acceptedConnection, destination, Integer.toString(connectionType) });
             connection.setSender(this.executor.submit(new Sender(this.sendQueuePool, this.messengerReportSink, this.connectionPool, this.connectionTimeout,
-                    connection, this.transceiver, output, keyPair.getPrivate(), destinationPublicKey, this.keyLifetime, communicationKey)));
-            this.executor.submit(new Receiver(this.receivedMailSink, this.messengerReportSink, this.connectionTimeout, connection, this.transceiver, input,
+                    this.transceiver, connection, output, this.keyLifetime, keyPair.getPrivate(), destinationPublicKey, communicationKey)));
+            this.executor.submit(new Receiver(this.receivedMailSink, this.messengerReportSink, this.connectionTimeout, this.transceiver, connection, input,
                     keyPair.getPrivate(), destinationPublicKey, communicationKey));
         } else {
             // ポート異常を通知。

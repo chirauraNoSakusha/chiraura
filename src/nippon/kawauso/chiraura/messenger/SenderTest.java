@@ -119,7 +119,7 @@ public final class SenderTest {
     @Test
     public void testSample() throws Exception {
         final Sender instance = new Sender(this.subjectSendQueuePool, this.subjectMessengerReportQueue, this.subjectConnectionPool, timeout,
-                this.subjectConnection, transceiver, this.subjectOutput, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), keyLifetime, commonKey);
+                transceiver, this.subjectConnection, this.subjectOutput, keyLifetime, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
         this.executor.submit(instance);
 
         // キューの登録待ち。
@@ -152,7 +152,7 @@ public final class SenderTest {
     public void testKeyUpdate() throws Exception {
         final long shortKeyLifetime = 200L;
         final Sender instance = new Sender(this.subjectSendQueuePool, this.subjectMessengerReportQueue, this.subjectConnectionPool, timeout,
-                this.subjectConnection, transceiver, this.subjectOutput, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), shortKeyLifetime, commonKey);
+                transceiver, this.subjectConnection, this.subjectOutput, shortKeyLifetime, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
         this.executor.submit(instance);
 
         // 鍵の期限切れ待ち。
@@ -188,7 +188,7 @@ public final class SenderTest {
     @Test
     public void testErrorStream() throws Exception {
         final Sender instance = new Sender(this.subjectSendQueuePool, this.subjectMessengerReportQueue, this.subjectConnectionPool, timeout,
-                this.subjectConnection, transceiver, this.subjectOutput, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), keyLifetime, commonKey);
+                transceiver, this.subjectConnection, this.subjectOutput, keyLifetime, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
         final Future<Void> future = this.executor.submit(instance);
 
         this.testerSocket.close();
@@ -219,7 +219,7 @@ public final class SenderTest {
     @Test
     public void testInvalidMessage() throws Exception {
         final Sender instance = new Sender(this.subjectSendQueuePool, this.subjectMessengerReportQueue, this.subjectConnectionPool, timeout,
-                this.subjectConnection, transceiver, this.subjectOutput, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), keyLifetime, commonKey);
+                transceiver, this.subjectConnection, this.subjectOutput, keyLifetime, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
         final Future<Void> future = this.executor.submit(instance);
 
         // キューの登録待ち。
@@ -255,7 +255,7 @@ public final class SenderTest {
     public void testTimeout() throws Exception {
         final long shortTimeout = 100L;
         final Sender instance = new Sender(this.subjectSendQueuePool, this.subjectMessengerReportQueue, this.subjectConnectionPool, shortTimeout,
-                this.subjectConnection, transceiver, this.subjectOutput, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), shortTimeout, commonKey);
+                transceiver, this.subjectConnection, this.subjectOutput, shortTimeout, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
         final Future<Void> future = this.executor.submit(instance);
 
         // 時間切れ待ち。

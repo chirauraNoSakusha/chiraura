@@ -27,8 +27,21 @@ final class ThreadMessenger implements Messenger {
 
     private static final Logger LOG = Logger.getLogger(ThreadMessenger.class.getName());
 
+    // 参照。
+    private final int port;
+    private final int receveBufferSize;
+    private final int sendBufferSize;
+    private final long connectionTimeout;
+    private final long operationTimeout;
+    private final int messageSizeLimit;
+
+    private final long version;
+    private final long versionGapThreshold;
+    private final KeyPair id;
+    private final long publicKeyLifetime;
+    private final long commonKeyLifetime;
+
     // 保持。
-    private final AtomicReference<InetSocketAddress> self;
     private final BlockingQueue<ReceivedMail> receivedMailSink;
     private final SendQueuePool sendQueuePool;
     private final BlockingQueue<ConnectRequest> connectRequestQueue;
@@ -39,34 +52,11 @@ final class ThreadMessenger implements Messenger {
 
     private final TypeRegistry<Message> registry;
 
-    // 実行用引数。
-    private final int port;
-    private final int receveBufferSize;
-    private final int sendBufferSize;
-    private final long connectionTimeout;
-    private final long operationTimeout;
-    private final int messageSizeLimit;
-    private final KeyPair id;
-    private final long version;
-    private final long versionGapThreshold;
-    private final long publicKeyLifetime;
-    private final long commonKeyLifetime;
+    private final AtomicReference<InetSocketAddress> self;
 
     ThreadMessenger(final int port, final int receveBufferSize, final int sendBufferSize, final long connectionTimeout, final long operationTimeout,
-            final int messageSizeLimit, final KeyPair id, final long version, final long versionGapThreshold, final long publicKeyLifetime,
+            final int messageSizeLimit, final long version, final long versionGapThreshold, final KeyPair id, final long publicKeyLifetime,
             final long commonKeyLifetime) {
-        this.self = new AtomicReference<>(null);
-        this.receivedMailSink = new LinkedBlockingQueue<>();
-        this.sendQueuePool = new BasicSendQueuePool();
-        this.connectRequestQueue = new LinkedBlockingQueue<>();
-        this.messengerReportSink = new LinkedBlockingQueue<>();
-        this.acceptedConnectionPool = new ConnectionPool<>();
-        this.contactingConnectionPool = new BoundConnectionPool<>();
-        this.connectionPool = new BoundConnectionPool<>();
-
-        this.registry = TypeRegistries.newRegistry();
-        RegistryInitializer.init(this.registry);
-
         if (!PortFunctions.isValid(port)) {
             throw new IllegalArgumentException("Invalid port ( " + port + " ).");
         } else if (connectionTimeout < 0) {
@@ -75,10 +65,10 @@ final class ThreadMessenger implements Messenger {
             throw new IllegalArgumentException("Negative operation timeout ( " + operationTimeout + " ).");
         } else if (messageSizeLimit < 0) {
             throw new IllegalArgumentException("Invalid message size limit ( " + messageSizeLimit + " ).");
-        } else if (id == null) {
-            throw new IllegalArgumentException("Null id.");
         } else if (versionGapThreshold < 1) {
             throw new IllegalArgumentException("Invalid version gap threshold ( " + versionGapThreshold + " ).");
+        } else if (id == null) {
+            throw new IllegalArgumentException("Null id.");
         } else if (publicKeyLifetime < 0) {
             throw new IllegalArgumentException("Invalid public key lifetime ( " + publicKeyLifetime + " ).");
         } else if (commonKeyLifetime < 0) {
@@ -91,11 +81,24 @@ final class ThreadMessenger implements Messenger {
         this.connectionTimeout = connectionTimeout;
         this.operationTimeout = operationTimeout;
         this.messageSizeLimit = messageSizeLimit;
-        this.id = id;
         this.version = version;
         this.versionGapThreshold = versionGapThreshold;
+        this.id = id;
         this.publicKeyLifetime = publicKeyLifetime;
         this.commonKeyLifetime = commonKeyLifetime;
+
+        this.receivedMailSink = new LinkedBlockingQueue<>();
+        this.sendQueuePool = new BasicSendQueuePool();
+        this.connectRequestQueue = new LinkedBlockingQueue<>();
+        this.messengerReportSink = new LinkedBlockingQueue<>();
+        this.acceptedConnectionPool = new ConnectionPool<>();
+        this.contactingConnectionPool = new BoundConnectionPool<>();
+        this.connectionPool = new BoundConnectionPool<>();
+
+        this.registry = TypeRegistries.newRegistry();
+        RegistryInitializer.init(this.registry);
+
+        this.self = new AtomicReference<>(null);
     }
 
     @Override
@@ -163,10 +166,10 @@ final class ThreadMessenger implements Messenger {
 
     @Override
     public void start(final ExecutorService executor) {
-        executor.submit(new Boss(this.self, this.receivedMailSink, this.sendQueuePool, this.connectRequestQueue, this.messengerReportSink,
+        executor.submit(new Boss(executor, this.connectRequestQueue, this.receivedMailSink, this.sendQueuePool, this.messengerReportSink,
                 this.acceptedConnectionPool, this.contactingConnectionPool, this.connectionPool, this.port, this.receveBufferSize, this.sendBufferSize,
-                this.connectionTimeout, this.operationTimeout, this.id, this.version, this.versionGapThreshold, this.publicKeyLifetime, this.commonKeyLifetime,
-                this.messageSizeLimit, this.registry, executor));
+                this.connectionTimeout, this.operationTimeout, this.messageSizeLimit, this.registry, this.version, this.versionGapThreshold, this.id,
+                this.publicKeyLifetime, this.commonKeyLifetime, this.self));
     }
 
     @Override

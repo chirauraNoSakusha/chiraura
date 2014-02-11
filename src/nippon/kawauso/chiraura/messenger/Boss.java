@@ -31,10 +31,12 @@ final class Boss extends Chief {
     private static final Logger LOG = Logger.getLogger(Boss.class.getName());
 
     // 参照。
-    private final AtomicReference<InetSocketAddress> self;
+    private final ExecutorService executor;
+
+    private final BlockingQueue<ConnectRequest> connectRequestQueue;
+
     private final BlockingQueue<ReceivedMail> receivedMailSink;
     private final SendQueuePool sendQueuePool;
-    private final BlockingQueue<ConnectRequest> connectRequestQueue;
     private final BlockingQueue<MessengerReport> messengerReportSink;
     private final ConnectionPool<AcceptedConnection> acceptedConnectionPool;
     private final BoundConnectionPool<ContactingConnection> contactingConnectionPool;
@@ -46,38 +48,40 @@ final class Boss extends Chief {
     private final long connectionTimeout;
     private final long operationTimeout;
 
-    private final KeyPair id;
     private final long version;
     private final long versionGapThreshold;
+    private final KeyPair id;
     private final long commonKeyLifetime;
-
-    private final ExecutorService executor;
+    private final AtomicReference<InetSocketAddress> self;
 
     // 保持。
-    private final BlockingQueue<Socket> acceptedSocketQueue;
     private final AtomicInteger connectionSerialGenerator;
+
+    private final BlockingQueue<Socket> acceptedSocketQueue;
+
     private final Transceiver transceiver;
+
     private final PublicKeyManager keyManager;
 
     private ServerSocket serverSocket;
 
-    Boss(final AtomicReference<InetSocketAddress> self, final BlockingQueue<ReceivedMail> receivedMailSink, final SendQueuePool sendQueuePool,
-            final BlockingQueue<ConnectRequest> connectRequestQueue, final BlockingQueue<MessengerReport> messengerReportSink,
+    Boss(final ExecutorService executor, final BlockingQueue<ConnectRequest> connectRequestQueue, final BlockingQueue<ReceivedMail> receivedMailSink,
+            final SendQueuePool sendQueuePool, final BlockingQueue<MessengerReport> messengerReportSink,
             final ConnectionPool<AcceptedConnection> acceptedConnectionPool, final BoundConnectionPool<ContactingConnection> contactingConnectionPool,
             final BoundConnectionPool<Connection> connectionPool, final int port, final int receiveBufferSize, final int sendBufferSize,
-            final long connectionTimeout, final long operationTimeout, final KeyPair id, final long version, final long versionGapThreshold,
-            final long publicKeyLifetime, final long commonKeyLifetime, final int messageSizeLimit, final TypeRegistry<Message> registry,
-            final ExecutorService executor) {
+            final long connectionTimeout, final long operationTimeout, final int messageSizeLimit, final TypeRegistry<Message> registry, final long version,
+            final long versionGapThreshold, final KeyPair id, final long publicKeyLifetime, final long commonKeyLifetime,
+            final AtomicReference<InetSocketAddress> self) {
         super(new LinkedBlockingQueue<Reporter.Report>());
 
-        if (self == null) {
-            throw new IllegalArgumentException("Null self.");
+        if (executor == null) {
+            throw new IllegalArgumentException("Null executor.");
+        } else if (connectRequestQueue == null) {
+            throw new IllegalArgumentException("Null connect request queue.");
         } else if (receivedMailSink == null) {
             throw new IllegalArgumentException("Null received mail sink.");
         } else if (sendQueuePool == null) {
             throw new IllegalArgumentException("Null send queue pool.");
-        } else if (connectRequestQueue == null) {
-            throw new IllegalArgumentException("Null connect request queue.");
         } else if (messengerReportSink == null) {
             throw new IllegalArgumentException("Null messenger report sink.");
         } else if (acceptedConnectionPool == null) {
@@ -92,26 +96,28 @@ final class Boss extends Chief {
             throw new IllegalArgumentException("Negative connection timeout ( " + connectionTimeout + " ).");
         } else if (operationTimeout < 0) {
             throw new IllegalArgumentException("Negative operation timeout ( " + operationTimeout + " ).");
-        } else if (id == null) {
-            throw new IllegalArgumentException("Null id.");
-        } else if (versionGapThreshold < 1) {
-            throw new IllegalArgumentException("Invalid version gap threshold ( " + versionGapThreshold + " ).");
-        } else if (publicKeyLifetime < 0) {
-            throw new IllegalArgumentException("Negative public key lifetime ( " + publicKeyLifetime + " ).");
-        } else if (commonKeyLifetime < 0) {
-            throw new IllegalArgumentException("Negative common key lifetime ( " + commonKeyLifetime + " ).");
         } else if (messageSizeLimit < 0) {
             throw new IllegalArgumentException("Negative message size limit ( " + messageSizeLimit + " ).");
         } else if (registry == null) {
             throw new IllegalArgumentException("Null registry.");
-        } else if (executor == null) {
-            throw new IllegalArgumentException("Null executor.");
+        } else if (versionGapThreshold < 1) {
+            throw new IllegalArgumentException("Invalid version gap threshold ( " + versionGapThreshold + " ).");
+        } else if (id == null) {
+            throw new IllegalArgumentException("Null id.");
+        } else if (publicKeyLifetime < 0) {
+            throw new IllegalArgumentException("Negative public key lifetime ( " + publicKeyLifetime + " ).");
+        } else if (commonKeyLifetime < 0) {
+            throw new IllegalArgumentException("Negative common key lifetime ( " + commonKeyLifetime + " ).");
+        } else if (self == null) {
+            throw new IllegalArgumentException("Null self.");
         }
 
-        this.self = self;
+        this.executor = executor;
+
+        this.connectRequestQueue = connectRequestQueue;
+
         this.receivedMailSink = receivedMailSink;
         this.sendQueuePool = sendQueuePool;
-        this.connectRequestQueue = connectRequestQueue;
         this.messengerReportSink = messengerReportSink;
         this.acceptedConnectionPool = acceptedConnectionPool;
         this.contactingConnectionPool = contactingConnectionPool;
@@ -123,15 +129,14 @@ final class Boss extends Chief {
         this.connectionTimeout = connectionTimeout;
         this.operationTimeout = operationTimeout;
 
-        this.id = id;
         this.version = version;
         this.versionGapThreshold = versionGapThreshold;
+        this.id = id;
         this.commonKeyLifetime = commonKeyLifetime;
+        this.self = self;
 
-        this.executor = executor;
-
-        this.acceptedSocketQueue = new LinkedBlockingQueue<>();
         this.connectionSerialGenerator = new AtomicInteger();
+        this.acceptedSocketQueue = new LinkedBlockingQueue<>();
         this.transceiver = new Transceiver(messageSizeLimit, registry);
         this.keyManager = new PublicKeyManager(publicKeyLifetime);
 
@@ -139,19 +144,20 @@ final class Boss extends Chief {
     }
 
     private Server newServer() throws IOException {
-        return new Server(getReportQueue(), this.port, this.receiveBufferSize, this.acceptedSocketQueue);
+        return new Server(getReportQueue(), this.acceptedSocketQueue, this.port, this.receiveBufferSize);
     }
 
     private AcceptorMaster newAcceptorMaster() {
         return new AcceptorMaster(getReportQueue(), this.acceptedSocketQueue, this.connectionSerialGenerator, this.executor, this.receivedMailSink,
                 this.sendQueuePool, this.messengerReportSink, this.acceptedConnectionPool, this.connectionPool, this.sendBufferSize, this.connectionTimeout,
-                this.operationTimeout, this.transceiver, this.id, this.version, this.versionGapThreshold, this.keyManager, this.commonKeyLifetime, this.self);
+                this.operationTimeout, this.transceiver, this.version, this.versionGapThreshold, this.id, this.keyManager, this.commonKeyLifetime, this.self);
     }
 
     private ContactorMaster newContactorMaster() {
-        return new ContactorMaster(getReportQueue(), this.connectRequestQueue, this.connectionSerialGenerator, this.contactingConnectionPool, this.executor,
-                this.transceiver, this.port, this.connectionTimeout, this.operationTimeout, this.receiveBufferSize, this.sendBufferSize, this.connectionPool,
-                this.receivedMailSink, this.messengerReportSink, this.sendQueuePool, this.id, this.keyManager, this.version, this.versionGapThreshold,
+        return new ContactorMaster(getReportQueue(), this.connectRequestQueue, this.connectionSerialGenerator, this.executor, this.receivedMailSink,
+                this.sendQueuePool, this.messengerReportSink, this.contactingConnectionPool, this.connectionPool, this.receiveBufferSize, this.sendBufferSize,
+                this.connectionTimeout,
+                this.operationTimeout, this.transceiver, this.version, this.versionGapThreshold, this.port, this.id, this.keyManager,
                 this.commonKeyLifetime, this.self);
     }
 

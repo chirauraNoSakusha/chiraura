@@ -35,17 +35,19 @@ final class Receiver implements Callable<Void> {
 
     // 通信周り。
     private final long timeout;
-    private final Connection connection;
     private final Transceiver transceiver;
+
+    private final Connection connection;
     private final InputStream input;
 
     // 暗号化周り。
     private final PrivateKey myKey;
     private final PublicKey destinationKey;
+
     private Key decryptionKey;
 
     Receiver(final BlockingQueue<ReceivedMail> receivedMailSink, final BlockingQueue<MessengerReport> messengerReportSink, final long timeout,
-            final Connection connection, final Transceiver transceiver, final InputStream input, final PrivateKey myKey, final PublicKey destinationKey,
+            final Transceiver transceiver, final Connection connection, final InputStream input, final PrivateKey myKey, final PublicKey destinationKey,
             final Key firstDecryptionKey) {
         if (receivedMailSink == null) {
             throw new IllegalArgumentException("Null received mail sink.");
@@ -53,10 +55,10 @@ final class Receiver implements Callable<Void> {
             throw new IllegalArgumentException("Null messenger report sink.");
         } else if (timeout < 0) {
             throw new IllegalArgumentException("Invalid timeout ( " + timeout + " ).");
-        } else if (connection == null) {
-            throw new IllegalArgumentException("Null connection.");
         } else if (transceiver == null) {
             throw new IllegalArgumentException("Null transceiver.");
+        } else if (connection == null) {
+            throw new IllegalArgumentException("Null connection.");
         } else if (input == null) {
             throw new IllegalArgumentException("Null input.");
         } else if (myKey == null) {
@@ -70,8 +72,8 @@ final class Receiver implements Callable<Void> {
         this.receivedMailSink = receivedMailSink;
         this.messengerReportSink = messengerReportSink;
         this.timeout = timeout;
-        this.connection = connection;
         this.transceiver = transceiver;
+        this.connection = connection;
         this.input = input;
         this.myKey = myKey;
         this.destinationKey = destinationKey;

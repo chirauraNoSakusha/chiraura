@@ -56,7 +56,8 @@ public final class BossTest {
     private static final long publicKeyLifetime = 100_000L;
     private static final long commonKeyLifetime = 10_000L;
     private static final int connectionType = ConnectionTypes.DATA;
-    private static final long version = 1;
+    private static final long version = 1L;
+    private static final long versionGapThreshold = 1L;
 
     private static final int subjectPort = 12345;
     private static final KeyPair subjectId = CryptographicKeys.newPublicKeyPair();
@@ -117,10 +118,10 @@ public final class BossTest {
      */
     @Test
     public void testSample() throws Exception {
-        final Boss instance = new Boss(this.subjectSelf, this.subjectReceivedMailQueue, this.subjectSendQueuePool, this.subjectConnectRequestQueue,
+        final Boss instance = new Boss(this.executor, this.subjectConnectRequestQueue, this.subjectReceivedMailQueue, this.subjectSendQueuePool,
                 this.subjectMessengerReportQueue, this.subjectAcceptedConnectionPool, this.subjectContactingConnectionPool, this.subjectConnectionPool,
-                subjectPort, receiveBufferSize, sendBufferSize, connectionTimeout, operationTimeout, subjectId, version, publicKeyLifetime, commonKeyLifetime,
-                messageSizeLimit, registry, this.executor);
+                subjectPort, receiveBufferSize, sendBufferSize, connectionTimeout, operationTimeout, messageSizeLimit, registry, version, versionGapThreshold,
+                subjectId, publicKeyLifetime, commonKeyLifetime, this.subjectSelf);
         this.executor.submit(instance);
 
         contactorTest(null); // ループバック。

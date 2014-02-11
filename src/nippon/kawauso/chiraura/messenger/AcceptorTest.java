@@ -51,6 +51,7 @@ public final class AcceptorTest {
     private static final long operationTimeout = 10_000L;
     private static final long keyLifetime = 10_000L;
     private static final long version = 1;
+    private static final long versionGapThreshold = 1;
 
     private static final int connectionType = ConnectionTypes.DATA;
 
@@ -139,8 +140,8 @@ public final class AcceptorTest {
     @Test
     public void testSample() throws Exception {
         final Acceptor instance = new Acceptor(this.subjectMessengerReportQueue, this.subjectAcceptedConnectionPool, sendBufferSize, connectionTimeout,
-                operationTimeout, this.subjectConnection, transceiver, subjectId, version, this.subjectKeyManager, this.executor, this.subjectSendQueuePool,
-                this.subjectReceivedMailQueue, this.subjectConnectionPool, keyLifetime, this.subjectSelf);
+                operationTimeout, transceiver, this.subjectConnection, version, versionGapThreshold, subjectId, this.subjectKeyManager, this.subjectSelf,
+                this.executor, this.subjectSendQueuePool, this.subjectReceivedMailQueue, this.subjectConnectionPool, keyLifetime);
         this.executor.submit(instance);
 
         // 一言目の送信。
@@ -215,8 +216,8 @@ public final class AcceptorTest {
         final Socket errorSocket = SocketWrapper.getErrorInputSocket(this.subjectConnection.getSocket(), errorThreshold);
         final AcceptedConnection errorConnection = new AcceptedConnection(this.subjectConnection.getIdNumber(), errorSocket);
         final Acceptor instance = new Acceptor(this.subjectMessengerReportQueue, this.subjectAcceptedConnectionPool, sendBufferSize, connectionTimeout,
-                operationTimeout, errorConnection, transceiver, subjectId, version, this.subjectKeyManager, this.executor, this.subjectSendQueuePool,
-                this.subjectReceivedMailQueue, this.subjectConnectionPool, keyLifetime, this.subjectSelf);
+                operationTimeout, transceiver, errorConnection, version, versionGapThreshold, subjectId, this.subjectKeyManager, this.subjectSelf,
+                this.executor, this.subjectSendQueuePool, this.subjectReceivedMailQueue, this.subjectConnectionPool, keyLifetime);
         final Future<Void> future = this.executor.submit(instance);
 
         // 一言目を送信。
@@ -237,8 +238,8 @@ public final class AcceptorTest {
     @Test
     public void testInvalidMail() throws Exception {
         final Acceptor instance = new Acceptor(this.subjectMessengerReportQueue, this.subjectAcceptedConnectionPool, sendBufferSize, connectionTimeout,
-                operationTimeout, this.subjectConnection, transceiver, subjectId, version, this.subjectKeyManager, this.executor, this.subjectSendQueuePool,
-                this.subjectReceivedMailQueue, this.subjectConnectionPool, keyLifetime, this.subjectSelf);
+                operationTimeout, transceiver, this.subjectConnection, version, versionGapThreshold, subjectId, this.subjectKeyManager, this.subjectSelf,
+                this.executor, this.subjectSendQueuePool, this.subjectReceivedMailQueue, this.subjectConnectionPool, keyLifetime);
         final Future<Void> future = this.executor.submit(instance);
 
         this.testerOutput.write(new byte[] { 0, 4, 1, 127, 1, 0 });
@@ -260,8 +261,8 @@ public final class AcceptorTest {
     public void testTimeout() throws Exception {
         final long shortOperationTimeout = 100L;
         final Acceptor instance = new Acceptor(this.subjectMessengerReportQueue, this.subjectAcceptedConnectionPool, sendBufferSize, operationTimeout,
-                shortOperationTimeout, this.subjectConnection, transceiver, subjectId, version, this.subjectKeyManager, this.executor,
-                this.subjectSendQueuePool, this.subjectReceivedMailQueue, this.subjectConnectionPool, keyLifetime, this.subjectSelf);
+                shortOperationTimeout, transceiver, this.subjectConnection, version, versionGapThreshold, subjectId, this.subjectKeyManager, this.subjectSelf,
+                this.executor, this.subjectSendQueuePool, this.subjectReceivedMailQueue, this.subjectConnectionPool, keyLifetime);
         final Future<Void> future = this.executor.submit(instance);
 
         // 時間切れ待ち。
@@ -280,8 +281,8 @@ public final class AcceptorTest {
     @Test
     public void testPortError() throws Exception {
         final Acceptor instance = new Acceptor(this.subjectMessengerReportQueue, this.subjectAcceptedConnectionPool, sendBufferSize, operationTimeout,
-                operationTimeout, this.subjectConnection, transceiver, subjectId, version, this.subjectKeyManager, this.executor, this.subjectSendQueuePool,
-                this.subjectReceivedMailQueue, this.subjectConnectionPool, keyLifetime, this.subjectSelf);
+                operationTimeout, transceiver, this.subjectConnection, version, versionGapThreshold, subjectId, this.subjectKeyManager, this.subjectSelf,
+                this.executor, this.subjectSendQueuePool, this.subjectReceivedMailQueue, this.subjectConnectionPool, keyLifetime);
         final Future<Void> future = this.executor.submit(instance);
 
         this.testerServerSocket.close();
@@ -316,8 +317,8 @@ public final class AcceptorTest {
     @Test
     public void testOldVersion() throws Exception {
         final Acceptor instance = new Acceptor(this.subjectMessengerReportQueue, this.subjectAcceptedConnectionPool, sendBufferSize, connectionTimeout,
-                operationTimeout, this.subjectConnection, transceiver, subjectId, version, this.subjectKeyManager, this.executor, this.subjectSendQueuePool,
-                this.subjectReceivedMailQueue, this.subjectConnectionPool, keyLifetime, this.subjectSelf);
+                operationTimeout, transceiver, this.subjectConnection, version, versionGapThreshold, subjectId, this.subjectKeyManager, this.subjectSelf,
+                this.executor, this.subjectSendQueuePool, this.subjectReceivedMailQueue, this.subjectConnectionPool, keyLifetime);
         this.executor.submit(instance);
 
         // 一言目の送信。
@@ -351,8 +352,8 @@ public final class AcceptorTest {
     @Test
     public void testNewVersion() throws Exception {
         final Acceptor instance = new Acceptor(this.subjectMessengerReportQueue, this.subjectAcceptedConnectionPool, sendBufferSize, connectionTimeout,
-                operationTimeout, this.subjectConnection, transceiver, subjectId, version, this.subjectKeyManager, this.executor, this.subjectSendQueuePool,
-                this.subjectReceivedMailQueue, this.subjectConnectionPool, keyLifetime, this.subjectSelf);
+                operationTimeout, transceiver, this.subjectConnection, version, versionGapThreshold, subjectId, this.subjectKeyManager, this.subjectSelf,
+                this.executor, this.subjectSendQueuePool, this.subjectReceivedMailQueue, this.subjectConnectionPool, keyLifetime);
         this.executor.submit(instance);
 
         // 一言目の送信。

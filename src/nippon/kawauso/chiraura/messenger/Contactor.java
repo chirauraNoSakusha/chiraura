@@ -47,15 +47,17 @@ final class Contactor implements Callable<Void> {
     private final int sendBufferSize;
     private final long connectionTimeout;
     private final long operationTimeout;
-    private final ContactingConnection contactingConnection;
     private final Transceiver transceiver;
 
+    private final ContactingConnection contactingConnection;
+
     // プロトコル周り。
-    private final int port;
-    private final KeyPair id;
     private final long version;
     private final long versionGapThreshold;
+    private final int port;
+    private final KeyPair id;
     private final PublicKeyManager keyManager;
+    private final AtomicReference<InetSocketAddress> self;
 
     // 主に後続のために。
     private final ExecutorService executor;
@@ -64,14 +66,12 @@ final class Contactor implements Callable<Void> {
     private final BoundConnectionPool<Connection> connectionPool;
     private final long keyLifetime;
 
-    private final AtomicReference<InetSocketAddress> self;
-
     Contactor(final BlockingQueue<MessengerReport> messengerReportSink, final BoundConnectionPool<ContactingConnection> contactingConnectionPool,
-            final int receiveBufferSize, final int sendBufferSize, final long connectionTimeout, final long operationTimeout,
-            final ContactingConnection contactingConnection, final Transceiver transceiver, final int port, final KeyPair id, final long version,
-            final long versionGapThreshold, final PublicKeyManager keyManager, final ExecutorService executor, final SendQueuePool sendQueuePool,
-            final BlockingQueue<ReceivedMail> receivedMailSink, final BoundConnectionPool<Connection> connectionPool, final long keyLifetime,
-            final AtomicReference<InetSocketAddress> self) {
+            final int receiveBufferSize, final int sendBufferSize, final long connectionTimeout, final long operationTimeout, final Transceiver transceiver,
+            final ContactingConnection contactingConnection, final long version, final long versionGapThreshold, final int port, final KeyPair id,
+            final PublicKeyManager keyManager, final AtomicReference<InetSocketAddress> self, final ExecutorService executor,
+            final SendQueuePool sendQueuePool, final BlockingQueue<ReceivedMail> receivedMailSink, final BoundConnectionPool<Connection> connectionPool,
+            final long keyLifetime) {
         if (messengerReportSink == null) {
             throw new IllegalArgumentException("Null messenger report sink.");
         } else if (contactingConnectionPool == null) {
@@ -80,18 +80,20 @@ final class Contactor implements Callable<Void> {
             throw new IllegalArgumentException("Negative connection timeout ( " + connectionTimeout + " ).");
         } else if (operationTimeout < 0) {
             throw new IllegalArgumentException("Invalid operation timeout ( " + operationTimeout + " ).");
-        } else if (contactingConnection == null) {
-            throw new IllegalArgumentException("Null connection.");
         } else if (transceiver == null) {
             throw new IllegalArgumentException("Null transceiver.");
+        } else if (contactingConnection == null) {
+            throw new IllegalArgumentException("Null connection.");
+        } else if (versionGapThreshold < 1) {
+            throw new IllegalArgumentException("Invalid version gap threshold ( " + versionGapThreshold + " ).");
         } else if (!PortFunctions.isValid(port)) {
             throw new IllegalArgumentException("Invalid port ( " + port + " ).");
         } else if (id == null) {
             throw new IllegalArgumentException("Null id.");
-        } else if (versionGapThreshold < 1) {
-            throw new IllegalArgumentException("Invalid version gap threshold ( " + versionGapThreshold + " ).");
         } else if (keyManager == null) {
             throw new IllegalArgumentException("Null key manager.");
+        } else if (self == null) {
+            throw new IllegalArgumentException("Null self.");
         } else if (executor == null) {
             throw new IllegalArgumentException("Null executor.");
         } else if (sendQueuePool == null) {
@@ -102,8 +104,6 @@ final class Contactor implements Callable<Void> {
             throw new IllegalArgumentException("Null connection pool.");
         } else if (keyLifetime < 0) {
             throw new IllegalArgumentException("Invalid key lifetime ( " + keyLifetime + " ).");
-        } else if (self == null) {
-            throw new IllegalArgumentException("Null self.");
         }
 
         this.messengerReportSink = messengerReportSink;
@@ -116,19 +116,18 @@ final class Contactor implements Callable<Void> {
         this.contactingConnection = contactingConnection;
         this.transceiver = transceiver;
 
-        this.port = port;
-        this.id = id;
         this.version = version;
         this.versionGapThreshold = versionGapThreshold;
+        this.port = port;
+        this.id = id;
         this.keyManager = keyManager;
+        this.self = self;
 
         this.executor = executor;
         this.sendQueuePool = sendQueuePool;
         this.receivedMailSink = receivedMailSink;
         this.connectionPool = connectionPool;
         this.keyLifetime = keyLifetime;
-
-        this.self = self;
     }
 
     @Override
@@ -289,8 +288,8 @@ final class Contactor implements Callable<Void> {
         LOG.log(Level.FINER, "{0}: {1} との種別 {2} での通信を開始します。",
                 new Object[] { this.contactingConnection, this.contactingConnection.getDestination(), Integer.toString(this.contactingConnection.getType()) });
         connection.setSender(this.executor.submit(new Sender(this.sendQueuePool, this.messengerReportSink, this.connectionPool, this.connectionTimeout,
-                connection, this.transceiver, output, keyPair.getPrivate(), destinationPublicKey, this.keyLifetime, communicationKey)));
-        this.executor.submit(new Receiver(this.receivedMailSink, this.messengerReportSink, this.connectionTimeout, connection, this.transceiver, input,
+                this.transceiver, connection, output, this.keyLifetime, keyPair.getPrivate(), destinationPublicKey, communicationKey)));
+        this.executor.submit(new Receiver(this.receivedMailSink, this.messengerReportSink, this.connectionTimeout, this.transceiver, connection, input,
                 keyPair.getPrivate(), destinationPublicKey, communicationKey));
     }
 

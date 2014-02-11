@@ -26,26 +26,27 @@ final class Server extends Reporter<Void> {
     private static final Logger LOG = Logger.getLogger(Server.class.getName());
 
     // 参照。
+    private final BlockingQueue<Socket> acceptedSocketSink;
+
     private final int port;
     private final int receiveBufferSize;
-    private final BlockingQueue<Socket> acceptedSocketSink;
 
     // 保持。
     private final ServerSocket serverSocket;
 
-    Server(final BlockingQueue<Reporter.Report> reportSink, final int port, final int receiveBufferSize, final BlockingQueue<Socket> acceptedSocketSink)
+    Server(final BlockingQueue<Reporter.Report> reportSink, final BlockingQueue<Socket> acceptedSocketSink, final int port, final int receiveBufferSize)
             throws IOException {
         super(reportSink);
 
-        if (!PortFunctions.isValid(port)) {
-            throw new IllegalArgumentException("Invalid port ( " + port + " ).");
-        } else if (acceptedSocketSink == null) {
+        if (acceptedSocketSink == null) {
             throw new IllegalArgumentException("Null accepted socket sink.");
+        } else if (!PortFunctions.isValid(port)) {
+            throw new IllegalArgumentException("Invalid port ( " + port + " ).");
         }
 
+        this.acceptedSocketSink = acceptedSocketSink;
         this.port = port;
         this.receiveBufferSize = receiveBufferSize;
-        this.acceptedSocketSink = acceptedSocketSink;
         this.serverSocket = new ServerSocket();
     }
 
