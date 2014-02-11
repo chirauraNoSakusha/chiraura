@@ -32,6 +32,7 @@ final class Boss extends Chief {
     private final long sleepTime;
     private final long backupInterval;
     private final long operationTimeout;
+    private final long versionGapThreshold;
     private final ExecutorService executor;
     private final BlockingQueue<Operation> operationQueue;
     private final BlockingQueue<ClosetReport> closetReportSink;
@@ -40,7 +41,7 @@ final class Boss extends Chief {
     private final Map<AddressedPeer, BackupperMaster.BackupperUnit> backupeerPool;
 
     Boss(final NetworkWrapper network, final SessionManager sessionManager, final long maintenanceInterval, final long sleepTime, final long backupInterval,
-            final long operationTimeout, final ExecutorService executor, final BlockingQueue<Operation> operationQueue,
+            final long operationTimeout, final long versionGapThreshold, final ExecutorService executor, final BlockingQueue<Operation> operationQueue,
             final BlockingQueue<ClosetReport> closetReportSink, final DriverSet drivers) {
         super(new LinkedBlockingQueue<Reporter.Report>());
 
@@ -56,6 +57,8 @@ final class Boss extends Chief {
             throw new IllegalArgumentException("Invalid backup interval ( " + backupInterval + " ).");
         } else if (operationTimeout < 0) {
             throw new IllegalArgumentException("Invalid operation timeout ( " + operationTimeout + " ).");
+        } else if (versionGapThreshold < 1) {
+            throw new IllegalArgumentException("Too small version gap threshold ( " + versionGapThreshold + " ).");
         } else if (executor == null) {
             throw new IllegalArgumentException("Null executor.");
         } else if (operationQueue == null) {
@@ -72,6 +75,7 @@ final class Boss extends Chief {
         this.sleepTime = sleepTime;
         this.backupInterval = backupInterval;
         this.operationTimeout = operationTimeout;
+        this.versionGapThreshold = versionGapThreshold;
         this.executor = executor;
         this.operationQueue = operationQueue;
         this.closetReportSink = closetReportSink;
@@ -85,7 +89,7 @@ final class Boss extends Chief {
     }
 
     private MessengerMonitor newMessengerMonitor() {
-        return new MessengerMonitor(getReportQueue(), this.network, this.closetReportSink, this.drivers);
+        return new MessengerMonitor(getReportQueue(), this.network, this.closetReportSink, this.versionGapThreshold, this.drivers);
     }
 
     private NetworkManager newNetworkManager() {

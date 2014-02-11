@@ -21,6 +21,8 @@ import org.junit.Test;
  */
 public final class MessengerMonitorTest {
 
+    private static final long versionGapThreshold = 1L;
+
     private final Random random;
     private final BlockingQueue<Reporter.Report> reportQueue;
     private final BlockingQueue<ClosetReport> closerReportQueue;
@@ -43,7 +45,7 @@ public final class MessengerMonitorTest {
 
         final DriverSet drivers = new DriverSet(network, storage, new SessionManager(), this.operationQueue, this.executor);
 
-        this.instance = new MessengerMonitor(this.reportQueue, network, this.closerReportQueue, drivers);
+        this.instance = new MessengerMonitor(this.reportQueue, network, this.closerReportQueue, versionGapThreshold, drivers);
         this.shutdownTimeout = 1_000;
     }
 

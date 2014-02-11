@@ -325,8 +325,18 @@ public final class TrayGui implements Gui {
     }
 
     @Override
-    public void displayNewProtocolWarning(final long version, final long newVersion) {
-        setNewProtocolWarning("これ(動作規約第" + Long.toString(version) + "版)より新しいバージョン(第" + Long.toString(newVersion) + "版)が出ているようです");
+    public void displayNewProtocolWarning(final long major, final long minor) {
+        final String msg;
+        if (major > 0) {
+            if (minor > 0) {
+                msg = "この個体より " + Long.toString(major) + " 段階と " + Long.toString(minor) + " 歩だけ新しい個体がいるようです";
+            } else {
+                msg = "この個体より " + Long.toString(major) + " 段階だけ新しい個体がいるようです";
+            }
+        } else {
+            msg = "この個体より " + Long.toString(minor) + " 歩だけ新しい個体がいるようです";
+        }
+        setNewProtocolWarning(msg);
         printWarnings();
     }
 

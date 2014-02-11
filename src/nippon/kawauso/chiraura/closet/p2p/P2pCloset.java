@@ -439,7 +439,7 @@ public final class P2pCloset implements Closet {
     @Override
     public void start(final ExecutorService executor) {
         executor.submit(new Boss(this.network, this.sessionManager, this.maintenanceInterval, this.sleepTime, this.backupInterval, this.operationTimeout,
-                executor, this.operationQueue, this.closetReportQueue, this.drivers));
+                VERSION_GAP_THRESHOLD, executor, this.operationQueue, this.closetReportQueue, this.drivers));
         this.network.start(executor);
     }
 

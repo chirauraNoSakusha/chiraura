@@ -29,22 +29,27 @@ final class MessengerMonitor extends Reporter<Void> {
     private final NetworkWrapper errorSource;
     private final BlockingQueue<ClosetReport> closetReportSink;
 
+    private final long versionGapThreshold;
+
     // 保持。
     private final MessengerReportDriverSet drivers;
 
     MessengerMonitor(final BlockingQueue<Reporter.Report> reportSink, final NetworkWrapper errorSource, final BlockingQueue<ClosetReport> closetReportSink,
-            final MessengerReportDriverSet drivers) {
+            final long versionGapThreshold, final MessengerReportDriverSet drivers) {
         super(reportSink);
 
         if (errorSource == null) {
             throw new IllegalArgumentException("Null error source.");
         } else if (closetReportSink == null) {
             throw new IllegalArgumentException("Null closet report sink.");
+        } else if (versionGapThreshold < 1) {
+            throw new IllegalArgumentException("Too small version gap threshold ( " + versionGapThreshold + " ).");
         } else if (drivers == null) {
             throw new IllegalArgumentException("Null drivers.");
         }
         this.errorSource = errorSource;
         this.closetReportSink = closetReportSink;
+        this.versionGapThreshold = versionGapThreshold;
         this.drivers = drivers;
     }
 
@@ -68,7 +73,10 @@ final class MessengerMonitor extends Reporter<Void> {
             } else if (report instanceof nippon.kawauso.chiraura.messenger.ClosePortWarning) {
                 ConcurrentFunctions.completePut(new ClosePortWarning((nippon.kawauso.chiraura.messenger.ClosePortWarning) report), this.closetReportSink);
             } else if (report instanceof nippon.kawauso.chiraura.messenger.NewProtocolWarning) {
-                ConcurrentFunctions.completePut(new NewProtocolWarning((nippon.kawauso.chiraura.messenger.NewProtocolWarning) report), this.closetReportSink);
+                final nippon.kawauso.chiraura.messenger.NewProtocolWarning lowWarning = (nippon.kawauso.chiraura.messenger.NewProtocolWarning) report;
+                final long diff = lowWarning.getNewVersion() - lowWarning.getVersion();
+                ConcurrentFunctions
+                        .completePut(new NewProtocolWarning(diff / this.versionGapThreshold, diff % this.versionGapThreshold), this.closetReportSink);
             } else if (report instanceof nippon.kawauso.chiraura.messenger.SelfReport) {
                 ConcurrentFunctions.completePut(new SelfReport((nippon.kawauso.chiraura.messenger.SelfReport) report), this.closetReportSink);
             } else {

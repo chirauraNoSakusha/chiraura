@@ -25,6 +25,7 @@ public final class BossTest {
     private static final long sleepTime = 10_000L;
     private static final long backupInterval = 1_000L;
     private static final long timeout = 10_000L;
+    private static final long versionGapThreshold = 1L;
     private final Random random;
     private final BlockingQueue<Operation> operationQueue;
     private final BlockingQueue<ClosetReport> closetReportQueue;
@@ -56,8 +57,8 @@ public final class BossTest {
      */
     @Test
     public void testBoot() throws Exception {
-        final Boss instance = new Boss(this.network, this.sessionManager, interval, sleepTime, backupInterval, timeout, this.executor, this.operationQueue,
-                this.closetReportQueue, this.drivers);
+        final Boss instance = new Boss(this.network, this.sessionManager, interval, sleepTime, backupInterval, timeout, versionGapThreshold, this.executor,
+                this.operationQueue, this.closetReportQueue, this.drivers);
         final Future<Void> future = this.executor.submit(instance);
         Thread.sleep(100);
         this.executor.shutdownNow();

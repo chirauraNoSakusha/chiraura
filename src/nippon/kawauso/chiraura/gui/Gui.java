@@ -53,10 +53,10 @@ public interface Gui extends AutoCloseable {
     public void displayClosePortWarning(int port);
 
     /**
-     * 動作規約の新しい版が出ていることを表示する。
-     * @param version 自分の版
-     * @param newVersion 新しい版
+     * より新しい個体がいることを表示する。
+     * @param majorGap メジャーバージョンの差
+     * @param minorGap マイナーバージョンの差
      */
-    public void displayNewProtocolWarning(long version, long newVersion);
+    public void displayNewProtocolWarning(long majorGap, long minorGap);
 
 }
