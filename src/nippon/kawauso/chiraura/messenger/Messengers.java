@@ -24,16 +24,17 @@ public final class Messengers {
      * @param operationTimeout 規約通信の応答制限時間 (ミリ秒)
      * @param messageSizeLimit メッセージの最大バイトサイズ
      * @param id 自身の識別用鍵
-     * @param version プロトコルバージョン番号
+     * @param version バージョン番号
+     * @param versionGapThreshold 弾く
      * @param publicKeyLifetime 通信用公開鍵の使い回し期間 (ミリ秒)
      * @param commonKeyLifetime 通信用共通鍵の使い回し期間 (ミリ秒)
      * @return 通信係
      */
     public static Messenger newInstance(final int port, final int receveBufferSize, final int sendBufferSize, final long connectionTimeout,
-            final long operationTimeout, final int messageSizeLimit, final KeyPair id, final long version, final long publicKeyLifetime,
-            final long commonKeyLifetime) {
+            final long operationTimeout, final int messageSizeLimit, final KeyPair id, final long version, final long versionGapThreshold,
+            final long publicKeyLifetime, final long commonKeyLifetime) {
         return new ThreadMessenger(port, receveBufferSize, sendBufferSize, connectionTimeout, operationTimeout, messageSizeLimit, id, version,
-                publicKeyLifetime, commonKeyLifetime);
+                versionGapThreshold, publicKeyLifetime, commonKeyLifetime);
     }
 
     /**

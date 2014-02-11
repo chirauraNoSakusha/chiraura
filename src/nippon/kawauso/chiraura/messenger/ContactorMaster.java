@@ -42,6 +42,7 @@ final class ContactorMaster extends Reporter<Void> {
     private final PublicKeyManager keyManager;
 
     private final long version;
+    private final long versionGapThreshold;
     private final long keyLifetime;
 
     private final AtomicReference<InetSocketAddress> self;
@@ -51,7 +52,7 @@ final class ContactorMaster extends Reporter<Void> {
             final Transceiver transceiver, final int port, final long connectionTimeout, final long operationTimeout, final int receiveBufferSize,
             final int sendBufferSize, final BoundConnectionPool<Connection> connectionPool, final BlockingQueue<ReceivedMail> receivedMailSink,
             final BlockingQueue<MessengerReport> messengerReportSink, final SendQueuePool sendQueuePool, final KeyPair id, final PublicKeyManager keyManager,
-            final long version, final long keyLifetime, final AtomicReference<InetSocketAddress> self) {
+            final long version, final long versionGapThreshold, final long keyLifetime, final AtomicReference<InetSocketAddress> self) {
         super(reportSink);
 
         if (connectRequestSource == null) {
@@ -80,6 +81,8 @@ final class ContactorMaster extends Reporter<Void> {
             throw new IllegalArgumentException("Null id.");
         } else if (keyManager == null) {
             throw new IllegalArgumentException("Null key manager.");
+        } else if (versionGapThreshold < 1) {
+            throw new IllegalArgumentException("Invalid version gap threshold ( " + versionGapThreshold + " ).");
         } else if (keyLifetime < 0) {
             throw new IllegalArgumentException("Invalid key lifetime ( " + keyLifetime + " ).");
         } else if (self == null) {
@@ -103,6 +106,7 @@ final class ContactorMaster extends Reporter<Void> {
         this.id = id;
         this.keyManager = keyManager;
         this.version = version;
+        this.versionGapThreshold = versionGapThreshold;
         this.keyLifetime = keyLifetime;
         this.self = self;
     }
@@ -119,8 +123,9 @@ final class ContactorMaster extends Reporter<Void> {
                 LOG.log(Level.FINER, "接続番号 {0} 種別 {1} で {2} へ接続します。",
                         new Object[] { idNumber, Integer.toString(request.getConnectionType()), request.getDestination() });
                 final Contactor contactor = new Contactor(this.messengerReportSink, this.contactingConnectionPool, this.receiveBufferSize, this.sendBufferSize,
-                        this.connectionTimeout, this.operationTimeout, connection, this.transceiver, this.port, this.id, this.version, this.keyManager,
-                        this.executor, this.sendQueuePool, this.receivedMailSink, this.connectionPool, this.keyLifetime, this.self);
+                        this.connectionTimeout, this.operationTimeout, connection, this.transceiver, this.port, this.id, this.version,
+                        this.versionGapThreshold,
+                        this.keyManager, this.executor, this.sendQueuePool, this.receivedMailSink, this.connectionPool, this.keyLifetime, this.self);
                 this.executor.submit(contactor);
             } catch (final InterruptedException e) {
                 break;

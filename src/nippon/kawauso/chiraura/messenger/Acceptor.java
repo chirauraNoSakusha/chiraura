@@ -50,6 +50,7 @@ final class Acceptor implements Callable<Void> {
     // プロトコル周り。
     private final KeyPair id;
     private final long version;
+    private final long versionGapThreshold;
     private final PublicKeyManager keyManager;
 
     // 主に後続のために。
@@ -63,9 +64,9 @@ final class Acceptor implements Callable<Void> {
 
     Acceptor(final BlockingQueue<MessengerReport> messengerReportSink, final ConnectionPool<AcceptedConnection> acceptedConnectionPool,
             final int sendBufferSize, final long connectionTimeout, final long operationTimeout, final AcceptedConnection acceptedConnection,
-            final Transceiver transceiver, final KeyPair id, final long version, final PublicKeyManager keyManager, final ExecutorService executor,
-            final SendQueuePool sendQueuePool, final BlockingQueue<ReceivedMail> receivedMailSink, final BoundConnectionPool<Connection> connectionPool,
-            final long keyLifetime, final AtomicReference<InetSocketAddress> self) {
+            final Transceiver transceiver, final KeyPair id, final long version, final long versionGapThreshold, final PublicKeyManager keyManager,
+            final ExecutorService executor, final SendQueuePool sendQueuePool, final BlockingQueue<ReceivedMail> receivedMailSink,
+            final BoundConnectionPool<Connection> connectionPool, final long keyLifetime, final AtomicReference<InetSocketAddress> self) {
         if (messengerReportSink == null) {
             throw new IllegalArgumentException("Null messenger report sink.");
         } else if (acceptedConnectionPool == null) {
@@ -80,6 +81,8 @@ final class Acceptor implements Callable<Void> {
             throw new IllegalArgumentException("Null transceiver.");
         } else if (id == null) {
             throw new IllegalArgumentException("Null id.");
+        } else if (versionGapThreshold < 1) {
+            throw new IllegalArgumentException("Invalid version gap threshold ( " + versionGapThreshold + " ).");
         } else if (keyManager == null) {
             throw new IllegalArgumentException("Null key manager.");
         } else if (executor == null) {
@@ -107,6 +110,7 @@ final class Acceptor implements Callable<Void> {
 
         this.id = id;
         this.version = version;
+        this.versionGapThreshold = versionGapThreshold;
         this.keyManager = keyManager;
 
         this.executor = executor;
@@ -195,20 +199,24 @@ final class Acceptor implements Callable<Void> {
         final InetSocketAddress destination = new InetSocketAddress(this.acceptedConnection.getSocket().getInetAddress(), destinationPort);
 
         if (destinationVersion != this.version) {
-            // 動作規約の版だけが合わない。
-
-            // さよなら (二言目への相槌) を送信。
-            final KeyPair keyPair = this.keyManager.getPublicKeyPair();
-            StartingProtocol.sendSecondReply(this.transceiver, output, communicationKey, this.id, watchword, keyPair.getPublic(), this.version, destination);
+            // 版が合わない。
 
             if (this.version < destinationVersion) {
                 ConcurrentFunctions.completePut(new NewProtocolWarning(this.version, destinationVersion), this.messengerReportSink);
             } else {
-                LOG.log(Level.FINEST, "{0}: 自分の動作規約 ( 第 {1} 版 ) とは異なる動作規約 ( 第 {2} 版 ) の個体を検知しました。",
+                LOG.log(Level.FINEST, "{0}: 自分 ( 第 {1} 版 ) とは異なる個体 ( 第 {2} 版 ) を検知しました。",
                         new Object[] { this.acceptedConnection, Long.toString(this.version), Long.toString(destinationVersion) });
             }
-            this.acceptedConnection.close();
-            return;
+
+            if (destinationVersion + this.versionGapThreshold <= this.version) {
+                // さよなら (二言目への相槌) を送信。
+                final KeyPair keyPair = this.keyManager.getPublicKeyPair();
+                StartingProtocol
+                        .sendSecondReply(this.transceiver, output, communicationKey, this.id, watchword, keyPair.getPublic(), this.version, destination);
+
+                this.acceptedConnection.close();
+                return;
+            }
         }
 
         // ポート検査。

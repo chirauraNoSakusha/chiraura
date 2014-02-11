@@ -46,6 +46,7 @@ final class AcceptorMaster extends Reporter<Void> {
 
     private final KeyPair id;
     private final long version;
+    private final long versionGapThreshold;
     private final PublicKeyManager keyManager;
     private final long keyLifetime;
 
@@ -55,8 +56,8 @@ final class AcceptorMaster extends Reporter<Void> {
             final ExecutorService executor, final BlockingQueue<ReceivedMail> receivedMailSink, final SendQueuePool sendQueuePool,
             final BlockingQueue<MessengerReport> messengerReportSink, final ConnectionPool<AcceptedConnection> acceptedConnectionPool,
             final BoundConnectionPool<Connection> connectionPool, final int sendBufferSize, final long connectionTimeout, final long operationTimeout,
-            final Transceiver transceiver, final KeyPair id, final long version, final PublicKeyManager keyManager, final long keyLifetime,
-            final AtomicReference<InetSocketAddress> self) {
+            final Transceiver transceiver, final KeyPair id, final long version, final long versionGapThreshold, final PublicKeyManager keyManager,
+            final long keyLifetime, final AtomicReference<InetSocketAddress> self) {
         super(reportSink);
 
         if (acceptedSocketSource == null) {
@@ -83,6 +84,8 @@ final class AcceptorMaster extends Reporter<Void> {
             throw new IllegalArgumentException("Null transceiver.");
         } else if (id == null) {
             throw new IllegalArgumentException("Null id.");
+        } else if (versionGapThreshold < 1) {
+            throw new IllegalArgumentException("Invalid version gap threshold ( " + versionGapThreshold + " ).");
         } else if (keyManager == null) {
             throw new IllegalArgumentException("Null key manager.");
         } else if (keyLifetime < 0) {
@@ -105,6 +108,7 @@ final class AcceptorMaster extends Reporter<Void> {
         this.transceiver = transceiver;
         this.id = id;
         this.version = version;
+        this.versionGapThreshold = versionGapThreshold;
         this.keyManager = keyManager;
         this.keyLifetime = keyLifetime;
         this.self = self;
@@ -122,8 +126,8 @@ final class AcceptorMaster extends Reporter<Void> {
 
                 LOG.log(Level.FINER, "接続番号 {0} で {1} の受け入れ作業を始めます。", new Object[] { Integer.toString(idNumber), socket.getInetAddress() });
                 final Acceptor acceptor = new Acceptor(this.messengerReportSink, this.acceptedConnectionPool, this.sendBufferSize, this.connectionTimeout,
-                        this.operationTimeout, connection, this.transceiver, this.id, this.version, this.keyManager, this.executor, this.sendQueuePool,
-                        this.receivedMailSink, this.connectionPool, this.keyLifetime, this.self);
+                        this.operationTimeout, connection, this.transceiver, this.id, this.version, this.versionGapThreshold, this.keyManager, this.executor,
+                        this.sendQueuePool, this.receivedMailSink, this.connectionPool, this.keyLifetime, this.self);
                 this.executor.submit(acceptor);
             } catch (final InterruptedException e) {
                 break;

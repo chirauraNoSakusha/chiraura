@@ -48,6 +48,7 @@ final class Boss extends Chief {
 
     private final KeyPair id;
     private final long version;
+    private final long versionGapThreshold;
     private final long commonKeyLifetime;
 
     private final ExecutorService executor;
@@ -64,8 +65,9 @@ final class Boss extends Chief {
             final BlockingQueue<ConnectRequest> connectRequestQueue, final BlockingQueue<MessengerReport> messengerReportSink,
             final ConnectionPool<AcceptedConnection> acceptedConnectionPool, final BoundConnectionPool<ContactingConnection> contactingConnectionPool,
             final BoundConnectionPool<Connection> connectionPool, final int port, final int receiveBufferSize, final int sendBufferSize,
-            final long connectionTimeout, final long operationTimeout, final KeyPair id, final long version, final long publicKeyLifetime,
-            final long commonKeyLifetime, final int messageSizeLimit, final TypeRegistry<Message> registry, final ExecutorService executor) {
+            final long connectionTimeout, final long operationTimeout, final KeyPair id, final long version, final long versionGapThreshold,
+            final long publicKeyLifetime, final long commonKeyLifetime, final int messageSizeLimit, final TypeRegistry<Message> registry,
+            final ExecutorService executor) {
         super(new LinkedBlockingQueue<Reporter.Report>());
 
         if (self == null) {
@@ -92,6 +94,8 @@ final class Boss extends Chief {
             throw new IllegalArgumentException("Negative operation timeout ( " + operationTimeout + " ).");
         } else if (id == null) {
             throw new IllegalArgumentException("Null id.");
+        } else if (versionGapThreshold < 1) {
+            throw new IllegalArgumentException("Invalid version gap threshold ( " + versionGapThreshold + " ).");
         } else if (publicKeyLifetime < 0) {
             throw new IllegalArgumentException("Negative public key lifetime ( " + publicKeyLifetime + " ).");
         } else if (commonKeyLifetime < 0) {
@@ -121,6 +125,7 @@ final class Boss extends Chief {
 
         this.id = id;
         this.version = version;
+        this.versionGapThreshold = versionGapThreshold;
         this.commonKeyLifetime = commonKeyLifetime;
 
         this.executor = executor;
@@ -140,13 +145,14 @@ final class Boss extends Chief {
     private AcceptorMaster newAcceptorMaster() {
         return new AcceptorMaster(getReportQueue(), this.acceptedSocketQueue, this.connectionSerialGenerator, this.executor, this.receivedMailSink,
                 this.sendQueuePool, this.messengerReportSink, this.acceptedConnectionPool, this.connectionPool, this.sendBufferSize, this.connectionTimeout,
-                this.operationTimeout, this.transceiver, this.id, this.version, this.keyManager, this.commonKeyLifetime, this.self);
+                this.operationTimeout, this.transceiver, this.id, this.version, this.versionGapThreshold, this.keyManager, this.commonKeyLifetime, this.self);
     }
 
     private ContactorMaster newContactorMaster() {
         return new ContactorMaster(getReportQueue(), this.connectRequestQueue, this.connectionSerialGenerator, this.contactingConnectionPool, this.executor,
                 this.transceiver, this.port, this.connectionTimeout, this.operationTimeout, this.receiveBufferSize, this.sendBufferSize, this.connectionPool,
-                this.receivedMailSink, this.messengerReportSink, this.sendQueuePool, this.id, this.keyManager, this.version, this.commonKeyLifetime, this.self);
+                this.receivedMailSink, this.messengerReportSink, this.sendQueuePool, this.id, this.keyManager, this.version, this.versionGapThreshold,
+                this.commonKeyLifetime, this.self);
     }
 
     @Override

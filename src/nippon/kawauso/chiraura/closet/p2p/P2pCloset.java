@@ -15,7 +15,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import nippon.kawauso.chiraura.Global;
 import nippon.kawauso.chiraura.closet.Closet;
 import nippon.kawauso.chiraura.closet.ClosetReport;
 import nippon.kawauso.chiraura.closet.Mountain;
@@ -36,6 +35,19 @@ import nippon.kawauso.chiraura.storage.Storages;
  * @author chirauraNoSakusha
  */
 public final class P2pCloset implements Closet {
+
+    /**
+     * バージョン。
+     */
+    private static final long VERSION = 7L; // 2014/02/08.
+
+    /**
+     * いくつ離れていたら切り捨てるか。
+     * 切り捨てたいときは一気にそれだけ上げれば良い。
+     * 古いバージョンを弾きたいときは弾き、そうでないときも上位バージョンを通知できるようにするため。
+     * TODO メジャーバージョンとマイナーバージョンにすべきだった。設計ミス。
+     */
+    private static final long VERSION_GAP_THRESHOLD = 50L;
 
     /**
      * 引数用。
@@ -389,13 +401,13 @@ public final class P2pCloset implements Closet {
         this.storage = new StorageWrapper(rawStorage, this.operationQueue, param.cacheLogCapacity, param.cacheDuration);
 
         final Messenger messenger = Messengers.newInstance(param.port, param.receiveBufferSize, param.sendBufferSize, param.connectionTimeout,
-                param.operationTimeout, param.messageSizeLimit, param.id, Global.PROTOCOL_VERSION, param.publicKeyLifetime, param.commonKeyLifetime);
+                param.operationTimeout, param.messageSizeLimit, param.id, VERSION, VERSION_GAP_THRESHOLD, param.publicKeyLifetime, param.commonKeyLifetime);
         final AddressableNetwork rawNetwork = AddressableNetworks.newInstance(param.calculator.calculate(param.id.getPublic()), param.peerCapacity,
                 param.maintenanceInterval);
         final PeerBlacklist blacklist = new TimeLimitedPeerBlacklist(param.blacklistCapacity, param.blacklistTimeout);
         final PeerBlacklist lostPeers = new TimeLimitedPeerBlacklist(param.blacklistCapacity, param.maintenanceInterval * 3 / 2);
         final PeerPot pot = new FifoPeerPot(param.potCapacity);
-        this.network = new NetworkWrapper(Global.PROTOCOL_VERSION, rawNetwork, messenger, blacklist, lostPeers, pot, this.operationQueue, param.calculator,
+        this.network = new NetworkWrapper(P2pCloset.VERSION, rawNetwork, messenger, blacklist, lostPeers, pot, this.operationQueue, param.calculator,
                 param.activeAddressLogCapacity, param.activeAddressDuration);
 
         Register.init(this.network, this.storage);

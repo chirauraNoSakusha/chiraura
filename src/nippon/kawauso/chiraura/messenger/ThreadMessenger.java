@@ -48,11 +48,13 @@ final class ThreadMessenger implements Messenger {
     private final int messageSizeLimit;
     private final KeyPair id;
     private final long version;
+    private final long versionGapThreshold;
     private final long publicKeyLifetime;
     private final long commonKeyLifetime;
 
     ThreadMessenger(final int port, final int receveBufferSize, final int sendBufferSize, final long connectionTimeout, final long operationTimeout,
-            final int messageSizeLimit, final KeyPair id, final long version, final long publicKeyLifetime, final long commonKeyLifetime) {
+            final int messageSizeLimit, final KeyPair id, final long version, final long versionGapThreshold, final long publicKeyLifetime,
+            final long commonKeyLifetime) {
         this.self = new AtomicReference<>(null);
         this.receivedMailSink = new LinkedBlockingQueue<>();
         this.sendQueuePool = new BasicSendQueuePool();
@@ -75,6 +77,8 @@ final class ThreadMessenger implements Messenger {
             throw new IllegalArgumentException("Invalid message size limit ( " + messageSizeLimit + " ).");
         } else if (id == null) {
             throw new IllegalArgumentException("Null id.");
+        } else if (versionGapThreshold < 1) {
+            throw new IllegalArgumentException("Invalid version gap threshold ( " + versionGapThreshold + " ).");
         } else if (publicKeyLifetime < 0) {
             throw new IllegalArgumentException("Invalid public key lifetime ( " + publicKeyLifetime + " ).");
         } else if (commonKeyLifetime < 0) {
@@ -89,6 +93,7 @@ final class ThreadMessenger implements Messenger {
         this.messageSizeLimit = messageSizeLimit;
         this.id = id;
         this.version = version;
+        this.versionGapThreshold = versionGapThreshold;
         this.publicKeyLifetime = publicKeyLifetime;
         this.commonKeyLifetime = commonKeyLifetime;
     }
@@ -159,9 +164,9 @@ final class ThreadMessenger implements Messenger {
     @Override
     public void start(final ExecutorService executor) {
         executor.submit(new Boss(this.self, this.receivedMailSink, this.sendQueuePool, this.connectRequestQueue, this.messengerReportSink,
-                this.acceptedConnectionPool,
-                this.contactingConnectionPool, this.connectionPool, this.port, this.receveBufferSize, this.sendBufferSize, this.connectionTimeout,
-                this.operationTimeout, this.id, this.version, this.publicKeyLifetime, this.commonKeyLifetime, this.messageSizeLimit, this.registry, executor));
+                this.acceptedConnectionPool, this.contactingConnectionPool, this.connectionPool, this.port, this.receveBufferSize, this.sendBufferSize,
+                this.connectionTimeout, this.operationTimeout, this.id, this.version, this.versionGapThreshold, this.publicKeyLifetime, this.commonKeyLifetime,
+                this.messageSizeLimit, this.registry, executor));
     }
 
     @Override

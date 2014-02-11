@@ -54,6 +54,7 @@ final class Contactor implements Callable<Void> {
     private final int port;
     private final KeyPair id;
     private final long version;
+    private final long versionGapThreshold;
     private final PublicKeyManager keyManager;
 
     // 主に後続のために。
@@ -68,7 +69,7 @@ final class Contactor implements Callable<Void> {
     Contactor(final BlockingQueue<MessengerReport> messengerReportSink, final BoundConnectionPool<ContactingConnection> contactingConnectionPool,
             final int receiveBufferSize, final int sendBufferSize, final long connectionTimeout, final long operationTimeout,
             final ContactingConnection contactingConnection, final Transceiver transceiver, final int port, final KeyPair id, final long version,
-            final PublicKeyManager keyManager, final ExecutorService executor, final SendQueuePool sendQueuePool,
+            final long versionGapThreshold, final PublicKeyManager keyManager, final ExecutorService executor, final SendQueuePool sendQueuePool,
             final BlockingQueue<ReceivedMail> receivedMailSink, final BoundConnectionPool<Connection> connectionPool, final long keyLifetime,
             final AtomicReference<InetSocketAddress> self) {
         if (messengerReportSink == null) {
@@ -87,6 +88,8 @@ final class Contactor implements Callable<Void> {
             throw new IllegalArgumentException("Invalid port ( " + port + " ).");
         } else if (id == null) {
             throw new IllegalArgumentException("Null id.");
+        } else if (versionGapThreshold < 1) {
+            throw new IllegalArgumentException("Invalid version gap threshold ( " + versionGapThreshold + " ).");
         } else if (keyManager == null) {
             throw new IllegalArgumentException("Null key manager.");
         } else if (executor == null) {
@@ -116,6 +119,7 @@ final class Contactor implements Callable<Void> {
         this.port = port;
         this.id = id;
         this.version = version;
+        this.versionGapThreshold = versionGapThreshold;
         this.keyManager = keyManager;
 
         this.executor = executor;
@@ -253,15 +257,18 @@ final class Contactor implements Callable<Void> {
         }
 
         if (destinationVersion != this.version) {
-            // 動作規約の版だけが合わない。
+            // 版が合わない。
             if (this.version < destinationVersion) {
                 ConcurrentFunctions.completePut(new NewProtocolWarning(this.version, destinationVersion), this.messengerReportSink);
             } else {
-                LOG.log(Level.FINEST, "{0}: 自分の動作規約 ( 第 {0} 版 ) とは個体を検知しました。",
+                LOG.log(Level.FINEST, "{0}: 自分 ( 第 {1} 版 ) とは異なる個体 ( 第 {2} 版 ) を検知しました。",
                         new Object[] { this.contactingConnection, Long.toString(this.version), Long.toString(destinationVersion) });
             }
-            errorAction();
-            return;
+
+            if (destinationVersion + this.versionGapThreshold <= this.version) {
+                errorAction();
+                return;
+            }
         }
 
         // 渡りをつけたので報告。
@@ -282,8 +289,7 @@ final class Contactor implements Callable<Void> {
         LOG.log(Level.FINER, "{0}: {1} との種別 {2} での通信を開始します。",
                 new Object[] { this.contactingConnection, this.contactingConnection.getDestination(), Integer.toString(this.contactingConnection.getType()) });
         connection.setSender(this.executor.submit(new Sender(this.sendQueuePool, this.messengerReportSink, this.connectionPool, this.connectionTimeout,
-                connection,
-                this.transceiver, output, keyPair.getPrivate(), destinationPublicKey, this.keyLifetime, communicationKey)));
+                connection, this.transceiver, output, keyPair.getPrivate(), destinationPublicKey, this.keyLifetime, communicationKey)));
         this.executor.submit(new Receiver(this.receivedMailSink, this.messengerReportSink, this.connectionTimeout, connection, this.transceiver, input,
                 keyPair.getPrivate(), destinationPublicKey, communicationKey));
     }
