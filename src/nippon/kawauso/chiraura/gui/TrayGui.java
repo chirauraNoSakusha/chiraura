@@ -9,6 +9,7 @@ import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Frame;
+import java.awt.Image;
 import java.awt.MenuItem;
 import java.awt.PopupMenu;
 import java.awt.SystemTray;
@@ -44,6 +45,9 @@ public final class TrayGui implements Gui {
 
     private final BlockingQueue<GuiCommand> taskQueue;
 
+    private Image normalImage;
+    private Image warningImage;
+
     private TrayIcon icon;
     private Dialog suicideDialog;
 
@@ -58,6 +62,8 @@ public final class TrayGui implements Gui {
     private String closePortWarning;
     private String newProtocolWarning;
 
+    private final AtomicReference<String> warnings;
+
     /**
      * 作成する。
      * @param rootPath 作業場の場所
@@ -71,6 +77,8 @@ public final class TrayGui implements Gui {
         }
         this.taskQueue = new LinkedBlockingQueue<>();
 
+        this.normalImage = null;
+        this.warningImage = null;
         this.icon = null;
         this.suicideDialog = null;
 
@@ -84,6 +92,8 @@ public final class TrayGui implements Gui {
         this.serverError = null;
         this.closePortWarning = null;
         this.newProtocolWarning = null;
+
+        this.warnings = new AtomicReference<>();
     }
 
     private synchronized InetSocketAddress getSelf() {
@@ -134,12 +144,15 @@ public final class TrayGui implements Gui {
     private synchronized String getPeerInfoString() {
         final StringBuilder buff = new StringBuilder();
         final InetSocketAddress curSelf = getSelf();
+
         if (this.newProtocolWarning != null) {
             buff.append(this.newProtocolWarning).append(", ").append(System.lineSeparator());
         }
+
         if (this.jceError != null) {
             buff.append(this.jceError).append(", ").append(System.lineSeparator());
         }
+
         if (this.serverError != null) {
             buff.append(this.serverError).append(", ").append(System.lineSeparator());
         } else if (curSelf == null) {
@@ -151,9 +164,12 @@ public final class TrayGui implements Gui {
         } else {
             buff.append(curSelf).append(", ").append(System.lineSeparator());
         }
-        return buff.append("2chポート:").append(Integer.toString(this.bbsPort)).append(", ").append(System.lineSeparator())
-                .append("作業場:").append(this.rootPath).append(", ").append(System.lineSeparator())
-                .toString();
+
+        buff.append("2chポート:").append(Integer.toString(this.bbsPort)).append(", ").append(System.lineSeparator());
+
+        buff.append("作業場:").append(this.rootPath).append(", ").append(System.lineSeparator());
+
+        return buff.toString();
     }
 
     @Override
@@ -169,7 +185,9 @@ public final class TrayGui implements Gui {
          * 俺の環境だとなぜかアイコンサイズが 24x24 になるし、背景も透けないけど、
          * Windows だと大丈夫っぽいので気にしない。
          */
-        this.icon = new TrayIcon(IconImages.getLogo(), "ちらしの裏", menu);
+        this.normalImage = IconImages.getNormalImage();
+        this.warningImage = IconImages.getWarningImage();
+        this.icon = new TrayIcon(this.normalImage, "ちらしの裏", menu);
 
         /*
          * 個体情報の表示。
@@ -260,6 +278,8 @@ public final class TrayGui implements Gui {
         }
         if (this.icon != null) {
             this.tray.remove(this.icon);
+            this.normalImage.flush();
+            this.warningImage.flush();
             LOG.log(Level.FINEST, "トレイアイコンを削除しました。");
         }
         if (this.suicideDialog != null) {
@@ -267,8 +287,6 @@ public final class TrayGui implements Gui {
             LOG.log(Level.FINEST, "終了ダイアログを破棄しました。");
         }
     }
-
-    final AtomicReference<String> warnings = new AtomicReference<>("");
 
     private void printWarnings() {
         if (this.tray == null) {
@@ -289,6 +307,7 @@ public final class TrayGui implements Gui {
             } else {
                 if (this.warnings.compareAndSet(oldWarnings, newWarnings)) {
                     if (newWarnings.length() > 0) {
+                        this.icon.setImage(this.warningImage);
                         this.icon.displayMessage("警告", buff.toString(), TrayIcon.MessageType.WARNING);
                     }
                     break;

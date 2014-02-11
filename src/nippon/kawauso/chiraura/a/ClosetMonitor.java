@@ -64,7 +64,7 @@ final class ClosetMonitor extends Reporter<Void> {
                 LOG.log(Level.WARNING, "この個体より {0} 段階と {1} 歩だけ新しい個体がいるようです。",
                         new Object[] { Long.toString(report0.getMajorGap()), Long.toString(report0.getMinorGap()) });
                 if (this.gui != null) {
-                    this.gui.displayNewProtocolWarning(report0.getMinorGap(), report0.getMinorGap());
+                    this.gui.displayNewProtocolWarning(report0.getMajorGap(), report0.getMinorGap());
                 }
             } else if (report instanceof SelfReport) {
                 ConcurrentFunctions.completePut((SelfReport) report, this.selfReportSink);

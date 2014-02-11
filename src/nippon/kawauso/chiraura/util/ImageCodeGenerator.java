@@ -38,16 +38,12 @@ final class ImageCodeGenerator {
         }
 
         System.out.println("final BufferedImage image = new BufferedImage(" + image.getWidth() + ", " + image.getHeight() + ", BufferedImage.TYPE_INT_ARGB);");
-        System.out.println("for (final Point point : new Point[] {");
         for (int y = 0; y < image.getHeight(); y++) {
             for (int x = 0; x < image.getWidth(); x++) {
-                if ((pixels[y * 16 + x] & 0xff_00_00_00) != 0x00_00_00_00 && (pixels[y * 16 + x] & 0x00_ff_ff_ff) != 0x00_ff_ff_ff) {
-                    System.out.print("new Point(" + x + "," + y + "), ");
+                if (pixels[y * image.getWidth() + x] != 0) {
+                    System.out.println("image.setRGB(" + x + ", " + y + ", " + pixels[y * image.getWidth() + x] + ");");
                 }
             }
         }
-        System.out.println("}) {");
-        System.out.println("image.setRGB(point.x, point.y, 0xff_00_00_00);");
-        System.out.println("}");
     }
 }
