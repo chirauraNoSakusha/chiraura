@@ -367,8 +367,8 @@ public final class AcceptorTest {
         final Random random = new Random();
         final byte[] watchword = new byte[CryptographicKeys.PUBLIC_KEY_SIZE / Byte.SIZE / 2];
         random.nextBytes(watchword);
-        StartingProtocol.sendSecond(transceiver, this.testerOutput, testerId, communicationKey, watchword, version + 1, testerPort, connectionType,
-                (InetSocketAddress) this.testerSocket.getRemoteSocketAddress());
+        StartingProtocol.sendSecond(transceiver, this.testerOutput, testerId, communicationKey, watchword, version + versionGapThreshold, testerPort,
+                connectionType, (InetSocketAddress) this.testerSocket.getRemoteSocketAddress());
 
         // 二言目への相槌を受信。
         StartingProtocol.receiveSecondReply(transceiver, this.testerInput, communicationKey);

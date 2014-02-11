@@ -205,11 +205,13 @@ final class Acceptor implements Callable<Void> {
             if (this.version < destinationVersion) {
                 ConcurrentFunctions.completePut(new NewProtocolWarning(this.version, destinationVersion), this.messengerReportSink);
             } else {
-                LOG.log(Level.FINEST, "{0}: 自分 ( 第 {1} 版 ) とは異なる個体 ( 第 {2} 版 ) を検知しました。",
+                LOG.log(Level.FINEST, "{0}: 自分 ( 第 {1} 版 ) より古い個体 ( 第 {2} 版 ) を検知しました。",
                         new Object[] { this.acceptedConnection, Long.toString(this.version), Long.toString(destinationVersion) });
             }
 
-            if (destinationVersion + this.versionGapThreshold <= this.version) {
+            if (Math.abs(this.version - destinationVersion) >= this.versionGapThreshold) {
+                // 離れすぎ。
+
                 // さよなら (二言目への相槌) を送信。
                 final KeyPair keyPair = this.keyManager.getPublicKeyPair();
                 StartingProtocol

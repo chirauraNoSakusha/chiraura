@@ -260,11 +260,12 @@ final class Contactor implements Callable<Void> {
             if (this.version < destinationVersion) {
                 ConcurrentFunctions.completePut(new NewProtocolWarning(this.version, destinationVersion), this.messengerReportSink);
             } else {
-                LOG.log(Level.FINEST, "{0}: 自分 ( 第 {1} 版 ) とは異なる個体 ( 第 {2} 版 ) を検知しました。",
+                LOG.log(Level.FINEST, "{0}: 自分 ( 第 {1} 版 ) より古い個体 ( 第 {2} 版 ) を検知しました。",
                         new Object[] { this.contactingConnection, Long.toString(this.version), Long.toString(destinationVersion) });
             }
 
-            if (destinationVersion + this.versionGapThreshold <= this.version) {
+            if (Math.abs(this.version - destinationVersion) >= this.versionGapThreshold) {
+                // 離れすぎ。
                 errorAction();
                 return;
             }

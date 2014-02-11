@@ -390,8 +390,8 @@ public final class ContactorTest {
 
         // 二言目への相槌を送信。
         final InetSocketAddress subject = new InetSocketAddress(testerSocket.getInetAddress(), subjectPort);
-        StartingProtocol.sendSecondReply(transceiver, testerOutput, communicationKey, testerId, watchword, testerPublicKeyPair.getPublic(), version + 1,
-                subject);
+        StartingProtocol.sendSecondReply(transceiver, testerOutput, communicationKey, testerId, watchword, testerPublicKeyPair.getPublic(),
+                version + versionGapThreshold, subject);
 
         // 切断待ち。
         Assert.assertEquals(-1, testerInput.read());
