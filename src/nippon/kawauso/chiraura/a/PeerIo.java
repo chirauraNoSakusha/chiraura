@@ -18,7 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 
 import nippon.kawauso.chiraura.Global;
 import nippon.kawauso.chiraura.lib.Mosaic;
@@ -59,7 +58,7 @@ final class PeerIo {
         listToFile(list, output);
     }
 
-    static <T extends BytesConvertible> List<T> listFromFile(final File input, final BytesConvertible.Parser<T> parser) {
+    private static <T extends BytesConvertible> List<T> listFromFile(final File input, final BytesConvertible.Parser<T> parser) {
         if (!input.exists()) {
             return new ArrayList<>(0);
         }
@@ -94,29 +93,37 @@ final class PeerIo {
         return listFromFile(input, AddressedPeer.getParser());
     }
 
-    static InetSocketAddress peerFromText(final String line) throws MyRuleException {
-        if (line.charAt(0) == '^') {
-            return Mosaic.peerFrom(line.substring(1));
+    private static InetSocketAddress peerFromText(final String line) throws MyRuleException {
+        final String str = line.trim();
+        if (str.isEmpty() || str.startsWith("#")) {
+            // 空行、コメント行は無視。
+            return null;
+        }
+
+        if (str.charAt(0) == '^') {
+            return Mosaic.peerFrom(str.substring(1));
         } else {
-            final String[] terms = line.split("\\s+");
+            final String[] terms = str.split("\\s+");
             return new InetSocketAddress(terms[0], Integer.parseInt(terms[1]));
         }
     }
 
     static List<InetSocketAddress> peersFromTextFile(final File input) {
-        if (!input.exists()) {
-            return new ArrayList<>(0);
-        }
         final List<InetSocketAddress> list = new ArrayList<>();
+
+        if (!input.exists()) {
+            return list;
+        }
+
         try (BufferedReader buff = new BufferedReader(new InputStreamReader(new FileInputStream(input), Global.INTERNAL_CHARSET))) {
-            final Pattern empty = Pattern.compile("^\\s*$");
             for (String line; (line = buff.readLine()) != null;) {
-                if (!empty.matcher(line).matches()) {
-                    try {
-                        list.add(peerFromText(line));
-                    } catch (final RuntimeException | MyRuleException e) {
-                        LOG.log(Level.WARNING, "\"" + line + "\" からの個体情報の復元に失敗しました", e);
+                try {
+                    final InetSocketAddress peer = peerFromText(line);
+                    if (peer != null) {
+                        list.add(peer);
                     }
+                } catch (final RuntimeException | MyRuleException e) {
+                    LOG.log(Level.WARNING, "\"" + line + "\" からの個体情報の復元に失敗しました", e);
                 }
             }
         } catch (final IOException e) {

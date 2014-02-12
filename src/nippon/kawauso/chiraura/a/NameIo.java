@@ -28,7 +28,7 @@ final class NameIo {
 
     private static final Logger LOG = Logger.getLogger(NameIo.class.getName());
 
-    static Pair<String, String> fromText(final String line) throws MyRuleException {
+    private static Pair<String, String> fromText(final String line) throws MyRuleException {
         final String str = line.trim();
         if (str.isEmpty() || str.startsWith("#")) {
             // 空行、コメント行は無視。
