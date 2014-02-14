@@ -26,11 +26,13 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import nippon.kawauso.chiraura.lib.concurrent.ConcurrentFunctions;
 import nippon.kawauso.chiraura.lib.container.Pair;
+import nippon.kawauso.chiraura.lib.process.Reporter;
 
 /**
  * システムトレイで稼動情報を表示する感じ。
@@ -40,14 +42,18 @@ public final class TrayGui implements Gui {
 
     private static final Logger LOG = Logger.getLogger(TrayGui.class.getName());
 
+    // 参照。
+    private final String rootPath;
+    private final int bbsPort;
+
+    private final long bootDuration;
+    private ExecutorService executor;
+
     // 保持。
     private final BlockingQueue<GuiCommand> taskQueue;
 
     private final Image normalImage;
     private final Image warningImage;
-
-    private final String rootPath;
-    private final int bbsPort;
 
     private SystemTray tray;
     private TrayIcon icon;
@@ -61,16 +67,30 @@ public final class TrayGui implements Gui {
 
     private String warnings;
 
+    private final long boot;
+    private final long delay;
+    private long start;
+
     /**
      * 作成する。
      * @param rootPath 作業場の場所
      * @param bbsPort 2ch サーバのポート番号
+     * @param bootDuration 起動したばかりとみなす時間
+     * @param maxDelay 更新警告の最大遅延時間 (ミリ秒)
      */
-    public TrayGui(final String rootPath, final int bbsPort) {
-        this.taskQueue = new LinkedBlockingQueue<>();
-
+    public TrayGui(final String rootPath, final int bbsPort, final long bootDuration, final long maxDelay) {
+        if (bootDuration < 0) {
+            throw new IllegalArgumentException("Negative boot duration ( " + bootDuration + " )");
+        } else if (maxDelay <= 0) {
+            throw new IllegalArgumentException("Too small max delay ( " + maxDelay + " )");
+        }
         this.rootPath = rootPath;
         this.bbsPort = bbsPort;
+
+        this.bootDuration = bootDuration;
+        this.executor = null;
+
+        this.taskQueue = new LinkedBlockingQueue<>();
 
         if (SystemTray.isSupported()) {
             this.tray = SystemTray.getSystemTray();
@@ -92,6 +112,9 @@ public final class TrayGui implements Gui {
 
         this.warnings = null;
 
+        this.boot = System.currentTimeMillis();
+        this.delay = ThreadLocalRandom.current().nextLong(maxDelay);
+        this.start = -1;
     }
 
     @Override
@@ -100,11 +123,13 @@ public final class TrayGui implements Gui {
     }
 
     @Override
-    public synchronized void start(final ExecutorService executor) {
+    public synchronized void start(final ExecutorService executor0) {
         if (this.tray == null) {
             LOG.log(Level.WARNING, "システムトレイが無いようです。");
             return;
         }
+
+        this.executor = executor0;
 
         final PopupMenu menu = new PopupMenu();
 
@@ -231,7 +256,7 @@ public final class TrayGui implements Gui {
         return buff.toString();
     }
 
-    private String makeWarnings() { // synchronized から呼ぶ。
+    private synchronized String makeWarnings() {
         final StringBuilder buff = new StringBuilder();
 
         if (this.jceError) {
@@ -264,7 +289,7 @@ public final class TrayGui implements Gui {
         return buff.toString();
     }
 
-    private void printWarnings() { // synchronized から呼ぶ。
+    private synchronized void printWarnings() { // synchronized から呼ぶ。
         final String newWarnings = makeWarnings();
         if (newWarnings.equals(this.warnings)) {
             return;
@@ -324,8 +349,37 @@ public final class TrayGui implements Gui {
             return;
         } else if (this.versionGapWarning == null || this.versionGapWarning.getFirst() < majorGap
                 || (this.versionGapWarning.getFirst() == majorGap && this.versionGapWarning.getSecond() < minorGap)) {
+            /*
+             * 以下の場合は直ぐに警告。
+             * - 起動したばかり。
+             * そうでなければ、遅延警告。
+             * 一斉終了によるネットワーク崩壊を防ぐため。
+             */
+
             this.versionGapWarning = new Pair<>(majorGap, minorGap);
-            printWarnings();
+
+            final long cur = System.currentTimeMillis();
+            if (cur <= this.boot + this.bootDuration) {
+                // 起動したばかり。
+                printWarnings();
+            } else if (this.start < 0) {
+                // 起動してから時間が経っているので、遅延警告。
+                LOG.log(Level.FINEST, "{0} ミリ秒お待ちください。", Long.toString(this.delay));
+                this.executor.submit(new Reporter<Void>(Level.WARNING) {
+                    @Override
+                    protected Void subCall() throws InterruptedException {
+                        Thread.sleep(TrayGui.this.delay);
+                        printWarnings();
+                        return null;
+                    }
+                });
+                this.start = cur;
+            } else if (this.start + this.delay < cur) {
+                // 既に遅延警告が終わっている。
+                printWarnings();
+            } else {
+                // 遅延中。
+            }
         }
     }
 

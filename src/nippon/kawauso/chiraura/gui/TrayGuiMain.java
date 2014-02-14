@@ -16,7 +16,7 @@ final class TrayGuiMain {
          * 検査用。
          * メニューを表示させると死ねない環境がある。
          */
-        final TrayGui instance = new TrayGui("/test/root", 111111);
+        final TrayGui instance = new TrayGui("/test/root", 111111, 1_000L, 1_000L);
         final ExecutorService executor = Executors.newCachedThreadPool();
 
         instance.start(executor);

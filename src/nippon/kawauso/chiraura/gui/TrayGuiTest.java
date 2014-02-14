@@ -5,6 +5,8 @@ package nippon.kawauso.chiraura.gui;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import nippon.kawauso.chiraura.lib.logging.LoggingFunctions;
 
@@ -21,11 +23,13 @@ public final class TrayGuiTest {
     public void testBoot() throws Exception {
         LoggingFunctions.startDebugLogging();
 
-        final TrayGui instance = new TrayGui("/test/root", 111111);
+        final TrayGui instance = new TrayGui("/test/root", 111111, 0L, 10_000L);
+
+        final ExecutorService executor = Executors.newCachedThreadPool();
 
         final long interval = 5 * 1_000L;
 
-        instance.start(null);
+        instance.start(executor);
         System.out.println("起動しました");
         Thread.sleep(interval);
 
@@ -48,6 +52,8 @@ public final class TrayGuiTest {
         instance.displayVersionGapWarning(1, 3);
         System.out.println("バージョン異常を設定しました");
         Thread.sleep(interval);
+
+        Thread.sleep(10_000L);
 
         instance.displayClosePortWarning(44444);
         System.out.println("ポート異常を変更しました");
