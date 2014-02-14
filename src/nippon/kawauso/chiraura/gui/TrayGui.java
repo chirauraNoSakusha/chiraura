@@ -26,11 +26,11 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import nippon.kawauso.chiraura.lib.concurrent.ConcurrentFunctions;
+import nippon.kawauso.chiraura.lib.container.Pair;
 
 /**
  * システムトレイで稼動情報を表示する感じ。
@@ -41,28 +41,25 @@ public final class TrayGui implements Gui {
     private static final Logger LOG = Logger.getLogger(TrayGui.class.getName());
 
     // 保持。
-    private final SystemTray tray;
-
     private final BlockingQueue<GuiCommand> taskQueue;
 
-    private Image normalImage;
-    private Image warningImage;
-
-    private TrayIcon icon;
-    private Dialog suicideDialog;
+    private final Image normalImage;
+    private final Image warningImage;
 
     private final String rootPath;
     private final int bbsPort;
-    private InetSocketAddress self;
-    private String selfPublicString;
 
-    // 以下、同期する。
-    private String jceError;
-    private String serverError;
-    private String closePortWarning;
-    private String newProtocolWarning;
+    private SystemTray tray;
+    private TrayIcon icon;
+    private Dialog suicideDialog;
 
-    private final AtomicReference<String> warnings;
+    private Pair<InetSocketAddress, String> self;
+    private boolean jceError;
+    private boolean serverError;
+    private int closePortWarning;
+    private Pair<Long, Long> versionGapWarning;
+
+    private String warnings;
 
     /**
      * 作成する。
@@ -70,70 +67,31 @@ public final class TrayGui implements Gui {
      * @param bbsPort 2ch サーバのポート番号
      */
     public TrayGui(final String rootPath, final int bbsPort) {
-        if (SystemTray.isSupported()) {
-            this.tray = SystemTray.getSystemTray();
-        } else {
-            this.tray = null;
-        }
         this.taskQueue = new LinkedBlockingQueue<>();
-
-        this.normalImage = null;
-        this.warningImage = null;
-        this.icon = null;
-        this.suicideDialog = null;
 
         this.rootPath = rootPath;
         this.bbsPort = bbsPort;
 
+        if (SystemTray.isSupported()) {
+            this.tray = SystemTray.getSystemTray();
+            this.normalImage = IconImages.getNormalImage();
+            this.warningImage = IconImages.getWarningImage();
+        } else {
+            this.tray = null;
+            this.normalImage = null;
+            this.warningImage = null;
+        }
+        this.icon = null;
+        this.suicideDialog = null;
+
         this.self = null;
-        this.selfPublicString = null;
+        this.jceError = false;
+        this.serverError = false;
+        this.closePortWarning = -1;
+        this.versionGapWarning = null;
 
-        this.jceError = null;
-        this.serverError = null;
-        this.closePortWarning = null;
-        this.newProtocolWarning = null;
+        this.warnings = null;
 
-        this.warnings = new AtomicReference<>();
-    }
-
-    private synchronized InetSocketAddress getSelf() {
-        return this.self;
-    }
-
-    private synchronized String getSelfPublicString() {
-        return this.selfPublicString;
-    }
-
-    private synchronized String getJceError() {
-        return this.jceError;
-    }
-
-    private synchronized String getServerError() {
-        return this.serverError;
-    }
-
-    private synchronized String getClosePortWarning() {
-        return this.closePortWarning;
-    }
-
-    private synchronized String getNewProtocolWarning() {
-        return this.newProtocolWarning;
-    }
-
-    private synchronized void setJceError(final String jceError) {
-        this.jceError = jceError;
-    }
-
-    private synchronized void setServerError(final String serverError) {
-        this.serverError = serverError;
-    }
-
-    private synchronized void setClosePortWarning(final String closePortWarning) {
-        this.closePortWarning = closePortWarning;
-    }
-
-    private synchronized void setNewProtocolWarning(final String newProtocolWarning) {
-        this.newProtocolWarning = newProtocolWarning;
     }
 
     @Override
@@ -141,39 +99,8 @@ public final class TrayGui implements Gui {
         return this.taskQueue.take();
     }
 
-    private synchronized String getPeerInfoString() {
-        final StringBuilder buff = new StringBuilder();
-        final InetSocketAddress curSelf = getSelf();
-
-        if (this.newProtocolWarning != null) {
-            buff.append(this.newProtocolWarning).append(", ").append(System.lineSeparator());
-        }
-
-        if (this.jceError != null) {
-            buff.append(this.jceError).append(", ").append(System.lineSeparator());
-        }
-
-        if (this.serverError != null) {
-            buff.append(this.serverError).append(", ").append(System.lineSeparator());
-        } else if (curSelf == null) {
-            if (this.closePortWarning != null) {
-                buff.append(this.closePortWarning).append(", ").append(System.lineSeparator());
-            } else {
-                buff.append("ぼっち, ").append(System.lineSeparator());
-            }
-        } else {
-            buff.append(curSelf).append(", ").append(System.lineSeparator());
-        }
-
-        buff.append("2chポート:").append(Integer.toString(this.bbsPort)).append(", ").append(System.lineSeparator());
-
-        buff.append("作業場:").append(this.rootPath).append(", ").append(System.lineSeparator());
-
-        return buff.toString();
-    }
-
     @Override
-    public void start(final ExecutorService executor) {
+    public synchronized void start(final ExecutorService executor) {
         if (this.tray == null) {
             LOG.log(Level.WARNING, "システムトレイが無いようです。");
             return;
@@ -182,11 +109,9 @@ public final class TrayGui implements Gui {
         final PopupMenu menu = new PopupMenu();
 
         /*
-         * 俺の環境だとなぜかアイコンサイズが 24x24 になるし、背景も透けないけど、
+         * 俺の環境だとなぜか背景サイズが 24x24 になるし、透けないけど、
          * Windows だと大丈夫っぽいので気にしない。
          */
-        this.normalImage = IconImages.getNormalImage();
-        this.warningImage = IconImages.getWarningImage();
         this.icon = new TrayIcon(this.normalImage, "ちらしの裏", menu);
 
         /*
@@ -196,7 +121,7 @@ public final class TrayGui implements Gui {
         this.icon.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(final MouseEvent e) {
-                TrayGui.this.icon.displayMessage("個体情報", getPeerInfoString(), TrayIcon.MessageType.NONE);
+                TrayGui.this.icon.displayMessage("個体情報", makePeerInfo(), TrayIcon.MessageType.NONE);
             }
         });
 
@@ -210,7 +135,13 @@ public final class TrayGui implements Gui {
         peerCopyItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(final ActionEvent e) {
-                Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection("^" + getSelfPublicString()), null);
+                final String str;
+                if (TrayGui.this.self != null) {
+                    str = "^" + TrayGui.this.self.getSecond();
+                } else {
+                    str = "まだ個体情報が確定していません。";
+                }
+                Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(str), null);
             }
         });
 
@@ -256,107 +187,146 @@ public final class TrayGui implements Gui {
         } catch (final AWTException e) {
             LOG.log(Level.WARNING, "システムトレイの使用に失敗しました", e);
         }
-
-        // // -------------------------------------------------
-        // executor.submit(new Callable<Void>() {
-        // @Override
-        // public Void call() throws Exception {
-        // Thread.sleep(15 * 1_000L);
-        // TrayGui.this.icon.setPopupMenu(null);
-        // menu.removeAll();
-        // ConcurrentFunctions.completePut(new ShutdownCommand(), TrayGui.this.taskQueue);
-        // return null;
-        // }
-        // });
-        // // -------------------------------------------------
     }
 
     @Override
-    public void close() {
+    public synchronized void close() {
         if (this.tray == null) {
             return;
         }
+
         if (this.icon != null) {
             this.tray.remove(this.icon);
             this.normalImage.flush();
             this.warningImage.flush();
             LOG.log(Level.FINEST, "トレイアイコンを削除しました。");
         }
+
         if (this.suicideDialog != null) {
             this.suicideDialog.dispose();
             LOG.log(Level.FINEST, "終了ダイアログを破棄しました。");
         }
+
+        this.tray = null;
     }
 
-    private void printWarnings() {
-        if (this.tray == null) {
+    private synchronized String makePeerInfo() {
+        final StringBuilder buff = new StringBuilder();
+
+        if (this.warnings != null) {
+            buff.append(this.warnings);
+        }
+
+        if (this.self != null) {
+            buff.append(this.self.getFirst()).append(", ");
+        } else {
+            buff.append("ぼっち, ");
+        }
+        buff.append(System.lineSeparator());
+
+        buff.append("2chポート:").append(Integer.toString(this.bbsPort)).append(", ").append(System.lineSeparator());
+
+        buff.append("作業場:").append(this.rootPath).append(", ").append(System.lineSeparator());
+
+        return buff.toString();
+    }
+
+    private String makeWarnings() { // synchronized から呼ぶ。
+        final StringBuilder buff = new StringBuilder();
+
+        if (this.jceError) {
+            buff.append("JCEの制限が解除されていないようです").append(", ").append(System.lineSeparator());
+        }
+
+        if (this.serverError) {
+            buff.append("サーバーを起動できません").append(", ").append(System.lineSeparator());
+        }
+
+        if (this.closePortWarning >= 0) {
+            buff.append("ポート").append(Integer.toString(this.closePortWarning)).append("が開いていないかもしれません").append(", ").append(System.lineSeparator());
+        }
+
+        if (this.versionGapWarning != null) {
+            buff.append("この個体より ");
+            if (this.versionGapWarning.getFirst() > 0) {
+                if (this.versionGapWarning.getSecond() > 0) {
+                    buff.append(Long.toString(this.versionGapWarning.getFirst())).append(" 段階と ")
+                            .append(Long.toString(this.versionGapWarning.getSecond())).append(" 歩");
+                } else {
+                    buff.append(Long.toString(this.versionGapWarning.getFirst())).append(" 段階");
+                }
+            } else {
+                buff.append(Long.toString(this.versionGapWarning.getSecond())).append(" 歩");
+            }
+            buff.append("だけ新しい個体がいるようです, ").append(System.lineSeparator());
+        }
+
+        return buff.toString();
+    }
+
+    private void printWarnings() { // synchronized から呼ぶ。
+        final String newWarnings = makeWarnings();
+        if (newWarnings.equals(this.warnings)) {
             return;
         }
-        while (true) {
-            final StringBuilder buff = new StringBuilder();
-            for (final String warning : new String[] { getJceError(), getServerError(), (getSelf() == null ? getClosePortWarning() : null),
-                    getNewProtocolWarning() }) {
-                if (warning != null) {
-                    buff.append(warning).append(", ").append(System.lineSeparator());
-                }
-            }
-            final String newWarnings = buff.toString();
-            final String oldWarnings = this.warnings.get();
-            if (newWarnings.equals(oldWarnings)) {
-                break;
-            } else {
-                if (this.warnings.compareAndSet(oldWarnings, newWarnings)) {
-                    if (newWarnings.length() > 0) {
-                        this.icon.setImage(this.warningImage);
-                        this.icon.displayMessage("警告", buff.toString(), TrayIcon.MessageType.WARNING);
-                    }
-                    break;
-                }
-            }
-        }
-    }
 
-    @Override
-    public void setSelf(final InetSocketAddress self, final String publicString) {
-        synchronized (this) {
-            this.self = self;
-            this.selfPublicString = publicString;
-        }
-        printWarnings();
-    }
-
-    @Override
-    public void displayJceError() {
-        setJceError("JCEの制限が解除されていないようです");
-        printWarnings();
-    }
-
-    @Override
-    public void displayServerError() {
-        setServerError("サーバーを起動できません");
-        printWarnings();
-    }
-
-    @Override
-    public void displayClosePortWarning(final int port) {
-        setClosePortWarning("ポート" + Integer.toString(port) + "が開いていないかもしれません");
-        printWarnings();
-    }
-
-    @Override
-    public void displayNewProtocolWarning(final long major, final long minor) {
-        final String msg;
-        if (major > 0) {
-            if (minor > 0) {
-                msg = "この個体より " + Long.toString(major) + " 段階と " + Long.toString(minor) + " 歩だけ新しい個体がいるようです";
-            } else {
-                msg = "この個体より " + Long.toString(major) + " 段階だけ新しい個体がいるようです";
-            }
+        this.warnings = newWarnings;
+        if (this.warnings.length() > 0) {
+            this.icon.setImage(this.warningImage);
+            this.icon.displayMessage("警告", newWarnings, TrayIcon.MessageType.WARNING);
         } else {
-            msg = "この個体より " + Long.toString(minor) + " 歩だけ新しい個体がいるようです";
+            this.icon.setImage(this.normalImage);
         }
-        setNewProtocolWarning(msg);
-        printWarnings();
+    }
+
+    @Override
+    public synchronized void setSelf(final InetSocketAddress peer, final String publicString) {
+        if (this.tray == null) {
+            return;
+        } else if (this.self == null || !peer.equals(this.self.getFirst())) {
+            this.self = new Pair<>(peer, publicString);
+        }
+    }
+
+    @Override
+    public synchronized void displayJceError() {
+        if (this.tray == null || this.jceError) {
+            return;
+        } else {
+            this.jceError = true;
+            printWarnings();
+        }
+    }
+
+    @Override
+    public synchronized void displayServerError() {
+        if (this.tray == null || this.serverError) {
+            return;
+        } else {
+            this.serverError = true;
+            printWarnings();
+        }
+    }
+
+    @Override
+    public synchronized void displayClosePortWarning(final int port) {
+        if (this.tray == null || port == this.closePortWarning) {
+            return;
+        } else {
+            this.closePortWarning = port;
+            printWarnings();
+        }
+    }
+
+    @Override
+    public synchronized void displayVersionGapWarning(final long majorGap, final long minorGap) {
+        if (this.tray == null) {
+            return;
+        } else if (this.versionGapWarning == null || this.versionGapWarning.getFirst() < majorGap
+                || (this.versionGapWarning.getFirst() == majorGap && this.versionGapWarning.getSecond() < minorGap)) {
+            this.versionGapWarning = new Pair<>(majorGap, minorGap);
+            printWarnings();
+        }
     }
 
 }

@@ -3,6 +3,7 @@
  */
 package nippon.kawauso.chiraura.gui;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 import nippon.kawauso.chiraura.lib.logging.LoggingFunctions;
@@ -32,7 +33,7 @@ public final class TrayGuiTest {
         System.out.println("ポート異常を設定しました");
         Thread.sleep(interval);
 
-        instance.setSelf(new InetSocketAddress(22222), "^1234567890");
+        instance.setSelf(new InetSocketAddress(InetAddress.getByAddress(new byte[] { 1, 2, 3, 4 }), 22222), "1234567890");
         System.out.println("自分を設定しました");
         Thread.sleep(interval);
 
@@ -44,16 +45,24 @@ public final class TrayGuiTest {
         System.out.println("サーバ異常を設定しました");
         Thread.sleep(interval);
 
-        instance.displayNewProtocolWarning(1, 3);
+        instance.displayVersionGapWarning(1, 3);
         System.out.println("バージョン異常を設定しました");
         Thread.sleep(interval);
 
-        instance.setSelf(null, null);
-        System.out.println("自分を解除しました");
+        instance.displayClosePortWarning(44444);
+        System.out.println("ポート異常を変更しました");
         Thread.sleep(interval);
 
-        instance.setSelf(new InetSocketAddress(22222), "^1234567890");
-        System.out.println("自分を設定しました");
+        instance.displayVersionGapWarning(1, 0);
+        System.out.println("バージョン異常を弱めました");
+        Thread.sleep(interval);
+
+        instance.displayVersionGapWarning(2, 0);
+        System.out.println("バージョン異常を強めました");
+        Thread.sleep(interval);
+
+        instance.setSelf(new InetSocketAddress(InetAddress.getByAddress(new byte[] { 5, 6, 7, 8 }), 44444), "abcdefghijk");
+        System.out.println("自分を変更しました");
         Thread.sleep(interval);
 
         Thread.sleep(30_000L);

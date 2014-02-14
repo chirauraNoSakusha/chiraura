@@ -57,6 +57,6 @@ public interface Gui extends AutoCloseable {
      * @param majorGap メジャーバージョンの差
      * @param minorGap マイナーバージョンの差
      */
-    public void displayNewProtocolWarning(long majorGap, long minorGap);
+    public void displayVersionGapWarning(long majorGap, long minorGap);
 
 }
