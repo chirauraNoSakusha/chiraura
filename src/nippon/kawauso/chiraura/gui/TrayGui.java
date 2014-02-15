@@ -54,6 +54,7 @@ public final class TrayGui implements Gui {
 
     private final Image normalImage;
     private final Image warningImage;
+    private final Image severeImage;
 
     private SystemTray tray;
     private TrayIcon icon;
@@ -96,10 +97,12 @@ public final class TrayGui implements Gui {
             this.tray = SystemTray.getSystemTray();
             this.normalImage = IconImages.getNormalImage();
             this.warningImage = IconImages.getWarningImage();
+            this.severeImage = IconImages.getSevereImage();
         } else {
             this.tray = null;
             this.normalImage = null;
             this.warningImage = null;
+            this.severeImage = null;
         }
         this.icon = null;
         this.suicideDialog = null;
@@ -297,8 +300,13 @@ public final class TrayGui implements Gui {
 
         this.warnings = newWarnings;
         if (this.warnings.length() > 0) {
-            this.icon.setImage(this.warningImage);
-            this.icon.displayMessage("警告", newWarnings, TrayIcon.MessageType.WARNING);
+            if (this.jceError || this.serverError) {
+                this.icon.setImage(this.severeImage);
+                this.icon.displayMessage("異常", newWarnings, TrayIcon.MessageType.ERROR);
+            } else {
+                this.icon.setImage(this.warningImage);
+                this.icon.displayMessage("警告", newWarnings, TrayIcon.MessageType.WARNING);
+            }
         } else {
             this.icon.setImage(this.normalImage);
         }
