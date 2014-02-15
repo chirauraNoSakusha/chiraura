@@ -23,7 +23,7 @@ public final class TrayGuiTest {
     public void testBoot() throws Exception {
         LoggingFunctions.startDebugLogging();
 
-        final TrayGui instance = new TrayGui("/test/root", 111111, 0L, 10_000L);
+        final TrayGui instance = new TrayGui("/test/root", 111111, 0L, 10_000L, 30_000L);
 
         final ExecutorService executor = Executors.newCachedThreadPool();
 
@@ -69,7 +69,7 @@ public final class TrayGuiTest {
         System.out.println("自分を変更しました");
         Thread.sleep(interval);
 
-        Thread.sleep(30_000L);
+        Thread.sleep(60_000L);
 
         instance.close();
     }

@@ -114,6 +114,7 @@ final class Environment {
     private final boolean gui;
     private final long guiBootDuration;
     private final long guiMaxDelay;
+    private final long guiInterval;
 
     private final ExecutorService executor;
 
@@ -235,6 +236,7 @@ final class Environment {
         this.gui = Boolean.parseBoolean(option.get(Option.Item.gui));
         this.guiBootDuration = getDefaultLong(option, Option.Item.guiBootDuration);
         this.guiMaxDelay = getDefaultLong(option, Option.Item.guiMaxDelay);
+        this.guiInterval = Long.parseLong(option.get(Option.Item.guiInterval));
 
         this.executor = Executors.newCachedThreadPool();
     }
@@ -424,6 +426,10 @@ final class Environment {
 
     long getGuiMaxDelay() {
         return this.guiMaxDelay;
+    }
+
+    long getGuiInterval() {
+        return this.guiInterval;
     }
 
     ExecutorService getExecutor() {

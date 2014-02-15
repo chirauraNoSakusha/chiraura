@@ -5,11 +5,11 @@ package nippon.kawauso.chiraura.gui;
 
 import java.awt.AWTException;
 import java.awt.Button;
-import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.Image;
+import java.awt.Menu;
 import java.awt.MenuItem;
 import java.awt.PopupMenu;
 import java.awt.SystemTray;
@@ -23,12 +23,16 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.net.InetSocketAddress;
+import java.util.Arrays;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.swing.JDialog;
 
 import nippon.kawauso.chiraura.lib.concurrent.ConcurrentFunctions;
 import nippon.kawauso.chiraura.lib.container.Pair;
@@ -58,7 +62,7 @@ public final class TrayGui implements Gui {
 
     private SystemTray tray;
     private TrayIcon icon;
-    private Dialog suicideDialog;
+    private JDialog suicideDialog;
 
     private Pair<InetSocketAddress, String> self;
     private boolean jceError;
@@ -71,6 +75,10 @@ public final class TrayGui implements Gui {
     private final long delay;
     private long boot;
     private long start;
+    private Pair<Long, Long> versionGapWarningBuffer;
+
+    private final long initialInterval;
+    private final BlockingQueue<Long> intervalCahnger;
 
     /**
      * 作成する。
@@ -78,12 +86,15 @@ public final class TrayGui implements Gui {
      * @param bbsPort 2ch サーバのポート番号
      * @param bootDuration 起動したばかりとみなす時間
      * @param maxDelay 更新警告の最大遅延時間 (ミリ秒)
+     * @param initialInterval 警告表示を繰り返す間隔 (ミリ秒)
      */
-    public TrayGui(final String rootPath, final int bbsPort, final long bootDuration, final long maxDelay) {
+    public TrayGui(final String rootPath, final int bbsPort, final long bootDuration, final long maxDelay, final long initialInterval) {
         if (bootDuration < 0) {
             throw new IllegalArgumentException("Negative boot duration ( " + bootDuration + " )");
         } else if (maxDelay <= 0) {
             throw new IllegalArgumentException("Too small max delay ( " + maxDelay + " )");
+        } else if (initialInterval < 0) {
+            throw new IllegalArgumentException("Negative initial interval ( " + initialInterval + " )");
         }
         this.rootPath = rootPath;
         this.bbsPort = bbsPort;
@@ -113,11 +124,15 @@ public final class TrayGui implements Gui {
         this.closePortWarning = -1;
         this.versionGapWarning = null;
 
-        this.warnings = null;
+        this.warnings = "";
 
         this.delay = ThreadLocalRandom.current().nextLong(maxDelay);
         this.boot = -1;
         this.start = -1;
+        this.versionGapWarningBuffer = null;
+
+        this.initialInterval = initialInterval;
+        this.intervalCahnger = new LinkedBlockingQueue<>();
     }
 
     private synchronized Pair<InetSocketAddress, String> getSelf() {
@@ -138,13 +153,13 @@ public final class TrayGui implements Gui {
 
         this.executor = executor0;
 
-        final PopupMenu menu = new PopupMenu();
+        final PopupMenu popup = new PopupMenu();
 
         /*
          * 俺の環境だとなぜか背景サイズが 24x24 になるし、透けないけど、
          * Windows だと大丈夫っぽいので気にしない。
          */
-        this.icon = new TrayIcon(this.normalImage, "ちらしの裏", menu);
+        this.icon = new TrayIcon(this.normalImage, "ちらしの裏", popup);
 
         /*
          * 個体情報の表示。
@@ -159,11 +174,10 @@ public final class TrayGui implements Gui {
 
         /*
          * 公開用個体情報のコピー。
-         * 右クリックのメニューから該当項目を選んだら、
+         * 右クリックのポップアップメニューから選ぶ。
          * 公開用個体情報をシステムのクリップボードにコピーする。
          */
         final MenuItem peerCopyItem = new MenuItem("公開用の個体情報をコピー");
-        menu.add(peerCopyItem);
         peerCopyItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(final ActionEvent e) {
@@ -177,13 +191,47 @@ public final class TrayGui implements Gui {
                 Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(str), null);
             }
         });
+        popup.add(peerCopyItem);
+
+        /*
+         * 警告間隔の変更。
+         * 右クリックのポップアップメニューから選ぶ。
+         * 更新間隔一覧のポップアップメニューを開く。
+         */
+        final Menu intervalMenu = new Menu("警告を表示する間隔");
+        for (final Pair<String, Long> entry : Arrays.asList(
+                new Pair<>("5 分", 5 * 60 * 1_000L),
+                new Pair<>("10 分", 10 * 60 * 1_000L),
+                new Pair<>("30分", 30 * 60 * 1_000L),
+                new Pair<>("1 時間", 1 * 60 * 60 * 1_000L),
+                new Pair<>("2 時間", 2 * 60 * 60 * 1_000L),
+                new Pair<>("5 時間", 5 * 60 * 60 * 1_000L),
+                new Pair<>("10 時間", 10 * 60 * 60 * 1_000L),
+                new Pair<>("1 日", 1 * 24 * 60 * 60 * 1_000L),
+                new Pair<>("定期報告しない", 0L)
+                )) {
+            final MenuItem intervalItem = new MenuItem(entry.getFirst());
+            intervalItem.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(final ActionEvent e) {
+                    try {
+                        TrayGui.this.intervalCahnger.put(entry.getSecond());
+                    } catch (final InterruptedException shutdown) {
+                    }
+                }
+            });
+            intervalMenu.add(intervalItem);
+        }
+        popup.add(intervalMenu);
+
+        popup.addSeparator();
 
         /*
          * 終了。
          * 右クリックのメニューから該当項目を選んだら、
          * 独立ウィンドウで確認して、確認できたらアプリを終了する。
          */
-        this.suicideDialog = new Dialog((Frame) null, "本気で止めますか？");
+        this.suicideDialog = new JDialog((Frame) null, "本気で止めますか？");
         this.suicideDialog.setMinimumSize(new Dimension(180, 60));
         this.suicideDialog.setLocationRelativeTo(null);
 
@@ -207,19 +255,42 @@ public final class TrayGui implements Gui {
         this.suicideDialog.add(suicideButton);
 
         final MenuItem suicideItem = new MenuItem("終了");
-        menu.add(suicideItem);
         suicideItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(final ActionEvent e) {
                 TrayGui.this.suicideDialog.setVisible(true);
             }
         });
+        popup.add(suicideItem);
 
         try {
             this.tray.add(this.icon);
         } catch (final AWTException e) {
             LOG.log(Level.WARNING, "システムトレイの使用に失敗しました", e);
+            close();
+            return;
         }
+
+        // 定期報告用。
+        this.executor.submit(new Reporter<Void>(Level.WARNING) {
+            @Override
+            protected Void subCall() throws InterruptedException {
+                long curInterval = TrayGui.this.initialInterval;
+                while (true) {
+                    final Long interval;
+                    if (curInterval <= 0) {
+                        interval = TrayGui.this.intervalCahnger.take();
+                    } else {
+                        interval = TrayGui.this.intervalCahnger.poll(curInterval, TimeUnit.MILLISECONDS);
+                    }
+                    if (interval != null && interval != curInterval) {
+                        curInterval = interval;
+                        LOG.log(Level.FINEST, "報告間隔を {0} ミリ秒に変更しました。", Long.toString(curInterval));
+                    }
+                    printWarnings();
+                }
+            }
+        });
     }
 
     @Override
@@ -297,7 +368,7 @@ public final class TrayGui implements Gui {
         return buff.toString();
     }
 
-    private synchronized void printWarnings() {
+    private synchronized void updateWarnings() {
         final String newWarnings = makeWarnings();
         if (newWarnings.equals(this.warnings)) {
             return;
@@ -307,13 +378,21 @@ public final class TrayGui implements Gui {
         if (this.warnings.length() > 0) {
             if (this.jceError || this.serverError) {
                 this.icon.setImage(this.severeImage);
-                this.icon.displayMessage("異常", newWarnings, TrayIcon.MessageType.ERROR);
             } else {
                 this.icon.setImage(this.warningImage);
-                this.icon.displayMessage("警告", newWarnings, TrayIcon.MessageType.WARNING);
             }
         } else {
             this.icon.setImage(this.normalImage);
+        }
+    }
+
+    private synchronized void printWarnings() {
+        if (this.warnings.length() > 0) {
+            if (this.jceError || this.serverError) {
+                this.icon.displayMessage("異常", this.warnings, TrayIcon.MessageType.ERROR);
+            } else {
+                this.icon.displayMessage("警告", this.warnings, TrayIcon.MessageType.WARNING);
+            }
         }
     }
 
@@ -335,6 +414,7 @@ public final class TrayGui implements Gui {
             return;
         } else {
             this.jceError = true;
+            updateWarnings();
             printWarnings();
         }
     }
@@ -345,6 +425,7 @@ public final class TrayGui implements Gui {
             return;
         } else {
             this.serverError = true;
+            updateWarnings();
             printWarnings();
         }
     }
@@ -355,6 +436,7 @@ public final class TrayGui implements Gui {
             return;
         } else {
             this.closePortWarning = port;
+            updateWarnings();
             printWarnings();
         }
     }
@@ -363,8 +445,8 @@ public final class TrayGui implements Gui {
     public synchronized void displayVersionGapWarning(final long majorGap, final long minorGap) {
         if (this.tray == null) {
             return;
-        } else if (this.versionGapWarning == null || this.versionGapWarning.getFirst() < majorGap
-                || (this.versionGapWarning.getFirst() == majorGap && this.versionGapWarning.getSecond() < minorGap)) {
+        } else if (this.versionGapWarningBuffer == null || this.versionGapWarningBuffer.getFirst() < majorGap
+                || (this.versionGapWarningBuffer.getFirst() == majorGap && this.versionGapWarningBuffer.getSecond() < minorGap)) {
             /*
              * 以下の場合は直ぐに警告。
              * - ネットワークに入ったばかり。
@@ -372,11 +454,13 @@ public final class TrayGui implements Gui {
              * 一斉終了によるネットワーク崩壊を防ぐため。
              */
 
-            this.versionGapWarning = new Pair<>(majorGap, minorGap);
+            this.versionGapWarningBuffer = new Pair<>(majorGap, minorGap);
 
             final long cur = System.currentTimeMillis();
             if (this.boot < 0 || cur <= this.boot + this.bootDuration) {
                 // ネットワークに入ったばかり。
+                this.versionGapWarning = this.versionGapWarningBuffer;
+                updateWarnings();
                 printWarnings();
             } else if (this.start < 0) {
                 // ネットワークに入ってから時間が経っていて、遅延が始まっていない。
@@ -386,12 +470,18 @@ public final class TrayGui implements Gui {
                     @Override
                     protected Void subCall() throws InterruptedException {
                         Thread.sleep(TrayGui.this.delay);
-                        printWarnings();
+                        synchronized (TrayGui.this) {
+                            TrayGui.this.versionGapWarning = TrayGui.this.versionGapWarningBuffer;
+                            updateWarnings();
+                            printWarnings();
+                        }
                         return null;
                     }
                 });
             } else if (this.start + this.delay < cur) {
                 // 既に遅延が終わっている。
+                this.versionGapWarning = this.versionGapWarningBuffer;
+                updateWarnings();
                 printWarnings();
             } else {
                 // 遅延中。

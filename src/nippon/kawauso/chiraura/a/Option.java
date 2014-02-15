@@ -71,7 +71,8 @@ final class Option {
         bbsUpdateThreshold(Long.toString(10 * 60 * 1_000L) /* 10 分 */, "BBS の更新を自粛する期間 (ミリ秒)"),
         gui(Boolean.toString(!Global.isDebug()), "GUI を使用するや否や"),
         guiBootDuration(Long.toString(3 * 60 * 1_000L) /* 3 分 */, "起動中とみなす時間 (ミリ秒)"),
-        guiMaxDelay(Long.toString(60 * 60 * 1_000L) /* 1 時間 */, "更新警告の最大遅延時間 (ミリ秒)"),
+        guiMaxDelay(Long.toString(60 * 60 * 1_000L) /* 1 時間 */, "更新報告の最大遅延時間 (ミリ秒)"),
+        guiInterval(Long.toString(60 * 60 * 1_000L) /* 1 時間 */, "警告表示の間隔 (ミリ秒)"),
 
         ;
 
