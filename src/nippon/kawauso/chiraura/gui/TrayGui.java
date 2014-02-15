@@ -34,6 +34,7 @@ import java.util.logging.Logger;
 
 import javax.swing.JDialog;
 
+import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.concurrent.ConcurrentFunctions;
 import nippon.kawauso.chiraura.lib.container.Pair;
 import nippon.kawauso.chiraura.lib.process.Reporter;
@@ -77,7 +78,7 @@ public final class TrayGui implements Gui {
     private long start;
     private Pair<Long, Long> versionGapWarningBuffer;
 
-    private final long initialInterval;
+    private long interval;
     private final BlockingQueue<Long> intervalCahnger;
 
     /**
@@ -131,12 +132,20 @@ public final class TrayGui implements Gui {
         this.start = -1;
         this.versionGapWarningBuffer = null;
 
-        this.initialInterval = initialInterval;
+        this.interval = initialInterval;
         this.intervalCahnger = new LinkedBlockingQueue<>();
     }
 
     private synchronized Pair<InetSocketAddress, String> getSelf() {
         return this.self;
+    }
+
+    private synchronized long getInterval() {
+        return this.interval;
+    }
+
+    private synchronized void setInterval(final long interval) {
+        this.interval = interval;
     }
 
     @Override
@@ -275,17 +284,24 @@ public final class TrayGui implements Gui {
         this.executor.submit(new Reporter<Void>(Level.WARNING) {
             @Override
             protected Void subCall() throws InterruptedException {
-                long curInterval = TrayGui.this.initialInterval;
+                long curInterval = getInterval();
                 while (true) {
-                    final Long interval;
+                    final Long buff;
                     if (curInterval <= 0) {
-                        interval = TrayGui.this.intervalCahnger.take();
+                        buff = TrayGui.this.intervalCahnger.take();
                     } else {
-                        interval = TrayGui.this.intervalCahnger.poll(curInterval, TimeUnit.MILLISECONDS);
+                        buff = TrayGui.this.intervalCahnger.poll(curInterval, TimeUnit.MILLISECONDS);
                     }
-                    if (interval != null && interval != curInterval) {
-                        curInterval = interval;
-                        LOG.log(Level.FINEST, "報告間隔を {0} ミリ秒に変更しました。", Long.toString(curInterval));
+
+                    if (buff == null) {
+                        continue;
+                    }
+
+                    final long nextInterval = buff;
+                    if (nextInterval != curInterval) {
+                        curInterval = nextInterval;
+                        setInterval(nextInterval);
+                        LOG.log(Level.FINEST, "報告間隔を {0} ミリ秒に変更しました。", Long.toString(nextInterval));
                     }
                     printWarnings();
                 }
@@ -331,6 +347,12 @@ public final class TrayGui implements Gui {
         buff.append("2chポート:").append(Integer.toString(this.bbsPort)).append(", ").append(System.lineSeparator());
 
         buff.append("作業場:").append(this.rootPath).append(", ").append(System.lineSeparator());
+
+        if (this.interval <= 0) {
+            buff.append("定期報告しない");
+        } else {
+            buff.append("定期報告間隔:").append(Duration.toString(this.interval));
+        }
 
         return buff.toString();
     }
