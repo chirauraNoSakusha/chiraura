@@ -6,6 +6,7 @@ package nippon.kawauso.chiraura.bbs;
 import java.util.ArrayList;
 import java.util.List;
 
+import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.converter.BytesConvertible;
 import nippon.kawauso.chiraura.lib.converter.BytesConvertibleTest;
 
@@ -30,17 +31,17 @@ public final class ThreadChunkTest extends BytesConvertibleTest<ThreadChunk> {
     protected ThreadChunk[] getInstances() {
         final List<ThreadChunk> list = new ArrayList<>();
         {
-            final ThreadChunk instance = new ThreadChunk("aaaaa", this.start / 1_000L, "あああスレ", "名無し", "age", this.start, 0, "あああああああああ");
+            final ThreadChunk instance = new ThreadChunk("aaaaa", this.start / Duration.SECOND, "あああスレ", "名無し", "age", this.start, 0, "あああああああああ");
             instance.patch(ThreadChunk.Entry.newInstance("俺様", "sage", this.start + 1, 1, PostFunctions.wrapMessage(">>1 死ね")));
             instance.patch(ThreadChunk.Entry.newInstance("名無し", "age", this.start + 2, 2, PostFunctions.wrapMessage(">>2 同意")));
             list.add(instance);
         }
         {
-            final ThreadChunk instance = new ThreadChunk("bbbbb", this.start / 1_000L + 1, "くそスレ", "名無し", "age", this.start + 3, 3, "自分で言うとか謙虚");
+            final ThreadChunk instance = new ThreadChunk("bbbbb", this.start / Duration.SECOND + 1, "くそスレ", "名無し", "age", this.start + 3, 3, "自分で言うとか謙虚");
             list.add(instance);
         }
         {
-            final ThreadChunk instance = new ThreadChunk("cccccc", this.start / 1_000L + 2, "人はなぜ生きるのか？", "我はメシア", "age", this.start + 4, 4, "我に従え");
+            final ThreadChunk instance = new ThreadChunk("cccccc", this.start / Duration.SECOND + 2, "人はなぜ生きるのか？", "我はメシア", "age", this.start + 4, 4, "我に従え");
             instance.patch(ThreadChunk.Entry.newInstance("通りすがり", "age", this.start + 5, 5, "神"));
             list.add(instance);
         }
@@ -50,7 +51,7 @@ public final class ThreadChunkTest extends BytesConvertibleTest<ThreadChunk> {
     @Override
     protected ThreadChunk getInstance(final int seed) {
         String label = Integer.toString(seed);
-        final ThreadChunk instance = new ThreadChunk(label, this.start / 1_000L + seed, label, label, label, this.start + seed, seed, label);
+        final ThreadChunk instance = new ThreadChunk(label, this.start / Duration.SECOND + seed, label, label, label, this.start + seed, seed, label);
         for (int i = 1; i < 5; i++) {
             label = Integer.toString(seed + i);
             instance.patch(ThreadChunk.Entry.newInstance(label, label, this.start + seed + i, seed + i, label));
@@ -75,7 +76,7 @@ public final class ThreadChunkTest extends BytesConvertibleTest<ThreadChunk> {
     public void testLimit() {
         final String board = "test";
         String label = Long.toString(this.start);
-        final ThreadChunk instance = new ThreadChunk(board, this.start / 1_000L, label, label, label, this.start, this.start, label);
+        final ThreadChunk instance = new ThreadChunk(board, this.start / Duration.SECOND, label, label, label, this.start, this.start, label);
         final List<ThreadChunk.Entry> pool = new ArrayList<>();
         for (int i = 0;; i++) {
             final int beforeSize = instance.byteSize();

@@ -7,6 +7,7 @@ import java.io.File;
 import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 
+import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.storage.Storages;
 
 /**
@@ -22,7 +23,7 @@ public final class StorageWrapperTest {
         final int indexCacheCapacity = 10_000;
         final int rangeCacheCapacity = 10_000;
         final int cacheLogCapacity = 1_000;
-        final long cacheDuration = 30 * 1_000;
+        final long cacheDuration = 30 * Duration.SECOND;
         return new StorageWrapper(Storages.newInstance(root, chunkSizeLimit, directoryBitSize, chunkCacheCapacity, indexCacheCapacity, rangeCacheCapacity),
                 operationSink, cacheLogCapacity, cacheDuration);
     }

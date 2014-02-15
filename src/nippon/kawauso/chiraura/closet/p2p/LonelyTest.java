@@ -10,6 +10,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.process.Reporter;
 
 import org.junit.Assert;
@@ -20,10 +21,10 @@ import org.junit.Test;
  */
 public final class LonelyTest {
 
-    private static final long minInterval = 1_000;
-    private static final long maxInterval = 2_000;
-    private static final long timeout = 1_000;
-    private static final long shutdownTimeout = 1_000;
+    private static final long minInterval = Duration.SECOND;
+    private static final long maxInterval = 2 * Duration.SECOND;
+    private static final long timeout = Duration.SECOND;
+    private static final long shutdownTimeout = Duration.SECOND;
 
     private final Random random;
     private final BlockingQueue<Reporter.Report> reportQueue;

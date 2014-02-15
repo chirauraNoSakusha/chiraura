@@ -26,6 +26,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.converter.TypeRegistries;
 import nippon.kawauso.chiraura.lib.converter.TypeRegistry;
 import nippon.kawauso.chiraura.lib.exception.MyRuleException;
@@ -47,9 +48,9 @@ public final class AcceptorTest {
     }
 
     private static final int sendBufferSize = 128 * 1024;
-    private static final long connectionTimeout = 10_000L;
-    private static final long operationTimeout = 10_000L;
-    private static final long keyLifetime = 10_000L;
+    private static final long connectionTimeout = 10 * Duration.SECOND;
+    private static final long operationTimeout = 10 * Duration.SECOND;
+    private static final long keyLifetime = 10 * Duration.SECOND;
     private static final long version = 1;
     private static final long versionGapThreshold = 1;
 
@@ -98,7 +99,7 @@ public final class AcceptorTest {
         this.subjectMessengerReportQueue = new LinkedBlockingQueue<>();
         this.subjectAcceptedConnectionPool = new ConnectionPool<>();
         this.subjectConnectionPool = new BoundConnectionPool<>();
-        this.subjectKeyManager = new PublicKeyManager(100_000L);
+        this.subjectKeyManager = new PublicKeyManager(100 * Duration.SECOND);
         this.subjectSelf = new AtomicReference<>(null);
 
         this.subjectAcceptedConnectionPool.add(this.subjectConnection);
@@ -121,7 +122,7 @@ public final class AcceptorTest {
         this.testerSocket.close();
         this.testerServerSocket.close();
         this.subjectServerSocket.close();
-        Assert.assertTrue(this.executor.awaitTermination(1, TimeUnit.SECONDS));
+        Assert.assertTrue(this.executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
         Assert.assertTrue(this.subjectAcceptedConnectionPool.isEmpty());
         for (final MessengerReport report : this.subjectMessengerReportQueue) {
             // isEmpty でないのはデバッグのため。
@@ -177,9 +178,9 @@ public final class AcceptorTest {
         Assert.assertArrayEquals(watchword, CryptographicFunctions.decrypt(reply2.getId(), reply2.getEncryptedWatchword()));
 
         // 報告の確認。
-        final SelfReport selfReport = (SelfReport) this.subjectMessengerReportQueue.poll(1, TimeUnit.SECONDS);
+        final SelfReport selfReport = (SelfReport) this.subjectMessengerReportQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);
         Assert.assertEquals(this.testerSocket.getRemoteSocketAddress(), selfReport.get());
-        final ConnectReport connectReport = (ConnectReport) this.subjectMessengerReportQueue.poll(1, TimeUnit.SECONDS);
+        final ConnectReport connectReport = (ConnectReport) this.subjectMessengerReportQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);
         Assert.assertEquals(testerId.getPublic(), connectReport.getDestinationId());
         Assert.assertEquals(testerPort, connectReport.getDestination().getPort());
 
@@ -198,7 +199,7 @@ public final class AcceptorTest {
         transceiver.toStream(this.testerOutput, sendMail, EncryptedEnvelope.class, communicationKey);
         this.testerOutput.flush();
 
-        final ReceivedMail receivedMail = this.subjectReceivedMailQueue.poll(1, TimeUnit.SECONDS);
+        final ReceivedMail receivedMail = this.subjectReceivedMailQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);
         Assert.assertEquals(sendMail, receivedMail.getMail());
 
         // 接続が登録されているかどうか。
@@ -223,9 +224,9 @@ public final class AcceptorTest {
         // 一言目を送信。
         StartingProtocol.sendFirst(transceiver, this.testerOutput, testerPublicKeyPair.getPublic());
 
-        future.get(1, TimeUnit.SECONDS);
+        future.get(Duration.SECOND, TimeUnit.MILLISECONDS);
 
-        final MessengerReport report = this.subjectMessengerReportQueue.poll(1, TimeUnit.SECONDS);
+        final MessengerReport report = this.subjectMessengerReportQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);
         Assert.assertTrue(report instanceof AcceptanceError);
         Assert.assertTrue(((AcceptanceError) report).getError() instanceof IOException);
         Assert.assertEquals(this.subjectConnection.getSocket().getInetAddress(), ((AcceptanceError) report).getDestination());
@@ -245,9 +246,9 @@ public final class AcceptorTest {
         this.testerOutput.write(new byte[] { 0, 4, 1, 127, 1, 0 });
         this.testerOutput.flush();
 
-        future.get(1, TimeUnit.SECONDS);
+        future.get(Duration.SECOND, TimeUnit.MILLISECONDS);
 
-        final MessengerReport report = this.subjectMessengerReportQueue.poll(1, TimeUnit.SECONDS);
+        final MessengerReport report = this.subjectMessengerReportQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);
         Assert.assertTrue(report instanceof AcceptanceError);
         Assert.assertTrue(((AcceptanceError) report).getError() instanceof MyRuleException);
         Assert.assertEquals(this.subjectConnection.getSocket().getInetAddress(), ((AcceptanceError) report).getDestination());
@@ -268,7 +269,7 @@ public final class AcceptorTest {
         // 時間切れ待ち。
         future.get(shortOperationTimeout + 100L, TimeUnit.MILLISECONDS);
 
-        final MessengerReport report = this.subjectMessengerReportQueue.poll(1, TimeUnit.SECONDS);
+        final MessengerReport report = this.subjectMessengerReportQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);
         Assert.assertTrue(report instanceof AcceptanceError);
         Assert.assertTrue(((AcceptanceError) report).getError() instanceof SocketTimeoutException);
         Assert.assertEquals(this.subjectConnection.getSocket().getInetAddress(), ((AcceptanceError) report).getDestination());
@@ -304,7 +305,7 @@ public final class AcceptorTest {
                 (InetSocketAddress) this.testerSocket.getRemoteSocketAddress());
 
         // ポート異常を受信。
-        this.testerSocket.setSoTimeout((int) (operationTimeout + 1_000L));
+        this.testerSocket.setSoTimeout((int) (operationTimeout + Duration.SECOND));
         future.get();
         final PortErrorMessage reply2 = (PortErrorMessage) StartingProtocol.receiveSecondReply(transceiver, this.testerInput, communicationKey);
         Assert.assertNotNull(reply2);
@@ -377,7 +378,7 @@ public final class AcceptorTest {
         Assert.assertEquals(-1, this.testerInput.read());
 
         // 報告の確認。
-        final NewProtocolWarning newProtocol = (NewProtocolWarning) this.subjectMessengerReportQueue.poll(1, TimeUnit.SECONDS);
+        final NewProtocolWarning newProtocol = (NewProtocolWarning) this.subjectMessengerReportQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);
         Assert.assertEquals(version, newProtocol.getVersion());
         Assert.assertEquals(version + 1, newProtocol.getNewVersion());
     }

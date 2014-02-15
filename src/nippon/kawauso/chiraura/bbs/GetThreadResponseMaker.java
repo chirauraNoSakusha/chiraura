@@ -3,6 +3,8 @@
  */
 package nippon.kawauso.chiraura.bbs;
 
+import nippon.kawauso.chiraura.lib.Duration;
+
 /**
  * 2chブラウザからのスレ取得リクエストへの返答を作る。
  * @author chirauraNoSakusha
@@ -27,11 +29,12 @@ final class GetThreadResponseMaker {
             final Long ifModifiedSince = request.getIfModifiedSince();
             final String ifNoneMatch = request.getIfNoneMatch();
             if (ifModifiedSince != null && ifNoneMatch != null) {
-                if (thread.getUpdateDate() - thread.getUpdateDate() % 1_000L <= ifModifiedSince && Long.toString(thread.getNetworkTag()).equals(ifNoneMatch)) {
+                if (thread.getUpdateDate() - thread.getUpdateDate() % Duration.SECOND <= ifModifiedSince
+                        && Long.toString(thread.getNetworkTag()).equals(ifNoneMatch)) {
                     return new NotModifiedResponse(getTarget(request));
                 }
             } else if (ifModifiedSince != null) {
-                if (thread.getUpdateDate() - thread.getUpdateDate() % 1_000L <= ifModifiedSince) {
+                if (thread.getUpdateDate() - thread.getUpdateDate() % Duration.SECOND <= ifModifiedSince) {
                     return new NotModifiedResponse(getTarget(request));
                 }
             } else if (ifNoneMatch != null) {

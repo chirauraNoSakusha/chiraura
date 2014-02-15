@@ -4,7 +4,7 @@
 package nippon.kawauso.chiraura.bbs;
 
 /**
- * @author mui
+ * @author chirauraNoSakusha
  */
 abstract class InvalidTargetRequest implements Request {
 

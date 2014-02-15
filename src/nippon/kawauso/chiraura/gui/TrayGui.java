@@ -209,14 +209,14 @@ public final class TrayGui implements Gui {
          */
         final Menu intervalMenu = new Menu("警告を表示する間隔");
         for (final Pair<String, Long> entry : Arrays.asList(
-                new Pair<>("5 分", 5 * 60 * 1_000L),
-                new Pair<>("10 分", 10 * 60 * 1_000L),
-                new Pair<>("30分", 30 * 60 * 1_000L),
-                new Pair<>("1 時間", 1 * 60 * 60 * 1_000L),
-                new Pair<>("2 時間", 2 * 60 * 60 * 1_000L),
-                new Pair<>("5 時間", 5 * 60 * 60 * 1_000L),
-                new Pair<>("10 時間", 10 * 60 * 60 * 1_000L),
-                new Pair<>("1 日", 1 * 24 * 60 * 60 * 1_000L),
+                new Pair<>("5 分", 5 * Duration.MINUTE),
+                new Pair<>("10 分", 10 * Duration.MINUTE),
+                new Pair<>("30分", 30 * Duration.MINUTE),
+                new Pair<>("1 時間", Duration.HOUR),
+                new Pair<>("2 時間", 2 * Duration.HOUR),
+                new Pair<>("5 時間", 5 * Duration.HOUR),
+                new Pair<>("10 時間", 10 * Duration.HOUR),
+                new Pair<>("1 日", Duration.DAY),
                 new Pair<>("定期報告しない", 0L)
                 )) {
             final MenuItem intervalItem = new MenuItem(entry.getFirst());

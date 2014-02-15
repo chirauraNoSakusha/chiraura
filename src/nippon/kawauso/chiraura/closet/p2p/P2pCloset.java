@@ -18,6 +18,7 @@ import java.util.logging.Logger;
 import nippon.kawauso.chiraura.closet.Closet;
 import nippon.kawauso.chiraura.closet.ClosetReport;
 import nippon.kawauso.chiraura.closet.Mountain;
+import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.base.Address;
 import nippon.kawauso.chiraura.lib.converter.BytesConvertible;
 import nippon.kawauso.chiraura.lib.exception.MyRuleException;
@@ -72,20 +73,20 @@ public final class P2pCloset implements Closet {
         private int peerCapacity = 1_000;
         private int receiveBufferSize = 128 * 1024; // 128 KB.
         private int sendBufferSize = 64 * 1024; // 64 KB.
-        private long maintenanceInterval = 60 * 1_000L; // 1 分。
-        private long sleepTime = 30 * 60 * 1_000L; // 30 分。
-        private long backupInterval = 5 * 60 * 1_000L; // 5 分。
-        private long connectionTimeout = 15 * 60 * 1_000L; // 15 分。
-        private long operationTimeout = 60 * 1_000L; // 1 分。
+        private long maintenanceInterval = Duration.MINUTE;
+        private long sleepTime = 30 * Duration.MINUTE;
+        private long backupInterval = 5 * Duration.MINUTE;
+        private long connectionTimeout = 15 * Duration.MINUTE;
+        private long operationTimeout = Duration.MINUTE;
         private int cacheLogCapacity = 10_000;
-        private long cacheDuration = 30 * 1_000; // 30 秒。
-        private long publicKeyLifetime = 24 * 60 * 60 * 1_000L; // 1 日。
-        private long commonKeyLifetime = 60 * 60 * 1_000L; // 1 時間。
+        private long cacheDuration = 30 * Duration.SECOND;
+        private long publicKeyLifetime = Duration.DAY;
+        private long commonKeyLifetime = Duration.HOUR;
         private int blacklistCapacity = 200;
-        private long blacklistTimeout = 30 * 60 * 1_000L; // 30 分。
+        private long blacklistTimeout = 30 * Duration.MINUTE;
         private int potCapacity = 1_000;
         private int activeAddressLogCapacity = 1_000;
-        private long activeAddressDuration = 5 * 60 * 1_000; // 5 分。
+        private long activeAddressDuration = 5 * Duration.MINUTE;
 
         @SuppressWarnings("unused")
         private List<AddressedPeer> addressedPeers = new ArrayList<>(0);

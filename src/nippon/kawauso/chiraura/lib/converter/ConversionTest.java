@@ -140,7 +140,7 @@ public final class ConversionTest {
             sum += testException(generator.next(i), converter, permitted);
         }
         final long end = System.nanoTime();
-        LOG.log(Level.SEVERE, "繰り返し:" + loop + " 秒数:" + ((end - start) / 1000000000.0) + " チェックサム:" + sum);
+        LOG.log(Level.SEVERE, "繰り返し:" + loop + " 秒数:" + ((end - start) / 1_000_000_000.0) + " チェックサム:" + sum);
     }
 
     /**

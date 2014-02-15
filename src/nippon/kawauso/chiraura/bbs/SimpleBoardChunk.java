@@ -15,6 +15,7 @@ import java.util.TreeMap;
 
 import nippon.kawauso.chiraura.Global;
 import nippon.kawauso.chiraura.closet.Mountain;
+import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.base.Address;
 import nippon.kawauso.chiraura.lib.base.HashValue;
 import nippon.kawauso.chiraura.lib.cell.Utf8Cell;
@@ -542,14 +543,14 @@ final class SimpleBoardChunk extends SkeletalChunk implements BoardChunk {
 
         System.out.println("[" + instance.toNetworkString() + "]");
 
-        Entry entry = new Entry(System.currentTimeMillis(), System.currentTimeMillis() / 1_000L, "ああああうえ", 1);
+        Entry entry = new Entry(System.currentTimeMillis(), System.currentTimeMillis() / Duration.SECOND, "ああああうえ", 1);
         System.out.println("add " + entry);
         instance.patch(entry);
         System.out.println("[" + instance.toNetworkString() + "]");
 
-        Thread.sleep(1_001L);
+        Thread.sleep(Duration.SECOND + 1L);
 
-        entry = new Entry(System.currentTimeMillis(), System.currentTimeMillis() / 1_000L, "てすと", 1);
+        entry = new Entry(System.currentTimeMillis(), System.currentTimeMillis() / Duration.SECOND, "てすと", 1);
         System.out.println("add " + entry);
         instance.patch(entry);
         System.out.println("[" + instance.toNetworkString() + "]");

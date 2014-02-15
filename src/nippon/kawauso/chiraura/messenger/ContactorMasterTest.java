@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
+import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.converter.TypeRegistries;
 import nippon.kawauso.chiraura.lib.converter.TypeRegistry;
 import nippon.kawauso.chiraura.lib.process.Reporter;
@@ -46,12 +47,12 @@ public final class ContactorMasterTest {
 
     private static final int receiveBufferSize = 128 * 1024;
     private static final int sendBufferSize = 128 * 1024;
-    private static final long connectionTimeout = 10_000L;
-    private static final long operationTimeout = 10_000L;
+    private static final long connectionTimeout = 10 * Duration.SECOND;
+    private static final long operationTimeout = 10 * Duration.SECOND;
     private static final int connectionType = ConnectionTypes.DEFAULT;
     private static final long version = 1L;
     private static final long versionGapThreshold = 1L;
-    private static final long keyLifetime = 10_000L;
+    private static final long keyLifetime = 10 * Duration.SECOND;
 
     private static final int testerPort = 12345;
     private static final InetSocketAddress tester;
@@ -121,7 +122,7 @@ public final class ContactorMasterTest {
             c.close();
         }
         this.testerServerSocket.close();
-        Assert.assertTrue(this.executor.awaitTermination(1, TimeUnit.SECONDS));
+        Assert.assertTrue(this.executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
         Assert.assertTrue(this.subjectContactingConnectionPool.isEmpty());
         Assert.assertTrue(this.subjectMessengerReportQueue.isEmpty());
         Assert.assertTrue(this.subjectReportQueue.isEmpty());
@@ -169,9 +170,9 @@ public final class ContactorMasterTest {
         StartingProtocol.sendSecondReply(transceiver, testerOutput, communicationKey, testerId, watchword, testerPublicKeyPair.getPublic(), version, subject);
 
         // 報告の確認。
-        final SelfReport selfReport = (SelfReport) this.subjectMessengerReportQueue.poll(1, TimeUnit.SECONDS);
+        final SelfReport selfReport = (SelfReport) this.subjectMessengerReportQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);
         Assert.assertEquals(subject, selfReport.get());
-        final ConnectReport connectReport = (ConnectReport) this.subjectMessengerReportQueue.poll(1, TimeUnit.SECONDS);
+        final ConnectReport connectReport = (ConnectReport) this.subjectMessengerReportQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);
         Assert.assertEquals(testerId.getPublic(), connectReport.getDestinationId());
         Assert.assertEquals(testerPort, connectReport.getDestination().getPort());
 
@@ -190,7 +191,7 @@ public final class ContactorMasterTest {
         transceiver.toStream(testerOutput, sendMail, EncryptedEnvelope.class, communicationKey);
         testerOutput.flush();
 
-        final ReceivedMail receivedMail = this.subjectReceivedMailQueue.poll(1, TimeUnit.SECONDS);
+        final ReceivedMail receivedMail = this.subjectReceivedMailQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);
         Assert.assertEquals(sendMail, receivedMail.getMail());
 
         // 接続が登録されているかどうか。

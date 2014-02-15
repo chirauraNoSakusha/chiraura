@@ -12,6 +12,7 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import nippon.kawauso.chiraura.Global;
+import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.base.HashValue;
 import nippon.kawauso.chiraura.lib.converter.Base64;
 import nippon.kawauso.chiraura.lib.converter.BytesConversion;
@@ -85,7 +86,7 @@ final class PostFunctions {
         // 板名。
         long authorId = boardName.hashCode();
         // 日時。
-        authorId = prime * authorId + date / (1000 * 3600 * 24);
+        authorId = prime * authorId + date / Duration.DAY;
         // 環境。
         for (final long hashCode : HASH_CODE_CACHE) {
             authorId = prime * authorId + hashCode;
@@ -175,8 +176,8 @@ final class PostFunctions {
 
     private static void sample1() {
         for (final String board : new String[] { "test", "death" }) {
-            for (final long date : new long[] { System.currentTimeMillis(), System.currentTimeMillis() + 1000 * 3600 * 12,
-                    System.currentTimeMillis() + 1000 * 3600 * 24 }) {
+            for (final long date : new long[] { System.currentTimeMillis(), System.currentTimeMillis() + 12 * Duration.HOUR,
+                    System.currentTimeMillis() + Duration.DAY }) {
                 System.out.printf("%5s %s %s\n", board, LoggingFunctions.getSimpleDate(date), idToString(calculateId(board, date)));
             }
         }

@@ -13,6 +13,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
+import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.logging.LoggingFunctions;
 import nippon.kawauso.chiraura.lib.process.Reporter;
 
@@ -41,13 +42,13 @@ public final class StandAloneATest {
         final Environment environment = new Environment(option);
         final StandAloneA cover = new StandAloneA(environment);
 
-        final long lifetime = 3 * 60 * 1_000L;
+        final long lifetime = 3 * Duration.MINUTE;
         final long interval = lifetime / 1_000;
-        final long waitTime = 10 * 60 * 1_000L;
+        final long waitTime = 10 * Duration.MINUTE;
 
-        // final long lifetime = 1 * 60 * 1_000L;
+        // final long lifetime = 1 * Duration.MINUTE;
         // final long interval = lifetime / 100;
-        // final long waitTime = 1 * 60 * 1_000L;
+        // final long waitTime = 1 * Duration.MINUTE;
 
         final double writeRate = 0.5;
         final String boardName = "test";
@@ -67,7 +68,7 @@ public final class StandAloneATest {
         });
 
         // 2ch サーバの稼動待ち。
-        Thread.sleep(1_000L);
+        Thread.sleep(Duration.SECOND);
 
         final ExecutorService clientExecutor = Executors.newFixedThreadPool(clients.size());
         for (final Callable<Void> client : clients) {
@@ -78,7 +79,7 @@ public final class StandAloneATest {
         Thread.sleep(lifetime);
 
         clientExecutor.shutdownNow();
-        Assert.assertTrue(clientExecutor.awaitTermination(1L, TimeUnit.MINUTES));
+        Assert.assertTrue(clientExecutor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
         System.out.println("クライアント活動停止。");
 
         // 実験待ち。
@@ -86,7 +87,7 @@ public final class StandAloneATest {
         Thread.sleep(waitTime);
 
         executor.shutdownNow();
-        Assert.assertTrue(executor.awaitTermination(1L, TimeUnit.MINUTES));
+        Assert.assertTrue(executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
 
         cover.close();
         LogInitializer.reset();

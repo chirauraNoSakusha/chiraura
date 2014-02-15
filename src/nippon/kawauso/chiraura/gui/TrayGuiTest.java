@@ -8,6 +8,7 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.logging.LoggingFunctions;
 
 /**
@@ -23,11 +24,11 @@ public final class TrayGuiTest {
     public void testBoot() throws Exception {
         LoggingFunctions.startDebugLogging();
 
-        final TrayGui instance = new TrayGui("/test/root", 111111, 0L, 10_000L, 30_000L);
+        final TrayGui instance = new TrayGui("/test/root", 111111, 0L, 10 * Duration.SECOND, 30 * Duration.SECOND);
 
         final ExecutorService executor = Executors.newCachedThreadPool();
 
-        final long interval = 10 * 1_000L;
+        final long interval = 10 * Duration.SECOND;
 
         instance.start(executor);
         System.out.println("起動しました");
@@ -69,7 +70,7 @@ public final class TrayGuiTest {
         System.out.println("自分を変更しました");
         Thread.sleep(interval);
 
-        Thread.sleep(60_000L);
+        Thread.sleep(Duration.MINUTE);
 
         instance.close();
     }

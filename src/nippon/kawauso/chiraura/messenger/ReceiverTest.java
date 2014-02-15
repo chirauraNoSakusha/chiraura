@@ -23,6 +23,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.converter.TypeRegistries;
 import nippon.kawauso.chiraura.lib.converter.TypeRegistry;
 import nippon.kawauso.chiraura.lib.exception.MyRuleException;
@@ -44,7 +45,7 @@ public final class ReceiverTest {
         transceiver = new Transceiver(Integer.MAX_VALUE, RegistryInitializer.init(registry));
     }
 
-    private static final long timeout = 10_000;
+    private static final long timeout = 10 * Duration.SECOND;
     private static final int idNumber = 1234;
     private static final int connectionType = ConnectionTypes.DEFAULT;
     private static final Key commonKey = CryptographicKeys.newCommonKey();
@@ -105,7 +106,7 @@ public final class ReceiverTest {
         this.subjectInput.close();
         this.subjectSocket.close();
         this.executor.shutdownNow();
-        Assert.assertTrue(this.executor.awaitTermination(1, TimeUnit.SECONDS));
+        Assert.assertTrue(this.executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
         Assert.assertTrue(this.subjectReceivedMailQueue.isEmpty());
         for (final MessengerReport report : this.subjectMessengerReportQueue) {
             Assert.fail(report.toString());
@@ -213,9 +214,9 @@ public final class ReceiverTest {
 
         }
 
-        future.get(1, TimeUnit.SECONDS);
+        future.get(Duration.SECOND, TimeUnit.MILLISECONDS);
 
-        final MessengerReport report = this.subjectMessengerReportQueue.poll(1, TimeUnit.SECONDS);
+        final MessengerReport report = this.subjectMessengerReportQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);
         Assert.assertTrue(report instanceof CommunicationError);
         Assert.assertTrue(((CommunicationError) report).getError() instanceof IOException);
     }
@@ -233,9 +234,9 @@ public final class ReceiverTest {
         this.testerOutput.write(new byte[100]);
         this.testerOutput.flush();
 
-        future.get(1, TimeUnit.SECONDS);
+        future.get(Duration.SECOND, TimeUnit.MILLISECONDS);
 
-        final MessengerReport report = this.subjectMessengerReportQueue.poll(1, TimeUnit.SECONDS);
+        final MessengerReport report = this.subjectMessengerReportQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);
         Assert.assertTrue(report instanceof CommunicationError);
         Assert.assertTrue(((CommunicationError) report).getError() instanceof MyRuleException);
     }
@@ -253,7 +254,7 @@ public final class ReceiverTest {
         final Future<Void> future = this.executor.submit(instance);
 
         // 時間切れ待ち。
-        future.get(shortTimeout + 1_000, TimeUnit.MILLISECONDS);
+        future.get(shortTimeout + Duration.SECOND, TimeUnit.MILLISECONDS);
     }
 
 }

@@ -91,7 +91,7 @@ public final class LockPoolTest {
         Assert.assertTrue(locks.isEmpty());
         Assert.assertEquals(loop * numOfProcesses, sum);
         LOG.log(Level.SEVERE, this.getClass().getName() + " 繰り返し回数:" + loop + " プロセス数:" + numOfProcesses + " ロック数:" + numOfLockers + " 秒数:"
-                + ((end - start) / 1000000000.0) + " チェックサム:" + sum);
+                + ((end - start) / 1_000_000_000.0) + " チェックサム:" + sum);
 
     }
 
@@ -155,7 +155,7 @@ public final class LockPoolTest {
         Assert.assertTrue(locks.isEmpty());
         Assert.assertEquals(loop * numOfProcesses, sum);
         LOG.log(Level.SEVERE, this.getClass().getName() + " 繰り返し回数:" + loop + " プロセス数:" + numOfProcesses + " ロック数:" + numOfLockers + " 秒数:"
-                + ((end - start) / 1000000000.0) + " チェックサム:" + sum);
+                + ((end - start) / 1_000_000_000.0) + " チェックサム:" + sum);
 
     }
 

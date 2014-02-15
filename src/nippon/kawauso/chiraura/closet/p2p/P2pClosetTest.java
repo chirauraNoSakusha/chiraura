@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 
 import nippon.kawauso.chiraura.closet.Mountain;
+import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.base.Address;
 import nippon.kawauso.chiraura.lib.base.HashValue;
 import nippon.kawauso.chiraura.lib.exception.MyRuleException;
@@ -71,7 +72,7 @@ public final class P2pClosetTest {
         Thread.sleep(100L);
 
         executor.shutdownNow();
-        Assert.assertTrue(executor.awaitTermination(1L, TimeUnit.MINUTES));
+        Assert.assertTrue(executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
         instance.close();
     }
 
@@ -104,7 +105,7 @@ public final class P2pClosetTest {
         instance2.start(executor);
 
         // 安定待ち。
-        Thread.sleep(1_000L);
+        Thread.sleep(Duration.SECOND);
 
         // 個体が保存されているか検査。
         final List<AddressedPeer> peers1 = instance1.getPeers();
@@ -118,7 +119,7 @@ public final class P2pClosetTest {
         Assert.assertEquals(port1, peers2.get(0).getPeer().getPort());
 
         executor.shutdownNow();
-        Assert.assertTrue(executor.awaitTermination(1L, TimeUnit.MINUTES));
+        Assert.assertTrue(executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
         instance1.close();
         instance2.close();
     }
@@ -208,7 +209,7 @@ public final class P2pClosetTest {
         final ExecutorService executor = Executors.newCachedThreadPool();
 
         final long operationTimeout = 750L;
-        final long maintenanceInterval = 1_000L;
+        final long maintenanceInterval = Duration.SECOND;
         final AddressCalculator calculator = new EquallyDivider();
         for (int i = 0; i < numOfPeers; i++) {
             final File root = new File(ROOT, "network" + getLabel(numOfPeers, i));
@@ -251,7 +252,7 @@ public final class P2pClosetTest {
         }
 
         executor.shutdownNow();
-        Assert.assertTrue(executor.awaitTermination(1L, TimeUnit.MINUTES));
+        Assert.assertTrue(executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
         for (final P2pCloset instance : instances) {
             instance.close();
         }
@@ -262,14 +263,14 @@ public final class P2pClosetTest {
                 GrowingBytes.Entry.class, GrowingBytes.Entry.getParser());
     }
 
-    private static final long cacheDuration = 1_000L;
+    private static final long cacheDuration = Duration.SECOND;
 
     private static P2pCloset[] beforeOperation(final int numOfPeers, final String label, final ExecutorService executor) throws InterruptedException {
         final P2pCloset[] instances = new P2pCloset[numOfPeers];
 
         final long operationTimeout = 750L;
-        final long maintenanceInterval = 1_000L;
-        final long backupInterval = 100_000L;
+        final long maintenanceInterval = Duration.SECOND;
+        final long backupInterval = 100 * Duration.SECOND;
         int port0 = 0;
         for (int i = 0; i < numOfPeers; i++) {
             final File root = new File(ROOT, label + getLabel(numOfPeers, i));
@@ -308,7 +309,7 @@ public final class P2pClosetTest {
 
     private static void afterOperation(final ExecutorService executor, final P2pCloset[] instances) throws InterruptedException, MyRuleException, IOException {
         executor.shutdownNow();
-        Assert.assertTrue(executor.awaitTermination(1L, TimeUnit.MINUTES));
+        Assert.assertTrue(executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
         for (final P2pCloset instance : instances) {
             instance.close();
         }
@@ -330,10 +331,10 @@ public final class P2pClosetTest {
 
         // データ片の追加。
         final Mountain chunk = new GrowingBytes(label);
-        Assert.assertTrue(instances[0].addOriginal(chunk, 1_000L).isSuccess());
+        Assert.assertTrue(instances[0].addOriginal(chunk, Duration.SECOND).isSuccess());
 
         for (final P2pCloset instance : instances) {
-            Assert.assertEquals(chunk, instance.getOriginal(chunk.getId(), 1_000L).getChunk());
+            Assert.assertEquals(chunk, instance.getOriginal(chunk.getId(), Duration.SECOND).getChunk());
         }
 
         afterOperation(executor, instances);
@@ -355,10 +356,10 @@ public final class P2pClosetTest {
 
         // データ片の追加。
         final Mountain chunk = new GrowingBytes(label);
-        Assert.assertTrue(instances[0].addOriginal(chunk, 1_000L).isSuccess());
+        Assert.assertTrue(instances[0].addOriginal(chunk, Duration.SECOND).isSuccess());
 
         for (final P2pCloset instance : instances) {
-            Assert.assertEquals(chunk, instance.getCache(chunk.getId(), 1_000L).getChunk());
+            Assert.assertEquals(chunk, instance.getCache(chunk.getId(), Duration.SECOND).getChunk());
         }
 
         for (final P2pCloset instance : instances) {
@@ -387,10 +388,10 @@ public final class P2pClosetTest {
         chunk.patch(new GrowingBytes.Entry(1, new byte[] { 1 }));
         chunk.patch(new GrowingBytes.Entry(2, new byte[] { 2 }));
         chunk.patch(new GrowingBytes.Entry(3, new byte[] { 3 }));
-        Assert.assertTrue(instances[0].addOriginal(chunk, 1_000L).isSuccess());
+        Assert.assertTrue(instances[0].addOriginal(chunk, Duration.SECOND).isSuccess());
 
         for (final P2pCloset instance : instances) {
-            Assert.assertEquals(chunk.getDiffsAfter(1), instance.updateOriginal(chunk.getId(), 1, 1_000L).getDiffs());
+            Assert.assertEquals(chunk.getDiffsAfter(1), instance.updateOriginal(chunk.getId(), 1, Duration.SECOND).getDiffs());
         }
 
         afterOperation(executor, instances);
@@ -412,16 +413,16 @@ public final class P2pClosetTest {
 
         // データ片の追加。
         final Mountain chunk = new GrowingBytes(label, 0);
-        Assert.assertTrue(instances[0].addOriginal(chunk, 1_000L).isSuccess());
+        Assert.assertTrue(instances[0].addOriginal(chunk, Duration.SECOND).isSuccess());
         for (int i = 0; i < 2; i++) {
-            Assert.assertEquals(chunk, instances[0].getCache(chunk.getId(), 1_000L).getChunk());
+            Assert.assertEquals(chunk, instances[0].getCache(chunk.getId(), Duration.SECOND).getChunk());
         }
 
         for (int i = 1; i <= 5; i++) {
             @SuppressWarnings("unchecked")
             final Chunk.Id<GrowingBytes> id = (Chunk.Id<GrowingBytes>) chunk.getId();
             final Mountain.Dust<GrowingBytes> diff = new GrowingBytes.Entry(i, new byte[] { (byte) i });
-            Assert.assertTrue(instances[0].patchOriginal(id, diff, 1_000L).isSuccess());
+            Assert.assertTrue(instances[0].patchOriginal(id, diff, Duration.SECOND).isSuccess());
             chunk.patch(diff);
         }
 
@@ -429,7 +430,7 @@ public final class P2pClosetTest {
         Thread.sleep(cacheDuration);
 
         for (final P2pCloset instance : instances) {
-            Assert.assertEquals(chunk, instance.getOrUpdateCache(chunk.getId(), 1_000L).getChunk());
+            Assert.assertEquals(chunk, instance.getOrUpdateCache(chunk.getId(), Duration.SECOND).getChunk());
         }
 
         for (final P2pCloset instance : instances) {
@@ -457,7 +458,7 @@ public final class P2pClosetTest {
 
         // データ片の追加。
         final Mountain chunk = new GrowingBytes(label);
-        Assert.assertTrue(instances[0].addOriginal(chunk, 1_000L).isSuccess());
+        Assert.assertTrue(instances[0].addOriginal(chunk, Duration.SECOND).isSuccess());
 
         // 即時バックアップが終わるのを待つ。
         Thread.sleep(100L);
@@ -494,9 +495,9 @@ public final class P2pClosetTest {
 
         // データ片の追加。
         final Mountain chunk = new GrowingBytes(label);
-        Assert.assertTrue(instances[0].addOriginal(chunk, 1_000L).isSuccess());
+        Assert.assertTrue(instances[0].addOriginal(chunk, Duration.SECOND).isSuccess());
         for (int i = 0; i < instances.length; i++) {
-            Assert.assertFalse(instances[i].addOriginal(chunk, 1_000L).isSuccess());
+            Assert.assertFalse(instances[i].addOriginal(chunk, Duration.SECOND).isSuccess());
         }
 
         // 即時バックアップが終わるのを待つ。
@@ -550,9 +551,9 @@ public final class P2pClosetTest {
         // 管理者以外からデータ片を追加してキャッシュする。
         final Mountain chunk = new GrowingBytes(label);
         final int manager = searchManager(instances, chunk.getId().getAddress());
-        Assert.assertTrue(instances[(manager + 1) % instances.length].addCache(chunk.copy(), 1_000L).isSuccess());
+        Assert.assertTrue(instances[(manager + 1) % instances.length].addCache(chunk.copy(), Duration.SECOND).isSuccess());
         for (int i = 0; i < instances.length; i++) {
-            Assert.assertFalse(instances[i].addCache(chunk, 1_000L).isSuccess());
+            Assert.assertFalse(instances[i].addCache(chunk, Duration.SECOND).isSuccess());
         }
 
         int added = 0;
@@ -582,16 +583,16 @@ public final class P2pClosetTest {
 
         // データ片の追加。
         final GrowingBytes chunk = new GrowingBytes(label, 0);
-        Assert.assertTrue(instances[0].addOriginal(chunk.copy(), 1_000L).isSuccess());
+        Assert.assertTrue(instances[0].addOriginal(chunk.copy(), Duration.SECOND).isSuccess());
 
         for (int i = 0; i < instances.length; i++) {
             final GrowingBytes.Entry diff = new GrowingBytes.Entry(i, new byte[] { (byte) i });
-            Assert.assertTrue(instances[i].patchOriginal(chunk.getId(), diff, 1_000L).isSuccess());
+            Assert.assertTrue(instances[i].patchOriginal(chunk.getId(), diff, Duration.SECOND).isSuccess());
             chunk.patch(diff);
         }
 
         for (final P2pCloset instance : instances) {
-            Assert.assertEquals(chunk, instance.getOriginal(chunk.getId(), 1_000L).getChunk());
+            Assert.assertEquals(chunk, instance.getOriginal(chunk.getId(), Duration.SECOND).getChunk());
         }
 
         afterOperation(executor, instances);
@@ -613,18 +614,18 @@ public final class P2pClosetTest {
 
         // データ片の追加。
         final GrowingBytes chunk = new GrowingBytes(label, 0);
-        Assert.assertTrue(instances[0].addOriginal(chunk.copy(), 1_000L).isSuccess());
+        Assert.assertTrue(instances[0].addOriginal(chunk.copy(), Duration.SECOND).isSuccess());
 
         // 差分を追加しながら結果の変遷を確認。
         for (int i = 0; i < instances.length; i++) {
             final GrowingBytes.Entry diff = new GrowingBytes.Entry(i, new byte[] { (byte) i });
             chunk.patch(diff);
-            Assert.assertEquals(chunk, instances[i].patchOrAddAndGetCache(chunk, 1_000L).getChunk());
+            Assert.assertEquals(chunk, instances[i].patchOrAddAndGetCache(chunk, Duration.SECOND).getChunk());
         }
 
         // 差分が追加されないなら最終版が得られることを確認。
         for (int i = 0; i < instances.length; i++) {
-            Assert.assertEquals(chunk, instances[i].patchOrAddAndGetCache(chunk, 1_000L).getChunk());
+            Assert.assertEquals(chunk, instances[i].patchOrAddAndGetCache(chunk, Duration.SECOND).getChunk());
         }
 
         // キャッシュされていることを確認。
@@ -657,7 +658,7 @@ public final class P2pClosetTest {
         for (int i = 0; i < instances.length; i++) {
             final GrowingBytes.Entry diff = new GrowingBytes.Entry(i, new byte[] { (byte) i });
             Assert.assertTrue(chunk.patch(diff));
-            final PatchAndGetOrUpdateCacheResult result = instances[i].patchAndGetOrUpdateCache(chunk.getId(), diff, 1_000L);
+            final PatchAndGetOrUpdateCacheResult result = instances[i].patchAndGetOrUpdateCache(chunk.getId(), diff, Duration.SECOND);
             Assert.assertTrue(result.isSuccess());
             Assert.assertEquals(chunk, result.getChunk());
         }
@@ -665,7 +666,7 @@ public final class P2pClosetTest {
         // 差分が追加できないなら最終版が得られることを確認。
         for (int i = 0; i < instances.length; i++) {
             final GrowingBytes.Entry diff = new GrowingBytes.Entry(instances.length - 1, new byte[] { (byte) (instances.length - 1) });
-            final PatchAndGetOrUpdateCacheResult result = instances[i].patchAndGetOrUpdateCache(chunk.getId(), diff, 1_000L);
+            final PatchAndGetOrUpdateCacheResult result = instances[i].patchAndGetOrUpdateCache(chunk.getId(), diff, Duration.SECOND);
             Assert.assertFalse(result.isSuccess());
             Assert.assertEquals(chunk, result.getChunk());
         }
@@ -696,7 +697,7 @@ public final class P2pClosetTest {
         for (int i = 0; i < instances.length; i++) {
             for (int j = 0; j < instances.length; j++) {
                 if (j != i) {
-                    Assert.assertTrue(instances[i].checkStock(instances[j].getSelf(), 1_000L).getStockedEntries().isEmpty());
+                    Assert.assertTrue(instances[i].checkStock(instances[j].getSelf(), Duration.SECOND).getStockedEntries().isEmpty());
                 }
             }
         }
@@ -705,7 +706,7 @@ public final class P2pClosetTest {
         final GrowingBytes chunk = new GrowingBytes(label, 0);
         final int manager = searchManager(instances, chunk.getId().getAddress());
         instances[(manager + 1) % instances.length].addLocal(chunk.copy());
-        CheckStockResult result = instances[manager].checkStock(instances[(manager + 1) % instances.length].getSelf(), 1_000L);
+        CheckStockResult result = instances[manager].checkStock(instances[(manager + 1) % instances.length].getSelf(), Duration.SECOND);
         Assert.assertEquals(1, result.getStockedEntries().size());
         Assert.assertEquals(chunk.getId(), result.getStockedEntries().get(0).getId());
         Assert.assertEquals(chunk.getDate(), result.getStockedEntries().get(0).getDate());
@@ -713,7 +714,7 @@ public final class P2pClosetTest {
 
         // 管理者にも追加したら申告されなくなることの確認。
         instances[manager].addLocal(chunk);
-        result = instances[manager].checkStock(instances[(manager + 1) % instances.length].getSelf(), 1_000L);
+        result = instances[manager].checkStock(instances[(manager + 1) % instances.length].getSelf(), Duration.SECOND);
         Assert.assertTrue(result.getStockedEntries().isEmpty());
 
         // 管理者以外の方が新しくなったら申告されることの確認。
@@ -722,7 +723,7 @@ public final class P2pClosetTest {
             chunk.patch(diff);
         }
         instances[(manager + 2) % instances.length].addLocal(chunk.copy());
-        result = instances[manager].checkStock(instances[(manager + 2) % instances.length].getSelf(), 1_000L);
+        result = instances[manager].checkStock(instances[(manager + 2) % instances.length].getSelf(), Duration.SECOND);
         Assert.assertEquals(1, result.getStockedEntries().size());
         Assert.assertEquals(chunk.getId(), result.getStockedEntries().get(0).getId());
         Assert.assertEquals(chunk.getDate(), result.getStockedEntries().get(0).getDate());
@@ -749,14 +750,14 @@ public final class P2pClosetTest {
         final GrowingBytes chunk = new GrowingBytes(label, 0);
         final int manager = searchManager(instances, chunk.getId().getAddress());
         instances[(manager + 1) % instances.length].addLocal(chunk.copy());
-        CheckStockResult stockResult = instances[manager].checkStock(instances[(manager + 1) % instances.length].getSelf(), 1_000L);
+        CheckStockResult stockResult = instances[manager].checkStock(instances[(manager + 1) % instances.length].getSelf(), Duration.SECOND);
         Assert.assertEquals(1, stockResult.getStockedEntries().size());
         Assert.assertEquals(chunk.getId(), stockResult.getStockedEntries().get(0).getId());
         Assert.assertEquals(chunk.getDate(), stockResult.getStockedEntries().get(0).getDate());
         Assert.assertEquals(chunk.getHashValue(), stockResult.getStockedEntries().get(0).getHashValue());
 
         RecoveryResult result = instances[manager].recovery(stockResult.getStockedEntries().get(0), instances[(manager + 1) % instances.length].getSelf(),
-                1_000L);
+                Duration.SECOND);
         Assert.assertTrue(result.isSuccess());
         Assert.assertEquals(chunk, instances[manager].getLocal(chunk.getId()));
 
@@ -766,13 +767,13 @@ public final class P2pClosetTest {
             chunk.patch(diff);
         }
         instances[(manager + 2) % instances.length].addLocal(chunk.copy());
-        stockResult = instances[manager].checkStock(instances[(manager + 2) % instances.length].getSelf(), 1_000L);
+        stockResult = instances[manager].checkStock(instances[(manager + 2) % instances.length].getSelf(), Duration.SECOND);
         Assert.assertEquals(1, stockResult.getStockedEntries().size());
         Assert.assertEquals(chunk.getId(), stockResult.getStockedEntries().get(0).getId());
         Assert.assertEquals(chunk.getDate(), stockResult.getStockedEntries().get(0).getDate());
         Assert.assertEquals(chunk.getHashValue(), stockResult.getStockedEntries().get(0).getHashValue());
 
-        result = instances[manager].recovery(stockResult.getStockedEntries().get(0), instances[(manager + 2) % instances.length].getSelf(), 1_000L);
+        result = instances[manager].recovery(stockResult.getStockedEntries().get(0), instances[(manager + 2) % instances.length].getSelf(), Duration.SECOND);
         Assert.assertTrue(result.isSuccess());
         Assert.assertEquals(chunk, instances[manager].getLocal(chunk.getId()));
 
@@ -797,7 +798,7 @@ public final class P2pClosetTest {
         for (int i = 0; i < instances.length; i++) {
             for (int j = 0; j < instances.length; j++) {
                 if (j != i) {
-                    Assert.assertTrue(instances[i].checkDemand(instances[j].getSelf(), 1_000L).getDemandedEntries().isEmpty());
+                    Assert.assertTrue(instances[i].checkDemand(instances[j].getSelf(), Duration.SECOND).getDemandedEntries().isEmpty());
                 }
             }
         }
@@ -808,7 +809,7 @@ public final class P2pClosetTest {
         instances[manager].addLocal(chunk.copy());
         for (int i = 0; i < instances.length; i++) {
             if (i != manager) {
-                final CheckDemandResult result = instances[manager].checkDemand(instances[i].getSelf(), 1_000L);
+                final CheckDemandResult result = instances[manager].checkDemand(instances[i].getSelf(), Duration.SECOND);
                 Assert.assertEquals(1, result.getDemandedEntries().size());
                 Assert.assertEquals(chunk.getId(), result.getDemandedEntries().get(0).getId());
                 Assert.assertFalse(result.getDemandedEntries().get(0).isStocked());
@@ -821,7 +822,7 @@ public final class P2pClosetTest {
         }
         for (int i = 0; i < instances.length; i++) {
             if (i != manager) {
-                final CheckDemandResult result = instances[manager].checkDemand(instances[i].getSelf(), 1_000L);
+                final CheckDemandResult result = instances[manager].checkDemand(instances[i].getSelf(), Duration.SECOND);
                 Assert.assertTrue(result.getDemandedEntries().isEmpty());
             }
         }
@@ -835,7 +836,7 @@ public final class P2pClosetTest {
         }
         for (int i = 0; i < instances.length; i++) {
             if (i != manager) {
-                final CheckDemandResult result = instances[manager].checkDemand(instances[i].getSelf(), 1_000L);
+                final CheckDemandResult result = instances[manager].checkDemand(instances[i].getSelf(), Duration.SECOND);
                 Assert.assertEquals(1, result.getDemandedEntries().size());
                 Assert.assertEquals(chunk.getId(), result.getDemandedEntries().get(0).getId());
                 Assert.assertTrue(result.getDemandedEntries().get(0).isStocked());
@@ -867,12 +868,12 @@ public final class P2pClosetTest {
         instances[manager].addLocal(chunk.copy());
         for (int i = 0; i < instances.length; i++) {
             if (i != manager) {
-                final CheckDemandResult demandResult = instances[manager].checkDemand(instances[i].getSelf(), 1_000L);
+                final CheckDemandResult demandResult = instances[manager].checkDemand(instances[i].getSelf(), Duration.SECOND);
                 Assert.assertEquals(1, demandResult.getDemandedEntries().size());
                 Assert.assertEquals(chunk.getId(), demandResult.getDemandedEntries().get(0).getId());
                 Assert.assertFalse(demandResult.getDemandedEntries().get(0).isStocked());
 
-                final BackupResult result = instances[manager].backup(demandResult.getDemandedEntries().get(0), instances[i].getSelf(), 1_000L);
+                final BackupResult result = instances[manager].backup(demandResult.getDemandedEntries().get(0), instances[i].getSelf(), Duration.SECOND);
                 Assert.assertTrue(result.isSuccess());
                 Assert.assertEquals(chunk, instances[i].getLocal(chunk.getId()));
             }
@@ -886,13 +887,13 @@ public final class P2pClosetTest {
         }
         for (int i = 0; i < instances.length; i++) {
             if (i != manager) {
-                final CheckDemandResult demandResult = instances[manager].checkDemand(instances[i].getSelf(), 1_000L);
+                final CheckDemandResult demandResult = instances[manager].checkDemand(instances[i].getSelf(), Duration.SECOND);
                 Assert.assertEquals(1, demandResult.getDemandedEntries().size());
                 Assert.assertEquals(chunk.getId(), demandResult.getDemandedEntries().get(0).getId());
                 Assert.assertTrue(demandResult.getDemandedEntries().get(0).isStocked());
                 Assert.assertEquals(chunk.getFirstDate(), demandResult.getDemandedEntries().get(0).getStockDate());
 
-                final BackupResult result = instances[manager].backup(demandResult.getDemandedEntries().get(0), instances[i].getSelf(), 1_000L);
+                final BackupResult result = instances[manager].backup(demandResult.getDemandedEntries().get(0), instances[i].getSelf(), Duration.SECOND);
                 Assert.assertTrue(result.isSuccess());
                 Assert.assertEquals(chunk, instances[i].getLocal(chunk.getId()));
             }
@@ -907,8 +908,8 @@ public final class P2pClosetTest {
      */
     @Test
     public void testSynchronization() throws Exception {
-        final long operationTimeout = 1_000L;
-        final long maintenanceInterval = 2_000L;
+        final long operationTimeout = Duration.SECOND;
+        final long maintenanceInterval = 2 * Duration.SECOND;
         final long backupInterval = 500L;
 
         final ExecutorService executor = Executors.newCachedThreadPool();
@@ -966,7 +967,7 @@ public final class P2pClosetTest {
         }
 
         executor.shutdownNow();
-        Assert.assertTrue(executor.awaitTermination(1L, TimeUnit.MINUTES));
+        Assert.assertTrue(executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
         for (final P2pCloset instance : instances) {
             instance.close();
         }
@@ -1026,7 +1027,7 @@ public final class P2pClosetTest {
         final int lostPeerIndex = 1 + ThreadLocalRandom.current().nextInt(numOfPeers - 1);
 
         final long operationTimeout = 750L;
-        final long maintenanceInterval = 1_000L;
+        final long maintenanceInterval = Duration.SECOND;
         int port0 = 0;
         int lostPort = 0;
         for (int i = 0; i < numOfPeers; i++) {
@@ -1068,7 +1069,7 @@ public final class P2pClosetTest {
 
         // 1 つ殺す。
         lostPeerExecutor.shutdownNow();
-        Assert.assertTrue(lostPeerExecutor.awaitTermination(1L, TimeUnit.MINUTES));
+        Assert.assertTrue(lostPeerExecutor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
 
         for (int i = 0; i < numOfLoops; i++) {
             Thread.sleep((long) (maintenanceInterval * 1.01));
@@ -1100,7 +1101,7 @@ public final class P2pClosetTest {
         }
 
         executor.shutdownNow();
-        Assert.assertTrue(executor.awaitTermination(1L, TimeUnit.MINUTES));
+        Assert.assertTrue(executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
         for (final P2pCloset instance : instances) {
             instance.close();
         }
@@ -1123,8 +1124,8 @@ public final class P2pClosetTest {
 
         final int directoryBitSize = 8;
         final long operationTimeout = 750L;
-        final long maintenanceInterval = 1_000L;
-        final long backupInterval = 100_000L;
+        final long maintenanceInterval = Duration.SECOND;
+        final long backupInterval = 100 * Duration.SECOND;
         int port0 = 0;
         for (int i = 0; i < numOfPeers; i++) {
             final File root = new File(ROOT, label + getLabel(numOfPeers, i));
@@ -1163,7 +1164,7 @@ public final class P2pClosetTest {
 
         // データ片の追加。
         final Mountain chunk = new GrowingBytes(label);
-        Assert.assertTrue(instances[0].addOriginal(chunk, 1_000L).isSuccess());
+        Assert.assertTrue(instances[0].addOriginal(chunk, Duration.SECOND).isSuccess());
         for (final P2pCloset instance : instances) {
             instance.getCache(chunk.getId(), operationTimeout);
         }

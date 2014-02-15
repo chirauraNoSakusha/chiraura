@@ -16,6 +16,7 @@ import java.util.TreeSet;
 
 import nippon.kawauso.chiraura.Global;
 import nippon.kawauso.chiraura.closet.Mountain;
+import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.base.Address;
 import nippon.kawauso.chiraura.lib.base.HashValue;
 import nippon.kawauso.chiraura.lib.cell.Utf8Cell;
@@ -572,7 +573,7 @@ final class ThreadChunk extends SkeletalChunk implements Mountain, Content {
         System.out.println(ContentConstants.BYTE_SIZE_LIMIT + " " + Entry.BYTE_SIZE_MAX + " " + (ContentConstants.BYTE_SIZE_LIMIT - Entry.BYTE_SIZE_MAX) + " "
                 + (Entry.BYTE_SIZE_MAX / (double) ContentConstants.BYTE_SIZE_LIMIT));
 
-        final ThreadChunk instance = new ThreadChunk("test", System.currentTimeMillis() / 1_000L, "てすとスレ", "名無し", "age", System.currentTimeMillis(),
+        final ThreadChunk instance = new ThreadChunk("test", System.currentTimeMillis() / Duration.SECOND, "てすとスレ", "名無し", "age", System.currentTimeMillis(),
                 1234567890L, "テストだお。");
         System.out.println("[" + instance.toNetworkString() + "]");
         instance.patch(Entry.newInstance("メシア", "sage", System.currentTimeMillis(), 987654321L, "くそスレ乙"));

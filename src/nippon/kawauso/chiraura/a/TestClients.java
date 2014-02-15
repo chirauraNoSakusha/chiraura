@@ -19,6 +19,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import nippon.kawauso.chiraura.bbs.Client;
+import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.exception.MyRuleException;
 import nippon.kawauso.chiraura.lib.process.Reporter;
 
@@ -323,7 +324,7 @@ final class TestClients {
      */
     static Callable<Void> newSequential(final InetSocketAddress server, final String boardName, final long interval, final long maintenanceInterval,
             final long cacheDuration, final double writeRate, final String author) {
-        final long operationSleep = Math.min(1_000L, interval / 10);
+        final long operationSleep = Math.min(Duration.SECOND, interval / 10);
         return new TestClient(server, boardName) {
 
             private final Set<CacheEntry> blacklist = new LinkedHashSet<>();

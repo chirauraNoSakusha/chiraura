@@ -6,6 +6,7 @@ package nippon.kawauso.chiraura.gui;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.logging.LoggingFunctions;
 
 /**
@@ -21,7 +22,7 @@ final class TrayGuiMain {
 
         LoggingFunctions.startDebugLogging();
 
-        final TrayGui instance = new TrayGui("/test/root", 111111, 1_000L, 1_000L, 10_000L);
+        final TrayGui instance = new TrayGui("/test/root", 111111, Duration.SECOND, Duration.SECOND, 10 * Duration.SECOND);
         final ExecutorService executor = Executors.newCachedThreadPool();
 
         instance.start(executor);

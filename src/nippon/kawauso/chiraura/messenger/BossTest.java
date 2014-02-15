@@ -25,6 +25,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.converter.TypeRegistries;
 import nippon.kawauso.chiraura.lib.converter.TypeRegistry;
 import nippon.kawauso.chiraura.lib.exception.MyRuleException;
@@ -49,12 +50,12 @@ public final class BossTest {
     /*
      * 検査インスタンス側は a、検査者側は b を頭に付ける。
      */
-    private static final long connectionTimeout = 10_000L;
-    private static final long operationTimeout = 1_000L;
+    private static final long connectionTimeout = 10 * Duration.SECOND;
+    private static final long operationTimeout = Duration.SECOND;
     private static final int receiveBufferSize = 128 * 1024;
     private static final int sendBufferSize = 128 * 1024;
-    private static final long publicKeyLifetime = 100_000L;
-    private static final long commonKeyLifetime = 10_000L;
+    private static final long publicKeyLifetime = 100 * Duration.SECOND;
+    private static final long commonKeyLifetime = 10 * Duration.SECOND;
     private static final int connectionType = ConnectionTypes.DATA;
     private static final long version = 1L;
     private static final long versionGapThreshold = 1L;
@@ -107,7 +108,7 @@ public final class BossTest {
     @After
     public void tearDown() throws Exception {
         this.executor.shutdownNow();
-        Assert.assertTrue(this.executor.awaitTermination(1, TimeUnit.SECONDS));
+        Assert.assertTrue(this.executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
         Assert.assertTrue(this.subjectReceivedMailQueue.isEmpty());
         Assert.assertTrue(this.subjectMessengerReportQueue.isEmpty());
     }
@@ -169,7 +170,7 @@ public final class BossTest {
 
             // 報告の確認。
             // グローバル IP で設定されているので SelfReport は来ない。
-            final ConnectReport connectReport = (ConnectReport) this.subjectMessengerReportQueue.poll(1, TimeUnit.SECONDS);
+            final ConnectReport connectReport = (ConnectReport) this.subjectMessengerReportQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);
             Assert.assertEquals(testerId.getPublic(), connectReport.getDestinationId());
             Assert.assertEquals(testerPort, connectReport.getDestination().getPort());
 
@@ -188,7 +189,7 @@ public final class BossTest {
             transceiver.toStream(testerOutput, sendMail, EncryptedEnvelope.class, communicationKey);
             testerOutput.flush();
 
-            final ReceivedMail receivedMail = this.subjectReceivedMailQueue.poll(1, TimeUnit.SECONDS);
+            final ReceivedMail receivedMail = this.subjectReceivedMailQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);
             Assert.assertEquals(sendMail, receivedMail.getMail());
 
             // 接続が登録されているかどうか。
@@ -230,9 +231,9 @@ public final class BossTest {
                     declaredSubject);
 
             // 報告の確認。
-            final SelfReport selfReport = (SelfReport) this.subjectMessengerReportQueue.poll(1, TimeUnit.SECONDS);
+            final SelfReport selfReport = (SelfReport) this.subjectMessengerReportQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);
             Assert.assertEquals(declaredSubject, selfReport.get());
-            final ConnectReport connectReport = (ConnectReport) this.subjectMessengerReportQueue.poll(1, TimeUnit.SECONDS);
+            final ConnectReport connectReport = (ConnectReport) this.subjectMessengerReportQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);
             Assert.assertEquals(testerId.getPublic(), connectReport.getDestinationId());
             Assert.assertEquals(testerPort, connectReport.getDestination().getPort());
 
@@ -251,7 +252,7 @@ public final class BossTest {
             transceiver.toStream(testerOutput, sendMail, EncryptedEnvelope.class, communicationKey);
             testerOutput.flush();
 
-            final ReceivedMail receivedMail = this.subjectReceivedMailQueue.poll(1, TimeUnit.SECONDS);
+            final ReceivedMail receivedMail = this.subjectReceivedMailQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);
             Assert.assertEquals(sendMail, receivedMail.getMail());
 
             // 接続が登録されているかどうか。

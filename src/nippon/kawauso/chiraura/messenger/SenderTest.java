@@ -22,6 +22,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.converter.TypeRegistries;
 import nippon.kawauso.chiraura.lib.converter.TypeRegistry;
 
@@ -41,10 +42,10 @@ public final class SenderTest {
         transceiver = new Transceiver(Integer.MAX_VALUE, RegistryInitializer.init(registry));
     }
 
-    private static final long timeout = 10_000L;
+    private static final long timeout = 10 * Duration.SECOND;
     private static final int idNumber = 1234;
     private static final int connectionType = ConnectionTypes.DEFAULT;
-    private static final long keyLifetime = 10_000L;
+    private static final long keyLifetime = 10 * Duration.SECOND;
     private static final Key commonKey = CryptographicKeys.newCommonKey();
 
     private static final InetSocketAddress tester = new InetSocketAddress("localhost", 9999);
@@ -104,7 +105,7 @@ public final class SenderTest {
         this.subjectSocket.close();
         this.subjectServerSocket.close();
         this.executor.shutdownNow();
-        Assert.assertTrue(this.executor.awaitTermination(1, TimeUnit.SECONDS));
+        Assert.assertTrue(this.executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
         Assert.assertTrue(this.subjectConnectionPool.isEmpty());
         Assert.assertFalse(this.subjectSendQueuePool.containsQueue(tester, connectionType));
         for (final MessengerReport report : this.subjectMessengerReportQueue) {
@@ -205,9 +206,9 @@ public final class SenderTest {
             Thread.sleep(100L);
         }
 
-        future.get(1, TimeUnit.SECONDS);
+        future.get(Duration.SECOND, TimeUnit.MILLISECONDS);
 
-        final MessengerReport report = this.subjectMessengerReportQueue.poll(1, TimeUnit.SECONDS);
+        final MessengerReport report = this.subjectMessengerReportQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);
         Assert.assertTrue(report instanceof CommunicationError);
         Assert.assertTrue(((CommunicationError) report).getError() instanceof IOException);
     }
@@ -240,9 +241,9 @@ public final class SenderTest {
         });
         this.subjectSendQueuePool.put(tester, connectionType, mail);
 
-        future.get(1, TimeUnit.SECONDS);
+        future.get(Duration.SECOND, TimeUnit.MILLISECONDS);
 
-        final MessengerReport report = this.subjectMessengerReportQueue.poll(1, TimeUnit.SECONDS);
+        final MessengerReport report = this.subjectMessengerReportQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);
         Assert.assertTrue(report instanceof CommunicationError);
         Assert.assertTrue(((CommunicationError) report).getError() instanceof IllegalStateException);
     }
@@ -259,7 +260,7 @@ public final class SenderTest {
         final Future<Void> future = this.executor.submit(instance);
 
         // 時間切れ待ち。
-        future.get(shortTimeout + 1_000, TimeUnit.MILLISECONDS);
+        future.get(shortTimeout + Duration.SECOND, TimeUnit.MILLISECONDS);
     }
 
 }

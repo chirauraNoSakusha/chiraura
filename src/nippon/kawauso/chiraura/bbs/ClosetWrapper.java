@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 
 import nippon.kawauso.chiraura.closet.Closet;
 import nippon.kawauso.chiraura.closet.Mountain;
+import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.storage.Chunk;
 
 /**
@@ -153,7 +154,7 @@ final class ClosetWrapper {
         long threadName;
         while (true) {
             final long before = System.currentTimeMillis();
-            threadName = before / 1_000L;
+            threadName = before / Duration.SECOND;
 
             thread = new ThreadChunk(boardName, threadName, threadTitle, author, mail, date, authorId, message);
             if (this.base.addChunk(thread, start + timeout - before)) {
@@ -165,11 +166,11 @@ final class ClosetWrapper {
             if (start + timeout <= after) {
                 // 時間切れ。
                 return false;
-            } else if (after / 1_000L != threadName) {
+            } else if (after / Duration.SECOND != threadName) {
                 // 次の試行が可能。
                 continue;
             }
-            Thread.sleep(Math.max(1L, Math.min(start + timeout - after, 1_000L - after % 1_000L)));
+            Thread.sleep(Math.max(1L, Math.min(start + timeout - after, Duration.SECOND - after % Duration.SECOND)));
         }
 
         // 板を更新。

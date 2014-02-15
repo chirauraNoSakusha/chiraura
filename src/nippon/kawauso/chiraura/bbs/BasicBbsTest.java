@@ -18,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 import nippon.kawauso.chiraura.closet.Closet;
 import nippon.kawauso.chiraura.closet.ClosetReport;
 import nippon.kawauso.chiraura.closet.Mountain;
+import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.converter.BytesConvertible;
 import nippon.kawauso.chiraura.storage.Chunk;
 
@@ -30,9 +31,9 @@ import org.junit.Test;
 public final class BasicBbsTest {
 
     private static final InetSocketAddress server = new InetSocketAddress("localhost", 11111);
-    private static final long clientTimeout = 30_000L;
-    private static final long workTimeout = 10_000L;
-    private static final long updateThreshold = 5 * 60_000L;
+    private static final long clientTimeout = 30 * Duration.SECOND;
+    private static final long workTimeout = 10 * Duration.SECOND;
+    private static final long updateThreshold = 5 * Duration.MINUTE;
     private static final Map<String, String> boardToName = Collections.emptyMap();
 
     private final Closet closet;
@@ -190,11 +191,11 @@ public final class BasicBbsTest {
         };
         this.executor = Executors.newCachedThreadPool();
 
-        this.start = System.currentTimeMillis() - 100_000L;
+        this.start = System.currentTimeMillis() - 100 * Duration.SECOND;
         this.boardName = "test";
         this.initialThreads = new HashSet<>();
         {
-            final long threadName = this.start / 1_000L;
+            final long threadName = this.start / Duration.SECOND;
             final String threadTitle = "くそスレ";
             final ThreadChunk thread = new ThreadChunk(this.boardName, threadName, threadTitle, "創造神", "age", this.start, 0, "崇めよ");
             this.initialThreads.add(thread);
@@ -219,7 +220,7 @@ public final class BasicBbsTest {
         Thread.sleep(100L);
 
         this.executor.shutdownNow();
-        Assert.assertTrue(this.executor.awaitTermination(1L, TimeUnit.MINUTES));
+        Assert.assertTrue(this.executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
         instance.close();
     }
 
@@ -239,7 +240,7 @@ public final class BasicBbsTest {
         Assert.assertEquals(this.initialThreads.size(), board.getEntries().size());
 
         this.executor.shutdownNow();
-        Assert.assertTrue(this.executor.awaitTermination(1L, TimeUnit.MINUTES));
+        Assert.assertTrue(this.executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
         instance.close();
     }
 
@@ -259,7 +260,7 @@ public final class BasicBbsTest {
         Assert.assertEquals(0, board.getEntries().size());
 
         this.executor.shutdownNow();
-        Assert.assertTrue(this.executor.awaitTermination(1L, TimeUnit.MINUTES));
+        Assert.assertTrue(this.executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
         instance.close();
     }
 
@@ -282,7 +283,7 @@ public final class BasicBbsTest {
         }
 
         this.executor.shutdownNow();
-        Assert.assertTrue(this.executor.awaitTermination(1L, TimeUnit.MINUTES));
+        Assert.assertTrue(this.executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
         instance.close();
     }
 
@@ -301,7 +302,7 @@ public final class BasicBbsTest {
         Assert.assertNull(result);
 
         this.executor.shutdownNow();
-        Assert.assertTrue(this.executor.awaitTermination(1L, TimeUnit.MINUTES));
+        Assert.assertTrue(this.executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
         instance.close();
     }
 
@@ -329,7 +330,7 @@ public final class BasicBbsTest {
         Assert.assertTrue(titles.contains(newThreadTitle));
 
         this.executor.shutdownNow();
-        Assert.assertTrue(this.executor.awaitTermination(1L, TimeUnit.MINUTES));
+        Assert.assertTrue(this.executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
         instance.close();
     }
 
@@ -358,7 +359,7 @@ public final class BasicBbsTest {
         Assert.assertEquals(message, entries.get(entries.size() - 1).getMessage());
 
         this.executor.shutdownNow();
-        Assert.assertTrue(this.executor.awaitTermination(1L, TimeUnit.MINUTES));
+        Assert.assertTrue(this.executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
         instance.close();
     }
 
@@ -370,10 +371,10 @@ public final class BasicBbsTest {
     public void testCommunication() throws Exception {
         final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold, boardToName);
         instance.start(this.executor);
-        Thread.sleep(600_000L);
+        Thread.sleep(10 * Duration.MINUTE);
 
         this.executor.shutdownNow();
-        Assert.assertTrue(this.executor.awaitTermination(1L, TimeUnit.MINUTES));
+        Assert.assertTrue(this.executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
         instance.close();
     }
 

@@ -9,6 +9,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import nippon.kawauso.chiraura.lib.Duration;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -41,7 +43,7 @@ public final class ReporterTest {
             }
         });
 
-        final Reporter.Report report = this.reportQueue.poll(1, TimeUnit.SECONDS);
+        final Reporter.Report report = this.reportQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(report);
         Assert.assertEquals(RuntimeException.class, report.getCause().getClass());
         // System.out.println(report);

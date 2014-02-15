@@ -13,7 +13,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-
+import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.base.Address;
 import nippon.kawauso.chiraura.lib.base.AddressTest;
 
@@ -70,7 +70,7 @@ public final class CcSuccessorStabilizerTest {
         Assert.assertTrue(taskQueue.isEmpty());
 
         executor.shutdownNow();
-        Assert.assertTrue(executor.awaitTermination(1, TimeUnit.SECONDS));
+        Assert.assertTrue(executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
     }
 
 }

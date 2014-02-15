@@ -41,7 +41,7 @@ final class BackupperMaster extends Reporter<Void> {
              * 死んでるかどうか調べる。
              */
             try {
-                this.future.get(0, TimeUnit.NANOSECONDS);
+                this.future.get(0, TimeUnit.MILLISECONDS);
             } catch (final ExecutionException e) {
                 return true;
             } catch (final TimeoutException e) {

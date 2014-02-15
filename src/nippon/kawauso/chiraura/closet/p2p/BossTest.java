@@ -12,6 +12,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import nippon.kawauso.chiraura.closet.ClosetReport;
+import nippon.kawauso.chiraura.lib.Duration;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -22,9 +23,9 @@ import org.junit.Test;
 public final class BossTest {
 
     private static final long interval = 500L;
-    private static final long sleepTime = 10_000L;
-    private static final long backupInterval = 1_000L;
-    private static final long timeout = 10_000L;
+    private static final long sleepTime = 10 * Duration.SECOND;
+    private static final long backupInterval = Duration.SECOND;
+    private static final long timeout = 10 * Duration.SECOND;
     private static final long versionGapThreshold = 1L;
     private final Random random;
     private final BlockingQueue<Operation> operationQueue;
@@ -63,8 +64,8 @@ public final class BossTest {
         Thread.sleep(100);
         this.executor.shutdownNow();
 
-        Assert.assertTrue(this.executor.awaitTermination(1L, TimeUnit.MINUTES));
-        future.get(1L, TimeUnit.MINUTES);
+        Assert.assertTrue(this.executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
+        future.get(Duration.SECOND, TimeUnit.MILLISECONDS);
     }
 
 }

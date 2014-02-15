@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.logging.LoggingFunctions;
 import nippon.kawauso.chiraura.lib.process.Reporter;
 
@@ -152,11 +153,11 @@ final class TestUnit {
             public void run() {
                 clientExecutor.shutdownNow();
                 try {
-                    if (!clientExecutor.awaitTermination(1L, TimeUnit.MINUTES)) {
+                    if (!clientExecutor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS)) {
                         LOG.log(Level.WARNING, clientLabel + " をうまく終了させられませんでした。");
                     }
                     chirauraExecutor.shutdownNow();
-                    if (!chirauraExecutor.awaitTermination(1L, TimeUnit.MINUTES)) {
+                    if (!chirauraExecutor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS)) {
                         LOG.log(Level.WARNING, "ちらしの裏をうまく終了させられませんでした。");
                     }
                 } catch (final InterruptedException e) {
@@ -183,13 +184,13 @@ final class TestUnit {
 
         // 2ch クライアントの終了。
         clientExecutor.shutdownNow();
-        if (!clientExecutor.awaitTermination(1L, TimeUnit.MINUTES)) {
+        if (!clientExecutor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS)) {
             LOG.log(Level.WARNING, clientLabel + " をうまく終了させられませんでした。");
         }
 
         // ちらしの裏の終了。
         chirauraExecutor.shutdownNow();
-        if (!chirauraExecutor.awaitTermination(1L, TimeUnit.MINUTES)) {
+        if (!chirauraExecutor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS)) {
             LOG.log(Level.WARNING, "ちらしの裏をうまく終了させられませんでした。");
         }
     }

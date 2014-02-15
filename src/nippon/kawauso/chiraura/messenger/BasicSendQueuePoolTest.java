@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.process.Reporter;
 import nippon.kawauso.chiraura.lib.test.TestFunctions;
 
@@ -80,7 +81,7 @@ public final class BasicSendQueuePoolTest {
 
         // 終処理。
         executor.shutdown();
-        Assert.assertTrue(executor.awaitTermination(1, TimeUnit.SECONDS));
+        Assert.assertTrue(executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
 
         // エラーが起きていないか調べる。
         taker.get();
@@ -154,7 +155,7 @@ public final class BasicSendQueuePoolTest {
 
         // 終処理。
         executor.shutdown();
-        Assert.assertTrue(executor.awaitTermination(1, TimeUnit.SECONDS));
+        Assert.assertTrue(executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
 
         // エラーが起きていないか調べる。
         for (final Future<Void> future : futures) {
@@ -162,7 +163,7 @@ public final class BasicSendQueuePoolTest {
         }
 
         LOG.log(Level.SEVERE, BasicSendQueuePoolTest.class.getName() + " プロセス数:" + numOfProcesses + " 接続先数:" + numOfPeers + " 接続種別数:" + numOfConnectionTypes
-                + " 繰り返し回数:" + numOfLoops + " 秒数:" + ((end - start) / 1000000000.0) + " チェックサム:" + result.get());
+                + " 繰り返し回数:" + numOfLoops + " 秒数:" + ((end - start) / 1_000_000_000.0) + " チェックサム:" + result.get());
 
         Assert.assertEquals(correctResult, result.get());
     }

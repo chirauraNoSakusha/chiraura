@@ -10,6 +10,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.process.Reporter;
 
 import org.junit.Assert;
@@ -20,8 +21,8 @@ import org.junit.Test;
  */
 public final class MailReaderTest {
 
-    private static final long timeout = 1_000L;
-    private static final long shutdownTimeout = 1_000L;
+    private static final long timeout = Duration.SECOND;
+    private static final long shutdownTimeout = Duration.SECOND;
 
     private final Random random;
     private final BlockingQueue<Reporter.Report> reportQueue;

@@ -10,6 +10,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.process.Reporter.Report;
 import nippon.kawauso.chiraura.lib.test.TestFunctions;
 
@@ -41,7 +42,7 @@ public final class ChiefTest {
     @After
     public void after() throws Exception {
         this.executor.shutdownNow();
-        Assert.assertTrue(this.executor.awaitTermination(1, TimeUnit.SECONDS));
+        Assert.assertTrue(this.executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
     }
 
     /**

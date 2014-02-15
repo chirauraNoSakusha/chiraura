@@ -6,6 +6,7 @@ package nippon.kawauso.chiraura.bbs;
 import java.util.ArrayList;
 import java.util.List;
 
+import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.converter.BytesConvertible;
 import nippon.kawauso.chiraura.lib.converter.BytesConvertibleTest;
 
@@ -31,8 +32,8 @@ public final class OrderingBoardChunkTest extends BytesConvertibleTest<OrderingB
         final List<OrderingBoardChunk> list = new ArrayList<>();
         {
             final OrderingBoardChunk instance = new OrderingBoardChunk("aaaaa");
-            instance.patch(new OrderingBoardChunk.Entry(this.start, 1, this.start / 1_000L, "ああああうえ", 1));
-            instance.patch(new OrderingBoardChunk.Entry(this.start + 1, 2, this.start + 1 / 1_000L, "てすと", 1));
+            instance.patch(new OrderingBoardChunk.Entry(this.start, 1, this.start / Duration.SECOND, "ああああうえ", 1));
+            instance.patch(new OrderingBoardChunk.Entry(this.start + 1, 2, (this.start + 1) / Duration.SECOND, "てすと", 1));
             list.add(instance);
         }
         {
@@ -41,7 +42,7 @@ public final class OrderingBoardChunkTest extends BytesConvertibleTest<OrderingB
         }
         {
             final OrderingBoardChunk instance = new OrderingBoardChunk("ccccc");
-            instance.patch(new OrderingBoardChunk.Entry(this.start + 5, 3, this.start + 5 / 1_000L, "ああああうえ", 1));
+            instance.patch(new OrderingBoardChunk.Entry(this.start + 5, 3, this.start + 5 / Duration.SECOND, "ああああうえ", 1));
             list.add(instance);
         }
         return list.toArray(new OrderingBoardChunk[0]);
@@ -51,7 +52,7 @@ public final class OrderingBoardChunkTest extends BytesConvertibleTest<OrderingB
     protected OrderingBoardChunk getInstance(final int seed) {
         final OrderingBoardChunk instance = new OrderingBoardChunk(Integer.toString(seed));
         for (int i = 0; i < 5; i++) {
-            instance.patch(new OrderingBoardChunk.Entry(this.start + seed + i, seed, this.start / 1_000L + seed + i, Integer.toString(seed + i), i));
+            instance.patch(new OrderingBoardChunk.Entry(this.start + seed + i, seed, this.start / Duration.SECOND + seed + i, Integer.toString(seed + i), i));
         }
         return instance;
     }
@@ -76,7 +77,7 @@ public final class OrderingBoardChunkTest extends BytesConvertibleTest<OrderingB
         final List<OrderingBoardChunk.Entry> pool = new ArrayList<>();
         for (int i = 0;; i++) {
             final int beforeSize = instance.byteSize();
-            final OrderingBoardChunk.Entry entry = new OrderingBoardChunk.Entry(this.start + i, i, this.start / 1_000L + i, Integer.toString(i), 1);
+            final OrderingBoardChunk.Entry entry = new OrderingBoardChunk.Entry(this.start + i, i, this.start / Duration.SECOND + i, Integer.toString(i), 1);
             pool.add(entry);
             Assert.assertTrue(instance.patch(entry));
             final int afterSize = instance.byteSize();

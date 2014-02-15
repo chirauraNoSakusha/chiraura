@@ -6,7 +6,7 @@ package nippon.kawauso.chiraura.bbs;
 import nippon.kawauso.chiraura.closet.Mountain;
 
 /**
- * @author mui
+ * @author chirauraNoSakusha
  */
 interface BoardChunk extends Mountain, Content {
 

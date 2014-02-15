@@ -47,7 +47,7 @@ public final class ConcurrentFunctions {
         boolean isInterrupted = false;
         while (true) {
             try {
-                if (executor.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS)) {
+                if (executor.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS)) {
                     break;
                 }
             } catch (final InterruptedException e) {

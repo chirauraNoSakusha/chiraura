@@ -26,6 +26,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.converter.TypeRegistries;
 import nippon.kawauso.chiraura.lib.converter.TypeRegistry;
 import nippon.kawauso.chiraura.lib.exception.MyRuleException;
@@ -47,9 +48,9 @@ public final class ContactorTest {
 
     private static final int receiveBufferSize = 128 * 1024;
     private static final int sendBufferSize = 128 * 1024;
-    private static final long connectionTimeout = 10_000L;
-    private static final long operationTimeout = 10_000L;
-    private static final long keyLifetime = 10_000L;
+    private static final long connectionTimeout = 10 * Duration.SECOND;
+    private static final long operationTimeout = 10 * Duration.SECOND;
+    private static final long keyLifetime = 10 * Duration.SECOND;
     private static final long version = 1;
     private static final long versionGapThreshold = 1;
 
@@ -86,7 +87,7 @@ public final class ContactorTest {
         this.testerServerSocket = new ServerSocket(testerPort);
 
         this.subjectConnection = new ContactingConnection(1234, new InetSocketAddress(InetAddress.getLocalHost(), testerPort), connectionType);
-        this.subjectKeyManager = new PublicKeyManager(100_000L);
+        this.subjectKeyManager = new PublicKeyManager(100 * Duration.SECOND);
 
         this.subjectContactingConnectionPool = new BoundConnectionPool<>();
         this.subjectConnectionPool = new BoundConnectionPool<>();
@@ -112,7 +113,7 @@ public final class ContactorTest {
             c.close();
         }
         this.testerServerSocket.close();
-        Assert.assertTrue(this.executor.awaitTermination(1, TimeUnit.SECONDS));
+        Assert.assertTrue(this.executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
         Assert.assertTrue(this.subjectContactingConnectionPool.isEmpty());
         for (final MessengerReport report : this.subjectMessengerReportQueue) {
             Assert.fail(report.toString());
@@ -158,9 +159,9 @@ public final class ContactorTest {
         StartingProtocol.sendSecondReply(transceiver, testerOutput, communicationKey, testerId, watchword, testerPublicKeyPair.getPublic(), version, subject);
 
         // 報告の確認。
-        final SelfReport selfReport = (SelfReport) this.subjectMessengerReportQueue.poll(1, TimeUnit.SECONDS);
+        final SelfReport selfReport = (SelfReport) this.subjectMessengerReportQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);
         Assert.assertEquals(subject, selfReport.get());
-        final ConnectReport connectReport = (ConnectReport) this.subjectMessengerReportQueue.poll(1, TimeUnit.SECONDS);
+        final ConnectReport connectReport = (ConnectReport) this.subjectMessengerReportQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);
         Assert.assertEquals(testerId.getPublic(), connectReport.getDestinationId());
         Assert.assertEquals(testerPort, connectReport.getDestination().getPort());
 
@@ -179,7 +180,7 @@ public final class ContactorTest {
         transceiver.toStream(testerOutput, sendMail, EncryptedEnvelope.class, communicationKey);
         testerOutput.flush();
 
-        final ReceivedMail receivedMail = this.subjectReceivedMailQueue.poll(1, TimeUnit.SECONDS);
+        final ReceivedMail receivedMail = this.subjectReceivedMailQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);
         Assert.assertEquals(sendMail, receivedMail.getMail());
 
         // 接続が登録されているかどうか。
@@ -201,9 +202,9 @@ public final class ContactorTest {
 
         this.testerServerSocket.close();
 
-        future.get(1, TimeUnit.SECONDS);
+        future.get(Duration.SECOND, TimeUnit.MILLISECONDS);
 
-        final MessengerReport report = this.subjectMessengerReportQueue.poll(1, TimeUnit.SECONDS);
+        final MessengerReport report = this.subjectMessengerReportQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);
         Assert.assertTrue(report instanceof ContactError);
         Assert.assertTrue(((ContactError) report).getError() instanceof IOException);
     }
@@ -234,9 +235,9 @@ public final class ContactorTest {
         testerOutput.write(new byte[] { 0, 4, 1, 127, 1, 0 });
         testerOutput.flush();
 
-        future.get(1, TimeUnit.SECONDS);
+        future.get(Duration.SECOND, TimeUnit.MILLISECONDS);
 
-        final MessengerReport report = this.subjectMessengerReportQueue.poll(1, TimeUnit.SECONDS);
+        final MessengerReport report = this.subjectMessengerReportQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);
         Assert.assertTrue(report instanceof ContactError);
         Assert.assertTrue(((ContactError) report).getError() instanceof MyRuleException);
         Assert.assertEquals(this.subjectConnection.getSocket().getInetAddress(), ((ContactError) report).getDestination().getAddress());
@@ -256,9 +257,9 @@ public final class ContactorTest {
         final Future<Void> future = this.executor.submit(instance);
 
         // 時間切れ待ち。
-        future.get(shortOperationTimeout + 1_000, TimeUnit.MILLISECONDS);
+        future.get(shortOperationTimeout + Duration.SECOND, TimeUnit.MILLISECONDS);
 
-        final MessengerReport report = this.subjectMessengerReportQueue.poll(1, TimeUnit.SECONDS);
+        final MessengerReport report = this.subjectMessengerReportQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);
         Assert.assertTrue(report instanceof ContactError);
         Assert.assertTrue(((ContactError) report).getError() instanceof SocketTimeoutException);
         Assert.assertEquals(this.subjectConnection.getSocket().getInetAddress(), ((ContactError) report).getDestination().getAddress());
@@ -304,7 +305,7 @@ public final class ContactorTest {
         Assert.assertEquals(-1, testerInput.read());
 
         // 報告の確認。
-        final ClosePortWarning closePort = (ClosePortWarning) this.subjectMessengerReportQueue.poll(1, TimeUnit.SECONDS);
+        final ClosePortWarning closePort = (ClosePortWarning) this.subjectMessengerReportQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);
         Assert.assertEquals(subjectPort, closePort.getPort());
     }
 
@@ -397,7 +398,7 @@ public final class ContactorTest {
         Assert.assertEquals(-1, testerInput.read());
 
         // 報告の確認。
-        final NewProtocolWarning newProtocol = (NewProtocolWarning) this.subjectMessengerReportQueue.poll(1, TimeUnit.SECONDS);
+        final NewProtocolWarning newProtocol = (NewProtocolWarning) this.subjectMessengerReportQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);
         Assert.assertEquals(version, newProtocol.getVersion());
         Assert.assertEquals(version + 1, newProtocol.getNewVersion());
     }

@@ -8,6 +8,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.base.Address;
 import nippon.kawauso.chiraura.lib.base.AddressTest;
 
@@ -26,7 +27,7 @@ public final class CustomChordTest {
     @Test
     public void testBoot() throws Exception {
         final int capacity = 100;
-        final long maintenanceInterval = 1_000L;
+        final long maintenanceInterval = Duration.SECOND;
         final Random random = new Random();
         final Address self = AddressTest.newRandomInstance(random);
         final CustomChord instance = new CustomChord(self, capacity, maintenanceInterval);
@@ -36,7 +37,7 @@ public final class CustomChordTest {
         Thread.sleep(100);
 
         executor.shutdownNow();
-        Assert.assertTrue(executor.awaitTermination(1, TimeUnit.SECONDS));
+        Assert.assertTrue(executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
     }
 
 }

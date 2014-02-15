@@ -11,6 +11,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import nippon.kawauso.chiraura.closet.ClosetReport;
+import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.process.Reporter;
 
 import org.junit.Assert;
@@ -46,7 +47,7 @@ public final class MessengerMonitorTest {
         final DriverSet drivers = new DriverSet(network, storage, new SessionManager(), this.operationQueue, this.executor);
 
         this.instance = new MessengerMonitor(this.reportQueue, network, this.closerReportQueue, versionGapThreshold, drivers);
-        this.shutdownTimeout = 1_000;
+        this.shutdownTimeout = Duration.SECOND;
     }
 
     /**

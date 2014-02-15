@@ -10,6 +10,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
+import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.process.Reporter;
 
 import org.junit.Assert;
@@ -72,7 +73,7 @@ public final class BasicLockQueueTest {
 
         // 終処理。
         executor.shutdown();
-        Assert.assertTrue(executor.awaitTermination(1, TimeUnit.SECONDS));
+        Assert.assertTrue(executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
 
         // エラーが起きていないか調べる。
         taker.get();

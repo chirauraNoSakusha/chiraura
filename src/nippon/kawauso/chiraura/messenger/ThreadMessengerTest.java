@@ -13,6 +13,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import nippon.kawauso.chiraura.lib.Duration;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -25,13 +27,13 @@ public final class ThreadMessengerTest {
     private static final int port2 = port1 + 12345;
     private static final KeyPair id1 = CryptographicKeys.newPublicKeyPair();
     private static final KeyPair id2 = CryptographicKeys.newPublicKeyPair();
-    private static final long connectionTimeout = 10_000L;
-    private static final long operationTimeout = 1_000L;
+    private static final long connectionTimeout = 10 * Duration.SECOND;
+    private static final long operationTimeout = Duration.SECOND;
     private static final int receiveBufferSize = 128 * 1024;
     private static final int sendBufferSize = 128 * 1024;
     private static final int messageSizeLimit = 1024 * 1024;
-    private static final long publicKeyLifetime = 24L * 3600L * 1_000L;
-    private static final long commonKeyLifetime = 24L * 3600L * 1_000L;
+    private static final long publicKeyLifetime = Duration.DAY;
+    private static final long commonKeyLifetime = Duration.DAY;
     private static final long version = 1L;
     private static final long versionGapThreshold = 1L;
 
@@ -127,7 +129,7 @@ public final class ThreadMessengerTest {
         Assert.assertEquals(connectionType1_1, recvMail2_2.getConnectionType());
 
         this.executor.shutdownNow();
-        Assert.assertTrue(this.executor.awaitTermination(1, TimeUnit.SECONDS));
+        Assert.assertTrue(this.executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
 
         Assert.assertNull(messenger1.takeIfExists());
         Assert.assertNull(messenger1.takeReportIfExists());

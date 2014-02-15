@@ -17,6 +17,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import nippon.kawauso.chiraura.Global;
+import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.StringFunctions;
 import nippon.kawauso.chiraura.lib.container.Pair;
 
@@ -40,7 +41,7 @@ final class Option {
 
         root(System.getProperties().get("user.dir").toString(), "使用ディレクトリ"),
         port(Integer.toString(24_804), "待機ポート番号"),
-        shutdownTimeout(Long.toString(60 * 1_000L) /* 1 分 */, "終処理の完了を待つ時間 (ミリ秒)"),
+        shutdownTimeout(Long.toString(Duration.MINUTE), "終処理の完了を待つ時間 (ミリ秒)"),
         consoleLogLevel(Level.INFO.getName(), "画面に出力するログの程度"),
         fileLogLevel(Global.isDebug() ? Level.ALL.getName() : Level.INFO.getName(), "ファイルに出力するログの程度"),
         chunkCacheCapacity(Integer.toString(300), "データ片をキャッシュする数"),
@@ -49,30 +50,30 @@ final class Option {
         peerCapacity(Integer.toString(1_000), "個体を保持する数"),
         receiveBufferSize(Integer.toString(128 * 1024) /* 128 KB */, "受信バッファサイズ (バイト)"),
         sendBufferSize(Integer.toString(64 * 1024) /* 64 KB */, "送信バッファサイズ (バイト)"),
-        maintenanceInterval(Long.toString(60 * 1_000L) /* 1 分 */, "保守間隔 (ミリ秒)"),
-        sleepTime(Long.toString(30 * 60 * 1_000L) /* 30 分 */, "何もすることが無い場合にふて寝する時間 (ミリ秒)"),
-        backupInterval(Long.toString(5 * 60 * 1_000L) /* 5 分 */, "データの保守間隔 (ミリ秒)"),
-        connectionTimeout(Long.toString(15 * 60 * 1_000L) /* 15 分 */, "非通信接続を切断するまでの時間 (ミリ秒)"),
-        operationTimeout(Long.toString(60 * 1_000L) /* 1 分 */, "通信を要する操作を諦めるまでの時間 (ミリ秒)"),
+        maintenanceInterval(Long.toString(Duration.MINUTE), "保守間隔 (ミリ秒)"),
+        sleepTime(Long.toString(30 * Duration.MINUTE), "何もすることが無い場合にふて寝する時間 (ミリ秒)"),
+        backupInterval(Long.toString(5 * Duration.MINUTE), "データの保守間隔 (ミリ秒)"),
+        connectionTimeout(Long.toString(15 * Duration.MINUTE), "非通信接続を切断するまでの時間 (ミリ秒)"),
+        operationTimeout(Long.toString(Duration.MINUTE), "通信を要する操作を諦めるまでの時間 (ミリ秒)"),
         cacheLogCapacity(Integer.toString(10_000), "データ通信の結果をキャッシュする数"),
-        cacheDuration(Long.toString(30 * 1_000L) /* 30 秒 */, "データ通信の結果を使い回す期間"),
-        idLifetime(Long.toString(7 * 24 * 60 * 60 * 1_000L) /* 1 週間 */, "個体識別用公開鍵を使い回す期間 (ミリ秒)"),
-        publicKeyLifetime(Long.toString(24 * 60 * 60 * 1_000L) /* 1 日 */, "通信用公開鍵を使い回す期間 (ミリ秒)"),
-        commonKeyLifetime(Long.toString(60 * 60 * 1_000L) /* 1 時間 */, "通信用共通鍵を使い回す期間 (ミリ秒)"),
+        cacheDuration(Long.toString(30 * Duration.SECOND), "データ通信の結果を使い回す期間"),
+        idLifetime(Long.toString(7 * Duration.DAY), "個体識別用公開鍵を使い回す期間 (ミリ秒)"),
+        publicKeyLifetime(Long.toString(Duration.DAY), "通信用公開鍵を使い回す期間 (ミリ秒)"),
+        commonKeyLifetime(Long.toString(Duration.HOUR), "通信用共通鍵を使い回す期間 (ミリ秒)"),
         blacklistCapacity(Integer.toString(200), "拒否対象の個体を保持する数"),
-        blacklistTimeout(Long.toString(30 * 60 * 1_000L) /* 30 分 */, "個体の拒否を解除するまでの時間 (ミリ秒)"),
+        blacklistTimeout(Long.toString(30 * Duration.MINUTE), "個体の拒否を解除するまでの時間 (ミリ秒)"),
         potCapacity(Integer.toString(1_000), "予備として個体を保持する数"),
         addressCacheCapacity(Integer.toString(1_000), "個体の論理位置の計算結果をキャッシュする数"),
         activeAddressLogCapacity(Integer.toString(1_000), "直接通信して得た個体の論理位置をキャッシュする数"),
-        activeAddressDuration(Long.toString(5 * 60 * 1_000L) /* 5 分 */, "直接通信して得た個体の論理位置を伝聞より優先させる期間"),
+        activeAddressDuration(Long.toString(5 * Duration.MINUTE), "直接通信して得た個体の論理位置を伝聞より優先させる期間"),
         bbsPort(Integer.toString(22_266), "BBS の待機ポート番号"),
-        bbsConnectionTimeout(Long.toString(10 * 60 * 1_000L) /* 10 分 */, "BBS の非通信接続を切断するまでの時間 (ミリ秒)"),
-        bbsInternalTimeout(Long.toString(3 * 60 * 1_000L) /* 3 分 */, "BBS の応答を諦めるまでの時間 (ミリ秒)"),
-        bbsUpdateThreshold(Long.toString(5 * 60 * 1_000L) /* 5 分 */, "板の更新を自粛する期間 (ミリ秒)"),
+        bbsConnectionTimeout(Long.toString(10 * Duration.MINUTE), "BBS の非通信接続を切断するまでの時間 (ミリ秒)"),
+        bbsInternalTimeout(Long.toString(3 * Duration.MINUTE), "BBS の応答を諦めるまでの時間 (ミリ秒)"),
+        bbsUpdateThreshold(Long.toString(5 * Duration.MINUTE), "板の更新を自粛する期間 (ミリ秒)"),
         gui(Boolean.toString(!Global.isDebug()), "GUI を使用するや否や"),
-        guiBootDuration(Long.toString(3 * 60 * 1_000L) /* 3 分 */, "起動中とみなす時間 (ミリ秒)"),
-        guiMaxDelay(Long.toString(60 * 60 * 1_000L) /* 1 時間 */, "更新報告の最大遅延時間 (ミリ秒)"),
-        guiInterval(Long.toString(60 * 60 * 1_000L) /* 1 時間 */, "警告表示の間隔 (ミリ秒)"),
+        guiBootDuration(Long.toString(3 * Duration.MINUTE), "起動中とみなす時間 (ミリ秒)"),
+        guiMaxDelay(Long.toString(Duration.HOUR), "更新報告の最大遅延時間 (ミリ秒)"),
+        guiInterval(Long.toString(Duration.HOUR), "警告表示の間隔 (ミリ秒)"),
 
         ;
 

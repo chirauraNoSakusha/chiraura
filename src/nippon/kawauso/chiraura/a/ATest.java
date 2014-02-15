@@ -20,6 +20,7 @@ import java.util.logging.Level;
 
 import nippon.kawauso.chiraura.Global;
 import nippon.kawauso.chiraura.bbs.Client;
+import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.logging.LoggingFunctions;
 import nippon.kawauso.chiraura.lib.math.MathFunctions;
 import nippon.kawauso.chiraura.lib.process.Reporter;
@@ -91,10 +92,10 @@ public final class ATest {
             }
         });
 
-        Thread.sleep(3_000L);
+        Thread.sleep(3 * Duration.SECOND);
 
         executor.shutdownNow();
-        Assert.assertTrue(executor.awaitTermination(1L, TimeUnit.MINUTES));
+        Assert.assertTrue(executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
     }
 
     private static final class CoverWrapper extends Reporter<Void> {
@@ -188,7 +189,7 @@ public final class ATest {
         final ExecutorService executor = Executors.newCachedThreadPool();
 
         final long operationTimeout = 750L;
-        final long maintenanceInterval = 1_000L;
+        final long maintenanceInterval = Duration.SECOND;
         for (int i = 0; i < numOfPeers; i++) {
             final File root = new File(ROOT, "operation" + Integer.toString(numOfPeers) + "-"
                     + String.format("%0" + Integer.toString((int) Math.ceil(Math.log10(numOfPeers))) + "d", i));
@@ -271,7 +272,7 @@ public final class ATest {
         Assert.assertEquals(message, thread.getEntries().get(1).getMessage());
 
         executor.shutdownNow();
-        Assert.assertTrue(executor.awaitTermination(1L, TimeUnit.MINUTES));
+        Assert.assertTrue(executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
         for (final A cover : covers) {
             cover.close();
         }
@@ -297,8 +298,8 @@ public final class ATest {
 
     private static void testManualOperation(final int numOfPeers, final int numOfClients) throws Exception {
         final long operationTimeout = 500L;
-        final long maintenanceInterval = 1_000L;
-        final long backupInterval = 5_000L;
+        final long maintenanceInterval = Duration.SECOND;
+        final long backupInterval = 5 * Duration.SECOND;
 
         final Environment[] environments = new Environment[numOfPeers];
         final A[] covers = new A[numOfPeers];
@@ -351,9 +352,9 @@ public final class ATest {
         waitStable(covers, maintenanceInterval);
         System.out.println("通信網構築終了。");
 
-        final long lifetime = 10 * 60 * 1_000L;
+        final long lifetime = 10 * Duration.MINUTE;
         final long interval = lifetime / 1_000;
-        final long waitTime = 10 * 60 * 1_000L;
+        final long waitTime = 10 * Duration.MINUTE;
         final double writeRate = 0.5;
         final String boardName = "test";
 
@@ -374,14 +375,14 @@ public final class ATest {
         Thread.sleep(lifetime);
 
         clientExecutor.shutdownNow();
-        Assert.assertTrue(clientExecutor.awaitTermination(1L, TimeUnit.MINUTES));
+        Assert.assertTrue(clientExecutor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
         System.out.println("クライアント活動停止。");
 
         // 実験待ち。
         Thread.sleep(waitTime);
 
         executor.shutdownNow();
-        Assert.assertTrue(executor.awaitTermination(1L, TimeUnit.MINUTES));
+        Assert.assertTrue(executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
         for (final A cover : covers) {
             cover.close();
         }

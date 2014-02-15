@@ -13,7 +13,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * @author mui
+ * @author chirauraNoSakusha
  */
 public class BoardChunkConverterTest {
 

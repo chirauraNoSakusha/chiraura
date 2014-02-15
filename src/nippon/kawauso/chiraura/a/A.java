@@ -157,7 +157,7 @@ public final class A implements AutoCloseable {
         // if (this.gui != null) {
         // if (this.gui.printMessage("終了処理に入ります。")) {
         // try {
-        // Thread.sleep(3_000L);
+        // Thread.sleep(3 * Duration.SECOND);
         // } catch (final InterruptedException ignored) {
         // }
         // }

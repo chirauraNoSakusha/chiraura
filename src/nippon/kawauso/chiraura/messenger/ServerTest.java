@@ -12,6 +12,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import nippon.kawauso.chiraura.lib.Duration;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -46,10 +48,10 @@ public final class ServerTest {
      */
     public void after() throws Exception {
         this.executor.shutdownNow();
-        final ServerSocket serverSocket = this.serverSocketQueue.poll(1, TimeUnit.SECONDS);
+        final ServerSocket serverSocket = this.serverSocketQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);
         Assert.assertNotNull(serverSocket);
         serverSocket.close();
-        Assert.assertTrue(this.executor.awaitTermination(1, TimeUnit.SECONDS));
+        Assert.assertTrue(this.executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
         Assert.assertTrue(this.acceptedSocketQueue.isEmpty());
     }
 
@@ -67,7 +69,7 @@ public final class ServerTest {
         Thread.sleep(100L);
 
         final Socket socket = new Socket(InetAddress.getLocalHost(), this.port);
-        final Socket acceptedSocket = this.acceptedSocketQueue.poll(1, TimeUnit.SECONDS);
+        final Socket acceptedSocket = this.acceptedSocketQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);
         Assert.assertEquals(socket.getRemoteSocketAddress(), acceptedSocket.getLocalSocketAddress());
         Assert.assertEquals(acceptedSocket.getRemoteSocketAddress(), socket.getLocalSocketAddress());
 
