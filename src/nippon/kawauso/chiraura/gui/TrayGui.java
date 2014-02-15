@@ -120,6 +120,10 @@ public final class TrayGui implements Gui {
         this.start = -1;
     }
 
+    private synchronized Pair<InetSocketAddress, String> getSelf() {
+        return this.self;
+    }
+
     @Override
     public GuiCommand take() throws InterruptedException {
         return this.taskQueue.take();
@@ -163,9 +167,10 @@ public final class TrayGui implements Gui {
         peerCopyItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(final ActionEvent e) {
+                final Pair<InetSocketAddress, String> curSelf = getSelf();
                 final String str;
-                if (TrayGui.this.self != null) {
-                    str = "^" + TrayGui.this.self.getSecond();
+                if (curSelf != null) {
+                    str = "^" + curSelf.getSecond();
                 } else {
                     str = "まだ個体情報が確定していません。";
                 }
