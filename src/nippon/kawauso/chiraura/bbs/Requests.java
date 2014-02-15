@@ -49,7 +49,7 @@ final class Requests {
             return new NotFoundRequest(target);
         }
 
-        if (tokens.length == 2) {
+        if (tokens.length == 2 && target.charAt(target.length() - 1) == '/') {
             // GET /[board]/ HTTP/1.1
             return new GetIndexRequest(tokens[1]);
         } else if (tokens.length == 3) {
