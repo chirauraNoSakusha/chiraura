@@ -22,7 +22,7 @@ final class TrayGuiMain {
 
         LoggingFunctions.startDebugLogging();
 
-        final TrayGui instance = new TrayGui("/test/root", 111111, Duration.SECOND, Duration.SECOND, 10 * Duration.SECOND);
+        final TrayGui instance = new TrayGui("/test/root", 111111, Duration.SECOND, Duration.SECOND, 10);
         final ExecutorService executor = Executors.newCachedThreadPool();
 
         instance.start(executor);

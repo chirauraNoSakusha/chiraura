@@ -57,7 +57,7 @@ public final class Duration {
         final StringBuilder buff = new StringBuilder();
 
         final List<Pair<Long, String>> list = Arrays.asList(
-                new Pair<>(0L, (String) null),
+                new Pair<>(1L, (String) null),
                 new Pair<>(1L, "ミリ秒"),
                 new Pair<>(SECOND, "秒"),
                 new Pair<>(MINUTE, "分"),
@@ -76,11 +76,11 @@ public final class Duration {
                 if (Math.abs(val * unit - milliSeconds) >= list.get(i - 1).getFirst()) {
                     buff.append("くらい");
                 }
-                break;
+                return buff.toString();
             }
         }
 
-        return buff.toString();
+        return "気が遠くなるほどの期間";
     }
 
 }
