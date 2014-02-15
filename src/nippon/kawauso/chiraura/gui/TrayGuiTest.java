@@ -27,7 +27,7 @@ public final class TrayGuiTest {
 
         final ExecutorService executor = Executors.newCachedThreadPool();
 
-        final long interval = 5 * 1_000L;
+        final long interval = 10 * 1_000L;
 
         instance.start(executor);
         System.out.println("起動しました");
@@ -41,22 +41,8 @@ public final class TrayGuiTest {
         System.out.println("自分を設定しました");
         Thread.sleep(interval);
 
-        instance.displayJceError();
-        System.out.println("JCE異常を設定しました");
-        Thread.sleep(interval);
-
-        instance.displayServerError();
-        System.out.println("サーバ異常を設定しました");
-        Thread.sleep(interval);
-
         instance.displayVersionGapWarning(1, 3);
         System.out.println("バージョン異常を設定しました");
-        Thread.sleep(interval);
-
-        Thread.sleep(10_000L);
-
-        instance.displayClosePortWarning(44444);
-        System.out.println("ポート異常を変更しました");
         Thread.sleep(interval);
 
         instance.displayVersionGapWarning(1, 0);
@@ -65,6 +51,18 @@ public final class TrayGuiTest {
 
         instance.displayVersionGapWarning(2, 0);
         System.out.println("バージョン異常を強めました");
+        Thread.sleep(interval);
+
+        instance.displayJceError();
+        System.out.println("JCE異常を設定しました");
+        Thread.sleep(interval);
+
+        instance.displayServerError();
+        System.out.println("サーバ異常を設定しました");
+        Thread.sleep(interval);
+
+        instance.displayClosePortWarning(44444);
+        System.out.println("ポート異常を変更しました");
         Thread.sleep(interval);
 
         instance.setSelf(new InetSocketAddress(InetAddress.getByAddress(new byte[] { 5, 6, 7, 8 }), 44444), "abcdefghijk");
