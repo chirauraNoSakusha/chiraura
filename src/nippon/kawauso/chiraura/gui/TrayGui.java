@@ -67,8 +67,8 @@ public final class TrayGui implements Gui {
 
     private String warnings;
 
-    private final long boot;
     private final long delay;
+    private long boot;
     private long start;
 
     /**
@@ -112,8 +112,8 @@ public final class TrayGui implements Gui {
 
         this.warnings = null;
 
-        this.boot = System.currentTimeMillis();
         this.delay = ThreadLocalRandom.current().nextLong(maxDelay);
+        this.boot = -1;
         this.start = -1;
     }
 
@@ -289,7 +289,7 @@ public final class TrayGui implements Gui {
         return buff.toString();
     }
 
-    private synchronized void printWarnings() { // synchronized から呼ぶ。
+    private synchronized void printWarnings() {
         final String newWarnings = makeWarnings();
         if (newWarnings.equals(this.warnings)) {
             return;
@@ -309,6 +309,9 @@ public final class TrayGui implements Gui {
         if (this.tray == null) {
             return;
         } else if (this.self == null || !peer.equals(this.self.getFirst())) {
+            if (this.boot < 0) {
+                this.boot = System.currentTimeMillis();
+            }
             this.self = new Pair<>(peer, publicString);
         }
     }
@@ -351,7 +354,7 @@ public final class TrayGui implements Gui {
                 || (this.versionGapWarning.getFirst() == majorGap && this.versionGapWarning.getSecond() < minorGap)) {
             /*
              * 以下の場合は直ぐに警告。
-             * - 起動したばかり。
+             * - ネットワークに入ったばかり。
              * そうでなければ、遅延警告。
              * 一斉終了によるネットワーク崩壊を防ぐため。
              */
@@ -359,11 +362,12 @@ public final class TrayGui implements Gui {
             this.versionGapWarning = new Pair<>(majorGap, minorGap);
 
             final long cur = System.currentTimeMillis();
-            if (cur <= this.boot + this.bootDuration) {
-                // 起動したばかり。
+            if (this.boot < 0 || cur <= this.boot + this.bootDuration) {
+                // ネットワークに入ったばかり。
                 printWarnings();
             } else if (this.start < 0) {
-                // 起動してから時間が経っているので、遅延警告。
+                // ネットワークに入ってから時間が経っていて、遅延が始まっていない。
+                this.start = cur;
                 LOG.log(Level.FINEST, "{0} ミリ秒お待ちください。", Long.toString(this.delay));
                 this.executor.submit(new Reporter<Void>(Level.WARNING) {
                     @Override
@@ -373,9 +377,8 @@ public final class TrayGui implements Gui {
                         return null;
                     }
                 });
-                this.start = cur;
             } else if (this.start + this.delay < cur) {
-                // 既に遅延警告が終わっている。
+                // 既に遅延が終わっている。
                 printWarnings();
             } else {
                 // 遅延中。
