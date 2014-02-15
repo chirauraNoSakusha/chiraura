@@ -211,7 +211,7 @@ public final class TrayGui implements Gui {
         for (final Pair<String, Long> entry : Arrays.asList(
                 new Pair<>("5 分", 5 * Duration.MINUTE),
                 new Pair<>("10 分", 10 * Duration.MINUTE),
-                new Pair<>("30分", 30 * Duration.MINUTE),
+                new Pair<>("30 分", 30 * Duration.MINUTE),
                 new Pair<>("1 時間", Duration.HOUR),
                 new Pair<>("2 時間", 2 * Duration.HOUR),
                 new Pair<>("5 時間", 5 * Duration.HOUR),

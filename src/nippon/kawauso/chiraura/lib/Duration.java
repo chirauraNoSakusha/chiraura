@@ -57,7 +57,7 @@ public final class Duration {
         final StringBuilder buff = new StringBuilder();
 
         final List<Pair<Long, String>> list = Arrays.asList(
-                new Pair<>(0L, ""),
+                new Pair<>(0L, (String) null),
                 new Pair<>(1L, "ミリ秒"),
                 new Pair<>(SECOND, "秒"),
                 new Pair<>(MINUTE, "分"),
@@ -65,13 +65,15 @@ public final class Duration {
                 new Pair<>(DAY, "日"),
                 new Pair<>(MONTH, "ヶ月"),
                 new Pair<>(YEAR, "年"),
-                new Pair<>(Long.MAX_VALUE, "")
+                new Pair<>(Long.MAX_VALUE, (String) null)
                 );
 
         for (int i = 1; i < list.size() - 1; i++) {
             if (milliSeconds < list.get(i + 1).getFirst()) {
-                buff.append(Long.toString(milliSeconds / list.get(i).getFirst())).append(list.get(i).getSecond());
-                if (milliSeconds % list.get(i).getFirst() > list.get(i - 1).getFirst()) {
+                final long unit = list.get(i).getFirst();
+                final long val = Math.round(milliSeconds / (double) unit);
+                buff.append(Long.toString(val)).append(list.get(i).getSecond());
+                if (Math.abs(val * unit - milliSeconds) >= list.get(i - 1).getFirst()) {
                     buff.append("くらい");
                 }
                 break;
