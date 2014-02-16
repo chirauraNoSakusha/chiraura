@@ -63,4 +63,10 @@ final class ContentConstants {
      */
     static final int BYTE_SIZE_LIMIT = 1024 * 1024; // 1 MB.
 
+    /**
+     * chiraura 記法用。
+     * chiraura:// を http://{ホスト}/ に変換する。
+     */
+    static final Pattern CHIRAURA_NOTATION_LABEL = Pattern.compile("chiraura://");
+
 }

@@ -308,6 +308,9 @@ final class ThreadChunk extends SkeletalChunk implements Mountain, Content {
     private boolean notHashed;
     private HashValue hashValue;
 
+    // chiraura:// 記法用。
+    private String host;
+
     private ThreadChunk(final Id id, final String title, final Entry firstEntry, final NavigableSet<Entry> entries, final int entrySize, final long updateDate,
             final boolean notHashed, final HashValue hashValue) {
         if (id == null) {
@@ -333,6 +336,8 @@ final class ThreadChunk extends SkeletalChunk implements Mountain, Content {
         this.updateDate = updateDate;
         this.notHashed = notHashed;
         this.hashValue = hashValue;
+
+        this.host = null;
     }
 
     private ThreadChunk(final Id id, final String title, final Entry firstEntry) {
@@ -492,6 +497,20 @@ final class ThreadChunk extends SkeletalChunk implements Mountain, Content {
         };
     }
 
+    void setHost(final String host) {
+        if (host != null && !host.isEmpty()) {
+            this.host = "(chiraura) ttp://" + host + "/";
+        }
+    }
+
+    private String wrapMessage(final String msg) {
+        if (this.host == null) {
+            return msg;
+        } else {
+            return ContentConstants.CHIRAURA_NOTATION_LABEL.matcher(msg).replaceAll(this.host);
+        }
+    }
+
     private static final String TERMINAL = "1001<><>おわり<> もう綴れません <>\n";
 
     @Override
@@ -501,7 +520,7 @@ final class ThreadChunk extends SkeletalChunk implements Mountain, Content {
                 .append("<>").append(this.firstEntry.mail)
                 .append("<>").append(formatter.format(new Date(this.firstEntry.date)))
                 .append(" ID:").append(PostFunctions.idToString(this.firstEntry.id))
-                .append("<> ").append(this.firstEntry.message)
+                .append("<> ").append(wrapMessage(this.firstEntry.message))
                 .append(" <>").append(this.title)
                 .append('\n');
         for (final Entry entry : this.entries) {
@@ -509,7 +528,7 @@ final class ThreadChunk extends SkeletalChunk implements Mountain, Content {
                     .append("<>").append(entry.mail)
                     .append("<>").append(formatter.format(new Date(entry.date)))
                     .append(" ID:").append(PostFunctions.idToString(entry.id))
-                    .append("<> ").append(entry.message)
+                    .append("<> ").append(wrapMessage(entry.message))
                     .append(" <>\n");
         }
         if (isFull()) {

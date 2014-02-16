@@ -16,7 +16,9 @@ final class GetThreadRequest implements Request {
     private final String ifNoneMatch;
     private final Integer rangeHead;
 
-    GetThreadRequest(final String board, final long thread, final Long ifModifiedSince, final String ifNoneMatch, final Integer rangeHead) {
+    private final String host;
+
+    GetThreadRequest(final String board, final long thread, final Long ifModifiedSince, final String ifNoneMatch, final Integer rangeHead, final String host) {
         if (board == null) {
             throw new IllegalArgumentException("Null board.");
         }
@@ -25,6 +27,7 @@ final class GetThreadRequest implements Request {
         this.ifModifiedSince = ifModifiedSince;
         this.ifNoneMatch = ifNoneMatch;
         this.rangeHead = rangeHead;
+        this.host = host; // null 可。
     }
 
     String getBoard() {
@@ -45,6 +48,10 @@ final class GetThreadRequest implements Request {
 
     Integer getRangeHead() {
         return this.rangeHead;
+    }
+
+    String getHost() {
+        return this.host;
     }
 
     @Override

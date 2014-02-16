@@ -100,7 +100,7 @@ final class Requests {
                     }
                 }
             }
-            return new GetThreadRequest(tokens[1], thread, ifModifiedSince, fields.get(Http.Field.IF_NONE_MATCH), rangeHead);
+            return new GetThreadRequest(tokens[1], thread, ifModifiedSince, fields.get(Http.Field.IF_NONE_MATCH), rangeHead, fields.get(Http.Field.HOST));
         } else {
             return new NotFoundRequest(target);
         }

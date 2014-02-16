@@ -43,6 +43,8 @@ final class GetThreadResponseMaker {
                 }
             }
 
+            thread.setHost(request.getHost());
+
             final Integer rangeHead = request.getRangeHead();
             if (rangeHead != null) {
                 final byte[] content = thread.toNetworkString().getBytes(Constants.CONTENT_CHARSET);

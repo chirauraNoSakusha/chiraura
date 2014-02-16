@@ -3,6 +3,7 @@
  */
 package nippon.kawauso.chiraura.bbs;
 
+
 /**
  * @author chirauraNoSakusha
  */
