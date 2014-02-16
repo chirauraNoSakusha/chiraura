@@ -23,15 +23,16 @@ final class PartialContentResponse extends BasicResponse {
         return fields;
     }
 
-    private PartialContentResponse(final Content content, final byte[] contentBytes, final int rangeHead) {
+    PartialContentResponse(final Content content, final byte[] contentBytes, final int rangeHead) {
         super(Http.Status.Partial_Content, getFields(content, contentBytes, rangeHead), Arrays.copyOfRange(contentBytes, rangeHead, contentBytes.length));
         if (content == null) {
             throw new IllegalArgumentException("Null content.");
         }
     }
 
-    PartialContentResponse(final Content content, final int rangeHead) {
-        this(content, content.toNetworkString().getBytes(Constants.CONTENT_CHARSET), rangeHead);
-    }
+    // 上のコンストラクタは下のコンストラクタより引数が冗長だし、整合性も保証できないが、toNetworkString しなくて済む。
+    // PartialContentResponse(final Content content, final int rangeHead) {
+    // this(content, content.toNetworkString().getBytes(Constants.CONTENT_CHARSET), rangeHead);
+    // }
 
 }

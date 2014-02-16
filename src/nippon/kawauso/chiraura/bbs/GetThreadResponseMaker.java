@@ -49,7 +49,7 @@ final class GetThreadResponseMaker {
                 if (content.length <= rangeHead) {
                     return new RangeNotSatisfiableResponse(getTarget(request));
                 }
-                return new PartialContentResponse(thread, rangeHead);
+                return new PartialContentResponse(thread, content, rangeHead);
             } else {
                 return new ContentResponse(thread);
             }
