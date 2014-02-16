@@ -497,9 +497,13 @@ final class ThreadChunk extends SkeletalChunk implements Mountain, Content {
         };
     }
 
-    void setHost(final String host) {
+    void setHost(final String host, final int port) {
         if (host != null && !host.isEmpty()) {
-            this.host = "(chiraura) ttp://" + host + "/";
+            final StringBuilder buff = new StringBuilder("(chiraura) ttp://").append(host);
+            if (host.indexOf(':') < 0 && port != Http.DEFAULT_PORT) {
+                buff.append(':').append(Integer.toString(port));
+            }
+            this.host = buff.append('/').toString();
         }
     }
 

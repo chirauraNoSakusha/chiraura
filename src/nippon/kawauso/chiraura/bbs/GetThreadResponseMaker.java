@@ -4,6 +4,7 @@
 package nippon.kawauso.chiraura.bbs;
 
 import nippon.kawauso.chiraura.lib.Duration;
+import nippon.kawauso.chiraura.lib.connection.PortFunctions;
 
 /**
  * 2chブラウザからのスレ取得リクエストへの返答を作る。
@@ -12,13 +13,17 @@ import nippon.kawauso.chiraura.lib.Duration;
 final class GetThreadResponseMaker {
 
     private final ClosetWrapper closet;
+    private final int port;
 
-    GetThreadResponseMaker(final ClosetWrapper closet) {
+    GetThreadResponseMaker(final ClosetWrapper closet, final int port) {
         if (closet == null) {
             throw new IllegalArgumentException("Null closet.");
+        } else if (!PortFunctions.isValid(port)) {
+            throw new IllegalArgumentException("Invalid port ( " + port + " ).");
         }
 
         this.closet = closet;
+        this.port = port;
     }
 
     Response make(final GetThreadRequest request, final long timeout) throws InterruptedException {
@@ -43,7 +48,7 @@ final class GetThreadResponseMaker {
                 }
             }
 
-            thread.setHost(request.getHost());
+            thread.setHost(request.getHost(), this.port);
 
             final Integer rangeHead = request.getRangeHead();
             if (rangeHead != null) {

@@ -5,6 +5,8 @@ package nippon.kawauso.chiraura.bbs;
 
 import java.util.Map;
 
+import nippon.kawauso.chiraura.lib.connection.PortFunctions;
+
 /**
  * 2chブラウザからのリクエストへの返答を作る。
  * @author chirauraNoSakusha
@@ -16,14 +18,16 @@ final class ResponseMaker {
     private final AddThreadResponseMaker addThreadResponseMaker;
     private final AddCommentResponseMaker addCommentResponseMaker;
 
-    ResponseMaker(final ClosetWrapper closet, final Map<String, String> boardToName) {
+    ResponseMaker(final ClosetWrapper closet, final Map<String, String> boardToName, final int port) {
         if (closet == null) {
             throw new IllegalArgumentException("Null closet.");
         } else if (boardToName == null) {
             throw new IllegalArgumentException("Null default names.");
+        } else if (!PortFunctions.isValid(port)) {
+            throw new IllegalArgumentException("Invalid port ( " + port + " ).");
         }
         this.getBoardResponseMaker = new GetBoardResponseMaker(closet);
-        this.getThreadResponseMaker = new GetThreadResponseMaker(closet);
+        this.getThreadResponseMaker = new GetThreadResponseMaker(closet, port);
         this.addThreadResponseMaker = new AddThreadResponseMaker(closet, boardToName);
         this.addCommentResponseMaker = new AddCommentResponseMaker(closet, boardToName);
     }

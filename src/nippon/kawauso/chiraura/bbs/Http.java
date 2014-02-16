@@ -25,6 +25,8 @@ final class Http {
     static final String SEPARATOR = "\r\n";
     static final Charset HEADER_CHARSET = Charset.forName("US-ASCII");
 
+    static final int DEFAULT_PORT = 80;
+
     static enum Method {
         GET,
         HEAD,

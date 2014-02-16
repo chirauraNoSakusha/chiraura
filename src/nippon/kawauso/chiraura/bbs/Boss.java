@@ -61,7 +61,7 @@ final class Boss extends Chief {
         this.executor = executor;
 
         this.connectionPool = new ConnectionPool();
-        this.responseMaker = new ResponseMaker(closet, boardToName);
+        this.responseMaker = new ResponseMaker(closet, boardToName, port);
         this.serverSocket = null;
     }
 
