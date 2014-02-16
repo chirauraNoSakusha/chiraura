@@ -86,7 +86,7 @@ final class Communicator implements Callable<Void> {
 
             Response response;
             try {
-                final Request request = Requests.fromHttpRequest(httpRequest);
+                final Request request = Requests.fromHttpRequest(httpRequest, this.connection.getSocket().getInetAddress());
 
                 // レスポンスの準備。
                 response = this.responseMaker.make(request, this.timeout);

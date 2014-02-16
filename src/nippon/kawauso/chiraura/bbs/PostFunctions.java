@@ -3,6 +3,8 @@
  */
 package nippon.kawauso.chiraura.bbs;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -81,10 +83,12 @@ final class PostFunctions {
      * @param date 日時
      * @return 書き込み ID
      */
-    static long calculateId(final String boardName, final long date) {
+    static long calculateId(final String boardName, final long date, final InetAddress source) {
         final long prime = 31;
+        // 書き込み元。
+        long authorId = source.hashCode();
         // 板名。
-        long authorId = boardName.hashCode();
+        authorId = prime * authorId + boardName.hashCode();
         // 日時。
         authorId = prime * authorId + date / Duration.DAY;
         // 環境。
@@ -174,20 +178,25 @@ final class PostFunctions {
      * 以下、動作試験。
      */
 
-    private static void sample1() {
-        for (final String board : new String[] { "test", "death" }) {
-            for (final long date : new long[] { System.currentTimeMillis(), System.currentTimeMillis() + 12 * Duration.HOUR,
-                    System.currentTimeMillis() + Duration.DAY }) {
-                System.out.printf("%5s %s %s\n", board, LoggingFunctions.getSimpleDate(date), idToString(calculateId(board, date)));
+    private static void sample1() throws UnknownHostException {
+        for (final InetAddress source : new InetAddress[] { InetAddress.getByAddress(new byte[] { 1, 2, 3, 4 }),
+                InetAddress.getByAddress(new byte[] { 1, 2, 3, 5 }) }) {
+            for (final String board : new String[] { "test", "death" }) {
+                for (final long date : new long[] { System.currentTimeMillis(), System.currentTimeMillis() + 12 * Duration.HOUR,
+                        System.currentTimeMillis() + Duration.DAY }) {
+                    System.out.printf("%s, %5s %s %s\n", source.toString(), board, LoggingFunctions.getSimpleDate(date),
+                            idToString(calculateId(board, date, source)));
+                }
             }
         }
     }
 
-    private static void sample2() {
-        System.out.println("TYPE_ID: " + idToString(calculateId("test", System.currentTimeMillis())));
+    private static void sample2() throws UnknownHostException {
+        final InetAddress source = InetAddress.getByAddress(new byte[] { 1, 2, 3, 4 });
+        System.out.println("TYPE_ID: " + idToString(calculateId("test", System.currentTimeMillis(), source)));
     }
 
-    public static void main(final String[] args) {
+    public static void main(final String[] args) throws UnknownHostException {
         sample2();
         System.out.println();
         sample1();

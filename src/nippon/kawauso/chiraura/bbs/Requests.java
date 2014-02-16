@@ -5,6 +5,7 @@ package nippon.kawauso.chiraura.bbs;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ProtocolException;
 import java.nio.charset.Charset;
 import java.util.Map;
@@ -30,11 +31,11 @@ final class Requests {
     private static final String POST_DIR = "test";
     private static final String POST_FILE = "bbs.cgi";
 
-    static Request fromHttpRequest(final HttpRequest request) throws ProtocolException, IOException {
+    static Request fromHttpRequest(final HttpRequest request, final InetAddress source) throws ProtocolException, IOException {
         if (request.getMethod() == Http.Method.GET) {
             return makeGetRequest(request.getTarget(), request.getFields());
         } else if (request.getMethod() == Http.Method.POST) {
-            return makePostRequest(request.getTarget(), request.getContent());
+            return makePostRequest(request.getTarget(), request.getContent(), source);
         } else {
             return new NotImplementedRequest(request.getMethod());
         }
@@ -106,7 +107,7 @@ final class Requests {
         }
     }
 
-    private static Request makePostRequest(final String target, final byte[] content) throws ProtocolException {
+    private static Request makePostRequest(final String target, final byte[] content, final InetAddress source) throws ProtocolException {
         final String[] tokens = target.split("/");
 
         // POST /test/bbs.cgi HTTP/1.1
@@ -143,7 +144,7 @@ final class Requests {
             // bbs=[板名]&subject=[スレのタイトル]&FROM=[名前]&mail=[メール]&MESSAGE=[本文]&submit=新規スレ作成&time=[投稿時間]
             // navi2ch 形式。
             // bbs=[板名]&subject=[スレのタイトル]&FROM=[名前]&mail=[メール]&MESSAGE=[本文]&submit=書き込む&time=[投稿時間]
-            return new AddThreadRequest(entries.get(Post.Entry.BBS), entries.get(Post.Entry.SUBJECT), author, mail, date, comment);
+            return new AddThreadRequest(entries.get(Post.Entry.BBS), entries.get(Post.Entry.SUBJECT), author, mail, date, comment, source);
         } else if (entries.get(Post.Entry.SUBMIT).equals(Post.SUBMIT_ADD_COMMENT)) {
             // 書き込み。
             // bbs=[板名]&key=[スレ名]&FROM=[名前]&mail=[メール]&MESSAGE=[本文]&submit=書き込む&time=[投稿時間]
@@ -153,7 +154,7 @@ final class Requests {
             } catch (final NumberFormatException e) {
                 return new NotFoundRequest(target);
             }
-            return new AddCommentRequest(entries.get(Post.Entry.BBS), thread, author, mail, date, comment);
+            return new AddCommentRequest(entries.get(Post.Entry.BBS), thread, author, mail, date, comment, source);
         } else {
             return new PostErrorRequest("非対応の投稿です。", "非対応の投稿です。");
         }
@@ -179,7 +180,7 @@ final class Requests {
                 + "%82%C4%82%B7%82%C6%83X%83%8C&time=1230144297&FROM=%96%BC%96%B3%82%B5&mail=sage&MESSAGE=%82%C4%82%B7%82%C6&submit=%90V%8BK%83X%83%8C%83b%83h%8D%EC%90%AC";
         try (InputStreamWrapper input = new InputStreamWrapper(new ByteArrayInputStream(sample.getBytes()), Charset.forName("US-ASCII"), Http.SEPARATOR, 1024)) {
             final HttpRequest httpRequest = HttpRequest.fromStream(input);
-            final Request request = fromHttpRequest(httpRequest);
+            final Request request = fromHttpRequest(httpRequest, InetAddress.getLocalHost());
             System.out.println(request);
         }
     }

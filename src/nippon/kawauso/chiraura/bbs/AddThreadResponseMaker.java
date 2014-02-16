@@ -31,7 +31,7 @@ final class AddThreadResponseMaker {
         final String title = PostFunctions.wrapTitle(request.getTitle());
         final String author = PostFunctions.wrapAuthor(request.getAuthor(), request.getBoard(), this.boardToName);
         final String mail = PostFunctions.wrapMail(request.getMail());
-        final long authorId = PostFunctions.calculateId(request.getBoard(), start);
+        final long authorId = PostFunctions.calculateId(request.getBoard(), start, request.getSource());
         final String message = PostFunctions.wrapMessage(request.getComment());
         boolean result;
         try {

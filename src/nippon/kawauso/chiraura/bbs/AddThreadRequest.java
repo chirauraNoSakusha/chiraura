@@ -3,6 +3,8 @@
  */
 package nippon.kawauso.chiraura.bbs;
 
+import java.net.InetAddress;
+
 import nippon.kawauso.chiraura.lib.logging.LoggingFunctions;
 
 /**
@@ -18,7 +20,10 @@ final class AddThreadRequest implements Request {
     private final long date;
     private final String comment;
 
-    AddThreadRequest(final String board, final String title, final String author, final String mail, final long date, final String comment) {
+    private final InetAddress source;
+
+    AddThreadRequest(final String board, final String title, final String author, final String mail, final long date, final String comment,
+            final InetAddress source) {
         if (board == null) {
             throw new IllegalArgumentException("Null board.");
         } else if (title == null) {
@@ -29,6 +34,8 @@ final class AddThreadRequest implements Request {
             throw new IllegalArgumentException("Null mail.");
         } else if (comment == null) {
             throw new IllegalArgumentException("Null comment.");
+        } else if (source == null) {
+            throw new IllegalArgumentException("Null source.");
         }
 
         this.board = board;
@@ -37,6 +44,8 @@ final class AddThreadRequest implements Request {
         this.mail = mail;
         this.date = date;
         this.comment = comment;
+
+        this.source = source;
     }
 
     String getBoard() {
@@ -61,6 +70,10 @@ final class AddThreadRequest implements Request {
 
     String getComment() {
         return this.comment;
+    }
+
+    InetAddress getSource() {
+        return this.source;
     }
 
     @Override
