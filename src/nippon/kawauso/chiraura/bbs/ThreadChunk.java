@@ -515,7 +515,7 @@ final class ThreadChunk extends SkeletalChunk implements Mountain, Content {
         }
     }
 
-    private static final String TERMINAL = "1001<><>おわり<> もう綴れません <>\n";
+    private static final String TERMINAL = "1001<><>おわり<> もう綴れません。 <>\n";
 
     @Override
     public String toNetworkString() {
