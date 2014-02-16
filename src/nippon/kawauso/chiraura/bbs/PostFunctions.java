@@ -85,8 +85,12 @@ final class PostFunctions {
      */
     static long calculateId(final String boardName, final long date, final InetAddress source) {
         final long prime = 31;
+        long authorId = 0;
         // 書き込み元。
-        long authorId = source.hashCode();
+        if (!source.isLoopbackAddress() && !source.isLinkLocalAddress() && !source.isSiteLocalAddress()) {
+            // グローバル IP だけ有効。自作自演対策。
+            authorId = prime * authorId + source.hashCode();
+        }
         // 板名。
         authorId = prime * authorId + boardName.hashCode();
         // 日時。
