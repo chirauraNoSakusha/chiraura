@@ -1,4 +1,4 @@
 .settings
 bin
-script/peers.txt
+peers.txt
 tmp
