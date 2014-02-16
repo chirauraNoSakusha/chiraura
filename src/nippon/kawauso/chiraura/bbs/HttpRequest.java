@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 import nippon.kawauso.chiraura.lib.container.Pair;
 import nippon.kawauso.chiraura.lib.exception.MyRuleException;
@@ -45,10 +46,11 @@ final class HttpRequest {
             this.queries = queries;
         }
 
-        public static Header decode(final String line) throws ProtocolException {
-            final String spaceRegexp = "[\t ]";
+        private static final Pattern sep = Pattern.compile("[\t ]+");
 
-            final String[] tokens = line.split(spaceRegexp + "+");
+        public static Header decode(final String line) throws ProtocolException {
+
+            final String[] tokens = sep.split(line);
             if (tokens.length != 3) {
                 throw new ProtocolException("Invalid line ( " + line + " ).");
             }

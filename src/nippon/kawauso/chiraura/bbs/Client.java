@@ -588,10 +588,10 @@ public final class Client {
                 final int headerLength = request.indexOf(Http.SEPARATOR + Http.SEPARATOR);
                 if (headerLength + 2 * Http.SEPARATOR.length() < request.length()) {
                     LOG.log(Level.FINEST, "送信: [{0}]",
-                            request.substring(0, headerLength).replace(Http.SEPARATOR, System.lineSeparator()) + System.lineSeparator() + "...");
+                            request.substring(0, headerLength).replaceAll(Http.SEPARATOR, System.lineSeparator()) + System.lineSeparator() + "...");
                 } else {
                     LOG.log(Level.FINEST, "送信: [{0}]",
-                            request.substring(0, headerLength).replace(Http.SEPARATOR, System.lineSeparator()) + System.lineSeparator());
+                            request.substring(0, headerLength).replaceAll(Http.SEPARATOR, System.lineSeparator()) + System.lineSeparator());
                 }
                 output.write(request.getBytes(HEADER_CHARSET));
                 output.flush();

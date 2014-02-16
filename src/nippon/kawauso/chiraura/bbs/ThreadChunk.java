@@ -492,10 +492,7 @@ final class ThreadChunk extends SkeletalChunk implements Mountain, Content {
         };
     }
 
-    private static final String TERMINAL_AUTHOR = "1001";
-    private static final String TERMINAL_MAIL = "";
-    private static final String TERMINAL_DATE = "おわり";
-    private static final String TERMINAL_MESSAGE = "もう綴れません。";
+    private static final String TERMINAL = "1001<><>おわり<> もう綴れません <>\n";
 
     @Override
     public String toNetworkString() {
@@ -516,11 +513,7 @@ final class ThreadChunk extends SkeletalChunk implements Mountain, Content {
                     .append(" <>\n");
         }
         if (isFull()) {
-            buff.append(TERMINAL_AUTHOR)
-                    .append("<>").append(TERMINAL_MAIL)
-                    .append("<>").append(TERMINAL_DATE)
-                    .append("<> ").append(TERMINAL_MESSAGE)
-                    .append(" <>\n");
+            buff.append(TERMINAL);
         }
         return buff.toString();
     }
