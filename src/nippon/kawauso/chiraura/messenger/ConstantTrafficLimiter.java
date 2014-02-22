@@ -15,7 +15,6 @@ import java.util.logging.Logger;
 
 /**
  * 一定期間の一定量・一定回数で制限。
- * 通信終了後、一定期間後にサイズ指定無しの nextSleep を呼ばないと破棄できない。
  * @author chirauraNoSakusha
  */
 final class ConstantTrafficLimiter implements TrafficLimiter {
