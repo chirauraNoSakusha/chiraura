@@ -92,6 +92,10 @@ final class Environment {
     private final long idLifetime;
     private final long publicKeyLifetime;
     private final long commonKeyLifetime;
+    private final long trafficDuration;
+    private final long trafficSizeLimit;
+    private final int trafficCountLimit;
+    private final long trafficPenalty;
     private final int blacklistCapacity;
     private final long blacklistTimeout;
     private final int potCapacity;
@@ -214,6 +218,10 @@ final class Environment {
         this.idLifetime = getLargerLong(option, Option.Item.idLifetime);
         this.publicKeyLifetime = getLargerLong(option, Option.Item.publicKeyLifetime);
         this.commonKeyLifetime = getLargerLong(option, Option.Item.commonKeyLifetime);
+        this.trafficDuration = getDefaultLong(option, Option.Item.trafficDuration);
+        this.trafficSizeLimit = getDefaultLong(option, Option.Item.trafficSizeLimit);
+        this.trafficCountLimit = getDefaultInt(option, Option.Item.trafficCountLimit);
+        this.trafficPenalty = getDefaultLong(option, Option.Item.trafficPenalty);
         this.blacklistCapacity = getLargerInt(option, Option.Item.blacklistCapacity);
         this.blacklistTimeout = getDefaultLong(option, Option.Item.blacklistTimeout);
         this.potCapacity = getLargerInt(option, Option.Item.potCapacity);
@@ -366,6 +374,22 @@ final class Environment {
 
     long getCommonKeyLifetime() {
         return this.commonKeyLifetime;
+    }
+
+    long getTrafficDuration() {
+        return this.trafficDuration;
+    }
+
+    long getTrafficSizeLimit() {
+        return this.trafficSizeLimit;
+    }
+
+    int getTrafficCountLimit() {
+        return this.trafficCountLimit;
+    }
+
+    long getTrafficPenalty() {
+        return this.trafficPenalty;
     }
 
     int getBlacklistCapacity() {

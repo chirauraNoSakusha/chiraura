@@ -63,6 +63,7 @@ final class Contactor implements Callable<Void> {
     private final ExecutorService executor;
     private final SendQueuePool sendQueuePool;
     private final BlockingQueue<ReceivedMail> receivedMailSink;
+    private final TrafficLimiter limiter;
     private final BoundConnectionPool<Connection> connectionPool;
     private final long keyLifetime;
 
@@ -70,8 +71,8 @@ final class Contactor implements Callable<Void> {
             final int receiveBufferSize, final int sendBufferSize, final long connectionTimeout, final long operationTimeout, final Transceiver transceiver,
             final ContactingConnection contactingConnection, final long version, final long versionGapThreshold, final int port, final KeyPair id,
             final PublicKeyManager keyManager, final AtomicReference<InetSocketAddress> self, final ExecutorService executor,
-            final SendQueuePool sendQueuePool, final BlockingQueue<ReceivedMail> receivedMailSink, final BoundConnectionPool<Connection> connectionPool,
-            final long keyLifetime) {
+            final SendQueuePool sendQueuePool, final BlockingQueue<ReceivedMail> receivedMailSink, final TrafficLimiter limiter,
+            final BoundConnectionPool<Connection> connectionPool, final long keyLifetime) {
         if (messengerReportSink == null) {
             throw new IllegalArgumentException("Null messenger report sink.");
         } else if (contactingConnectionPool == null) {
@@ -100,6 +101,8 @@ final class Contactor implements Callable<Void> {
             throw new IllegalArgumentException("Null send queue pool.");
         } else if (receivedMailSink == null) {
             throw new IllegalArgumentException("Null received mail sink.");
+        } else if (limiter == null) {
+            throw new IllegalArgumentException("Null limiter.");
         } else if (connectionPool == null) {
             throw new IllegalArgumentException("Null connection pool.");
         } else if (keyLifetime < 0) {
@@ -126,6 +129,7 @@ final class Contactor implements Callable<Void> {
         this.executor = executor;
         this.sendQueuePool = sendQueuePool;
         this.receivedMailSink = receivedMailSink;
+        this.limiter = limiter;
         this.connectionPool = connectionPool;
         this.keyLifetime = keyLifetime;
     }
@@ -290,8 +294,7 @@ final class Contactor implements Callable<Void> {
                 new Object[] { this.contactingConnection, this.contactingConnection.getDestination(), Integer.toString(this.contactingConnection.getType()) });
         connection.setSender(this.executor.submit(new Sender(this.sendQueuePool, this.messengerReportSink, this.connectionPool, this.connectionTimeout,
                 this.transceiver, connection, output, this.keyLifetime, keyPair.getPrivate(), destinationPublicKey, communicationKey)));
-        this.executor.submit(new Receiver(this.receivedMailSink, this.messengerReportSink, this.connectionTimeout, this.transceiver, connection, input,
-                keyPair.getPrivate(), destinationPublicKey, communicationKey));
+        this.executor.submit(new Receiver(this.receivedMailSink, this.messengerReportSink, this.limiter, this.connectionTimeout, this.transceiver, connection,
+                input, keyPair.getPrivate(), destinationPublicKey, communicationKey));
     }
-
 }

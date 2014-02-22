@@ -43,6 +43,11 @@ public final class AcceptorMasterTest {
         final TypeRegistry<Message> registry = TypeRegistries.newRegistry();
         transceiver = new Transceiver(Integer.MAX_VALUE, RegistryInitializer.init(registry));
     }
+    private static final long duration = Duration.SECOND / 2;
+    private static final long sizeLimit = 10_000_000L;
+    private static final int countLimit = 1_000;
+    private static final long penalty = 5 * Duration.SECOND;
+    private final TrafficLimiter limiter = new ConstantTrafficLimiter(duration, sizeLimit, countLimit, penalty);
 
     /*
      * 検査インスタンス側は a、検査者側は b を頭に付ける。
@@ -141,9 +146,9 @@ public final class AcceptorMasterTest {
     @Test
     public void testSample() throws Exception {
         final AcceptorMaster instance = new AcceptorMaster(this.subjectReportQueue, this.subjectAcceptedSocketQueue, this.subjectSerialGenerator,
-                this.executor, this.subjectReceivedMailQueue, this.subjectSendQueuePool, this.subjectMessengerReportQueue, this.subjectAcceptedConnectionPool,
-                this.subjectConnectionPool, sendBufferSize, connectionTimeout, operationTimeout, transceiver, version, versionGapThreshold, subjectId,
-                this.subjectKeyManager, keyLifetime, this.subjectSelf);
+                this.executor, this.subjectReceivedMailQueue, this.subjectSendQueuePool, this.limiter, this.subjectMessengerReportQueue,
+                this.subjectAcceptedConnectionPool, this.subjectConnectionPool, sendBufferSize, connectionTimeout, operationTimeout, transceiver, version,
+                versionGapThreshold, subjectId, this.subjectKeyManager, keyLifetime, this.subjectSelf);
         this.executor.submit(instance);
 
         this.subjectAcceptedSocketQueue.put(this.subjectSocket);

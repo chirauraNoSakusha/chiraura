@@ -41,6 +41,11 @@ final class ThreadMessenger implements Messenger {
     private final long publicKeyLifetime;
     private final long commonKeyLifetime;
 
+    private final long trafficDuration;
+    private final long trafficSizeLimit;
+    private final int trafficCountLimit;
+    private final long trafficPenalty;
+
     // 保持。
     private final BlockingQueue<ReceivedMail> receivedMailSink;
     private final SendQueuePool sendQueuePool;
@@ -56,7 +61,8 @@ final class ThreadMessenger implements Messenger {
 
     ThreadMessenger(final int port, final int receveBufferSize, final int sendBufferSize, final long connectionTimeout, final long operationTimeout,
             final int messageSizeLimit, final long version, final long versionGapThreshold, final KeyPair id, final long publicKeyLifetime,
-            final long commonKeyLifetime) {
+            final long commonKeyLifetime, final long trafficDuration, final long trafficSizeLimit, final int trafficCountLimit,
+            final long trafficPenalty) {
         if (!PortFunctions.isValid(port)) {
             throw new IllegalArgumentException("Invalid port ( " + port + " ).");
         } else if (connectionTimeout < 0) {
@@ -73,6 +79,14 @@ final class ThreadMessenger implements Messenger {
             throw new IllegalArgumentException("Invalid public key lifetime ( " + publicKeyLifetime + " ).");
         } else if (commonKeyLifetime < 0) {
             throw new IllegalArgumentException("Invalid common key lifetime ( " + publicKeyLifetime + " ).");
+        } else if (trafficDuration < 0) {
+            throw new IllegalArgumentException("Negative traffic duration ( " + trafficDuration + " ).");
+        } else if (trafficSizeLimit < 0) {
+            throw new IllegalArgumentException("Negative traffic size limit ( " + trafficSizeLimit + " ).");
+        } else if (trafficCountLimit < 0) {
+            throw new IllegalArgumentException("Negative traffic count limit ( " + trafficCountLimit + " ).");
+        } else if (trafficPenalty < 0) {
+            throw new IllegalArgumentException("Negative traffic penalty ( " + trafficPenalty + " ).");
         }
 
         this.port = port;
@@ -86,6 +100,11 @@ final class ThreadMessenger implements Messenger {
         this.id = id;
         this.publicKeyLifetime = publicKeyLifetime;
         this.commonKeyLifetime = commonKeyLifetime;
+
+        this.trafficDuration = trafficDuration;
+        this.trafficSizeLimit = trafficSizeLimit;
+        this.trafficCountLimit = trafficCountLimit;
+        this.trafficPenalty = trafficPenalty;
 
         this.receivedMailSink = new LinkedBlockingQueue<>();
         this.sendQueuePool = new BasicSendQueuePool();
@@ -169,7 +188,8 @@ final class ThreadMessenger implements Messenger {
         executor.submit(new Boss(executor, this.connectRequestQueue, this.receivedMailSink, this.sendQueuePool, this.messengerReportSink,
                 this.acceptedConnectionPool, this.contactingConnectionPool, this.connectionPool, this.port, this.receveBufferSize, this.sendBufferSize,
                 this.connectionTimeout, this.operationTimeout, this.messageSizeLimit, this.registry, this.version, this.versionGapThreshold, this.id,
-                this.publicKeyLifetime, this.commonKeyLifetime, this.self));
+                this.publicKeyLifetime, this.commonKeyLifetime, this.self, this.trafficDuration, this.trafficSizeLimit, this.trafficCountLimit,
+                this.trafficPenalty));
     }
 
     @Override

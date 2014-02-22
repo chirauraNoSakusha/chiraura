@@ -28,13 +28,18 @@ public final class Messengers {
      * @param id 自身の識別用鍵
      * @param publicKeyLifetime 通信用公開鍵の使い回し期間 (ミリ秒)
      * @param commonKeyLifetime 通信用共通鍵の使い回し期間 (ミリ秒)
+     * @param trafficDuration 通信制限のための単位監視時間 (ミリ秒)
+     * @param trafficSizeLimit 通信を制限する通信量 (ミリ秒)
+     * @param trafficCountLimit 通信を制限する通信回数
+     * @param trafficPenalty 通信を制限する時間 (ミリ秒)
      * @return 通信係
      */
     public static Messenger newInstance(final int port, final int receveBufferSize, final int sendBufferSize, final long connectionTimeout,
             final long operationTimeout, final int messageSizeLimit, final long version, final long versionGapThreshold, final KeyPair id,
-            final long publicKeyLifetime, final long commonKeyLifetime) {
+            final long publicKeyLifetime, final long commonKeyLifetime, final long trafficDuration, final long trafficSizeLimit, final int trafficCountLimit,
+            final long trafficPenalty) {
         return new ThreadMessenger(port, receveBufferSize, sendBufferSize, connectionTimeout, operationTimeout, messageSizeLimit, version, versionGapThreshold,
-                id, publicKeyLifetime, commonKeyLifetime);
+                id, publicKeyLifetime, commonKeyLifetime, trafficDuration, trafficSizeLimit, trafficCountLimit, trafficPenalty);
     }
 
     /**

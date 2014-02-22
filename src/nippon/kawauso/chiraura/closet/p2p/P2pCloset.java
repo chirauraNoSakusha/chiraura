@@ -82,6 +82,10 @@ public final class P2pCloset implements Closet {
         private long cacheDuration = 30 * Duration.SECOND;
         private long publicKeyLifetime = Duration.DAY;
         private long commonKeyLifetime = Duration.HOUR;
+        private long trafficDuration = Duration.SECOND;
+        private long trafficSizeLimit = 10 * 1024 * 1024; // 10MB.
+        private int trafficCountLimit = 1_000;
+        private long trafficPenalty = 10 * Duration.SECOND;
         private int blacklistCapacity = 200;
         private long blacklistTimeout = 30 * Duration.MINUTE;
         private int potCapacity = 1_000;
@@ -257,6 +261,46 @@ public final class P2pCloset implements Closet {
         }
 
         /**
+         * 通信制限のための単位監視時間を変える。
+         * @param value 新しい値 (ミリ秒)
+         * @return this
+         */
+        public Parameters setTrafficDuration(final long value) {
+            this.trafficDuration = value;
+            return this;
+        }
+
+        /**
+         * 通信を制限する通信量を変える。
+         * @param value 新しい値 (バイト)
+         * @return this
+         */
+        public Parameters setTrafficSizeLimit(final long value) {
+            this.trafficSizeLimit = value;
+            return this;
+        }
+
+        /**
+         * 通信を制限する通信回数を変える。
+         * @param value 新しい値
+         * @return this
+         */
+        public Parameters setTrafficCountLimit(final int value) {
+            this.trafficCountLimit = value;
+            return this;
+        }
+
+        /**
+         * 通信を制限する時間を変える。
+         * @param value 新しい値 (ミリ秒)
+         * @return this
+         */
+        public Parameters setTrafficPenalty(final long value) {
+            this.trafficPenalty = value;
+            return this;
+        }
+
+        /**
          * 拒否対象の個体を保持する数を変える。
          * @param value 新しい値
          * @return this
@@ -402,7 +446,8 @@ public final class P2pCloset implements Closet {
         this.storage = new StorageWrapper(rawStorage, this.operationQueue, param.cacheLogCapacity, param.cacheDuration);
 
         final Messenger messenger = Messengers.newInstance(param.port, param.receiveBufferSize, param.sendBufferSize, param.connectionTimeout,
-                param.operationTimeout, param.messageSizeLimit, VERSION, VERSION_GAP_THRESHOLD, param.id, param.publicKeyLifetime, param.commonKeyLifetime);
+                param.operationTimeout, param.messageSizeLimit, VERSION, VERSION_GAP_THRESHOLD, param.id, param.publicKeyLifetime, param.commonKeyLifetime,
+                param.trafficDuration, param.trafficSizeLimit, param.trafficCountLimit, param.trafficPenalty);
         final AddressableNetwork rawNetwork = AddressableNetworks.newInstance(param.calculator.calculate(param.id.getPublic()), param.peerCapacity,
                 param.maintenanceInterval);
         final PeerBlacklist blacklist = new TimeLimitedPeerBlacklist(param.blacklistCapacity, param.blacklistTimeout);

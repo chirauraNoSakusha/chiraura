@@ -67,6 +67,11 @@ public final class BossTest {
     private static final int testerPort = subjectPort + 10;
     private static final KeyPair testerId = CryptographicKeys.newPublicKeyPair();
 
+    private static final long duration = Duration.SECOND / 2;
+    private static final long sizeLimit = 10_000_000L;
+    private static final int countLimit = 1_000;
+    private static final long penalty = 5 * Duration.SECOND;
+
     private final ExecutorService executor;
 
     private final BlockingQueue<ReceivedMail> subjectReceivedMailQueue;
@@ -122,7 +127,7 @@ public final class BossTest {
         final Boss instance = new Boss(this.executor, this.subjectConnectRequestQueue, this.subjectReceivedMailQueue, this.subjectSendQueuePool,
                 this.subjectMessengerReportQueue, this.subjectAcceptedConnectionPool, this.subjectContactingConnectionPool, this.subjectConnectionPool,
                 subjectPort, receiveBufferSize, sendBufferSize, connectionTimeout, operationTimeout, messageSizeLimit, registry, version, versionGapThreshold,
-                subjectId, publicKeyLifetime, commonKeyLifetime, this.subjectSelf);
+                subjectId, publicKeyLifetime, commonKeyLifetime, this.subjectSelf, duration, sizeLimit, countLimit, penalty);
         this.executor.submit(instance);
 
         contactorTest(null); // ループバック。

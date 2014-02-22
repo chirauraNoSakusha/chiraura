@@ -44,6 +44,11 @@ public final class ContactorMasterTest {
         final TypeRegistry<Message> registry = TypeRegistries.newRegistry();
         transceiver = new Transceiver(Integer.MAX_VALUE, RegistryInitializer.init(registry));
     }
+    private static final long duration = Duration.SECOND / 2;
+    private static final long sizeLimit = 10_000_000L;
+    private static final int countLimit = 1_000;
+    private static final long penalty = 5 * Duration.SECOND;
+    private final TrafficLimiter limiter = new ConstantTrafficLimiter(duration, sizeLimit, countLimit, penalty);
 
     private static final int receiveBufferSize = 128 * 1024;
     private static final int sendBufferSize = 128 * 1024;
@@ -135,7 +140,7 @@ public final class ContactorMasterTest {
     @Test
     public void testSample() throws Exception {
         final ContactorMaster instance = new ContactorMaster(this.subjectReportQueue, this.subjectConnectRequestQueue, this.subjectSerialGenerator,
-                this.executor, this.subjectReceivedMailQueue, this.subjectSendQueuePool, this.subjectMessengerReportQueue,
+                this.executor, this.subjectReceivedMailQueue, this.subjectSendQueuePool, this.limiter, this.subjectMessengerReportQueue,
                 this.subjectContactingConnectionPool, this.subjectConnectionPool, receiveBufferSize, sendBufferSize, connectionTimeout, operationTimeout,
                 transceiver, version, versionGapThreshold, subjectPort, subjectId, this.subjectKeyManager, keyLifetime, this.subjectSelf);
         this.executor.submit(instance);

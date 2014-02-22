@@ -45,6 +45,11 @@ public final class ContactorTest {
         final TypeRegistry<Message> registry = TypeRegistries.newRegistry();
         transceiver = new Transceiver(Integer.MAX_VALUE, RegistryInitializer.init(registry));
     }
+    private static final long duration = Duration.SECOND / 2;
+    private static final long sizeLimit = 10_000_000L;
+    private static final int countLimit = 1_000;
+    private static final long penalty = 5 * Duration.SECOND;
+    private final TrafficLimiter limiter = new ConstantTrafficLimiter(duration, sizeLimit, countLimit, penalty);
 
     private static final int receiveBufferSize = 128 * 1024;
     private static final int sendBufferSize = 128 * 1024;
@@ -128,8 +133,8 @@ public final class ContactorTest {
     public void testSample() throws Exception {
         final Contactor instance = new Contactor(this.subjectMessengerReportQueue, this.subjectContactingConnectionPool, receiveBufferSize, sendBufferSize,
                 connectionTimeout, operationTimeout, transceiver, this.subjectConnection, version, versionGapThreshold, subjectPort, subjectId,
-                this.subjectKeyManager, this.subjectSelf, this.executor, this.subjectSendQueuePool, this.subjectReceivedMailQueue, this.subjectConnectionPool,
-                keyLifetime);
+                this.subjectKeyManager, this.subjectSelf, this.executor, this.subjectSendQueuePool, this.subjectReceivedMailQueue, this.limiter,
+                this.subjectConnectionPool, keyLifetime);
         this.executor.submit(instance);
 
         // 接続受け付け。
@@ -196,8 +201,8 @@ public final class ContactorTest {
     public void testErrorStream() throws Exception {
         final Contactor instance = new Contactor(this.subjectMessengerReportQueue, this.subjectContactingConnectionPool, receiveBufferSize, sendBufferSize,
                 connectionTimeout, operationTimeout, transceiver, this.subjectConnection, version, versionGapThreshold, subjectPort, subjectId,
-                this.subjectKeyManager, this.subjectSelf, this.executor, this.subjectSendQueuePool, this.subjectReceivedMailQueue, this.subjectConnectionPool,
-                keyLifetime);
+                this.subjectKeyManager, this.subjectSelf, this.executor, this.subjectSendQueuePool, this.subjectReceivedMailQueue, this.limiter,
+                this.subjectConnectionPool, keyLifetime);
         final Future<Void> future = this.executor.submit(instance);
 
         this.testerServerSocket.close();
@@ -217,8 +222,8 @@ public final class ContactorTest {
     public void testInvalidMail() throws Exception {
         final Contactor instance = new Contactor(this.subjectMessengerReportQueue, this.subjectContactingConnectionPool, receiveBufferSize, sendBufferSize,
                 connectionTimeout, operationTimeout, transceiver, this.subjectConnection, version, versionGapThreshold, subjectPort, subjectId,
-                this.subjectKeyManager, this.subjectSelf, this.executor, this.subjectSendQueuePool, this.subjectReceivedMailQueue, this.subjectConnectionPool,
-                keyLifetime);
+                this.subjectKeyManager, this.subjectSelf, this.executor, this.subjectSendQueuePool, this.subjectReceivedMailQueue, this.limiter,
+                this.subjectConnectionPool, keyLifetime);
         final Future<Void> future = this.executor.submit(instance);
 
         // 接続受け付け。
@@ -252,8 +257,8 @@ public final class ContactorTest {
         final long shortOperationTimeout = 100L;
         final Contactor instance = new Contactor(this.subjectMessengerReportQueue, this.subjectContactingConnectionPool, receiveBufferSize, sendBufferSize,
                 connectionTimeout, shortOperationTimeout, transceiver, this.subjectConnection, version, versionGapThreshold, subjectPort, subjectId,
-                this.subjectKeyManager, this.subjectSelf, this.executor, this.subjectSendQueuePool, this.subjectReceivedMailQueue, this.subjectConnectionPool,
-                keyLifetime);
+                this.subjectKeyManager, this.subjectSelf, this.executor, this.subjectSendQueuePool, this.subjectReceivedMailQueue, this.limiter,
+                this.subjectConnectionPool, keyLifetime);
         final Future<Void> future = this.executor.submit(instance);
 
         // 時間切れ待ち。
@@ -273,8 +278,8 @@ public final class ContactorTest {
     public void testPortError() throws Exception {
         final Contactor instance = new Contactor(this.subjectMessengerReportQueue, this.subjectContactingConnectionPool, receiveBufferSize, sendBufferSize,
                 connectionTimeout, operationTimeout, transceiver, this.subjectConnection, version, versionGapThreshold, subjectPort, subjectId,
-                this.subjectKeyManager, this.subjectSelf, this.executor, this.subjectSendQueuePool, this.subjectReceivedMailQueue, this.subjectConnectionPool,
-                keyLifetime);
+                this.subjectKeyManager, this.subjectSelf, this.executor, this.subjectSendQueuePool, this.subjectReceivedMailQueue, this.limiter,
+                this.subjectConnectionPool, keyLifetime);
         this.executor.submit(instance);
 
         // 接続受け付け。
@@ -317,8 +322,8 @@ public final class ContactorTest {
     public void testOldVersion() throws Exception {
         final Contactor instance = new Contactor(this.subjectMessengerReportQueue, this.subjectContactingConnectionPool, receiveBufferSize, sendBufferSize,
                 connectionTimeout, operationTimeout, transceiver, this.subjectConnection, version, versionGapThreshold, subjectPort, subjectId,
-                this.subjectKeyManager, this.subjectSelf, this.executor, this.subjectSendQueuePool, this.subjectReceivedMailQueue, this.subjectConnectionPool,
-                keyLifetime);
+                this.subjectKeyManager, this.subjectSelf, this.executor, this.subjectSendQueuePool, this.subjectReceivedMailQueue, this.limiter,
+                this.subjectConnectionPool, keyLifetime);
         this.executor.submit(instance);
 
         // 接続受け付け。
@@ -363,8 +368,8 @@ public final class ContactorTest {
     public void testNewVersion() throws Exception {
         final Contactor instance = new Contactor(this.subjectMessengerReportQueue, this.subjectContactingConnectionPool, receiveBufferSize, sendBufferSize,
                 connectionTimeout, operationTimeout, transceiver, this.subjectConnection, version, versionGapThreshold, subjectPort, subjectId,
-                this.subjectKeyManager, this.subjectSelf, this.executor, this.subjectSendQueuePool, this.subjectReceivedMailQueue, this.subjectConnectionPool,
-                keyLifetime);
+                this.subjectKeyManager, this.subjectSelf, this.executor, this.subjectSendQueuePool, this.subjectReceivedMailQueue, this.limiter,
+                this.subjectConnectionPool, keyLifetime);
         this.executor.submit(instance);
 
         // 接続受け付け。

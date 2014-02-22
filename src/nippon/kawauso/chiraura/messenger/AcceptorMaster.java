@@ -34,6 +34,7 @@ final class AcceptorMaster extends Reporter<Void> {
 
     private final BlockingQueue<ReceivedMail> receivedMailSink;
     private final SendQueuePool sendQueuePool;
+    private final TrafficLimiter limiter;
     private final BlockingQueue<MessengerReport> messengerReportSink;
     private final ConnectionPool<AcceptedConnection> acceptedConnectionPool;
     private final BoundConnectionPool<Connection> connectionPool;
@@ -52,6 +53,7 @@ final class AcceptorMaster extends Reporter<Void> {
 
     AcceptorMaster(final BlockingQueue<Reporter.Report> reportSink, final BlockingQueue<Socket> acceptedSocketSource, final AtomicInteger serialGenerator,
             final ExecutorService executor, final BlockingQueue<ReceivedMail> receivedMailSink, final SendQueuePool sendQueuePool,
+            final TrafficLimiter limiter,
             final BlockingQueue<MessengerReport> messengerReportSink, final ConnectionPool<AcceptedConnection> acceptedConnectionPool,
             final BoundConnectionPool<Connection> connectionPool, final int sendBufferSize, final long connectionTimeout, final long operationTimeout,
             final Transceiver transceiver, final long version, final long versionGapThreshold, final KeyPair id, final PublicKeyManager keyManager,
@@ -68,6 +70,8 @@ final class AcceptorMaster extends Reporter<Void> {
             throw new IllegalArgumentException("Null received mail sink.");
         } else if (sendQueuePool == null) {
             throw new IllegalArgumentException("Null send queue pool.");
+        } else if (limiter == null) {
+            throw new IllegalArgumentException("Null limiter.");
         } else if (messengerReportSink == null) {
             throw new IllegalArgumentException("Null messenger report sink.");
         } else if (acceptedConnectionPool == null) {
@@ -97,6 +101,7 @@ final class AcceptorMaster extends Reporter<Void> {
         this.executor = executor;
         this.receivedMailSink = receivedMailSink;
         this.sendQueuePool = sendQueuePool;
+        this.limiter = limiter;
         this.messengerReportSink = messengerReportSink;
         this.acceptedConnectionPool = acceptedConnectionPool;
         this.connectionPool = connectionPool;
@@ -125,7 +130,7 @@ final class AcceptorMaster extends Reporter<Void> {
                 LOG.log(Level.FINER, "接続番号 {0} で {1} の受け入れ作業を始めます。", new Object[] { Integer.toString(idNumber), socket.getInetAddress() });
                 final Acceptor acceptor = new Acceptor(this.messengerReportSink, this.acceptedConnectionPool, this.sendBufferSize, this.connectionTimeout,
                         this.operationTimeout, this.transceiver, connection, this.version, this.versionGapThreshold, this.id, this.keyManager, this.self,
-                        this.executor, this.sendQueuePool, this.receivedMailSink, this.connectionPool, this.keyLifetime);
+                        this.executor, this.sendQueuePool, this.receivedMailSink, this.limiter, this.connectionPool, this.keyLifetime);
                 this.executor.submit(acceptor);
             } catch (final InterruptedException e) {
                 break;

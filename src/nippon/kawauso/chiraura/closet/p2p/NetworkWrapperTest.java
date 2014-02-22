@@ -22,6 +22,11 @@ import nippon.kawauso.chiraura.network.AddressableNetworks;
  */
 public final class NetworkWrapperTest {
 
+    private static final long duration = Duration.SECOND / 2;
+    private static final long sizeLimit = 10_000_000L;
+    private static final int countLimit = 1_000;
+    private static final long penalty = 5 * Duration.SECOND;
+
     private static AddressableNetwork sampleNetwork(final Random random) {
         final Address self = AddressTest.newRandomInstance(random);
         final int peerCapacity = 1_000;
@@ -42,8 +47,7 @@ public final class NetworkWrapperTest {
         final long publicKeyLifetime = Duration.HOUR;
         final long commonKeyLifetime = 10 * Duration.MINUTE;
         return Messengers.newInstance(port, receivBufferSize, sendBufferSize, connectionTimeout, operationTimeout, messageSizeLimit, version,
-                versionGapThreshold,
-                id, publicKeyLifetime, commonKeyLifetime);
+                versionGapThreshold, id, publicKeyLifetime, commonKeyLifetime, duration, sizeLimit, countLimit, penalty);
     }
 
     static NetworkWrapper sample(final Random random, final AddressCalculator calculator) {

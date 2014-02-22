@@ -32,6 +32,7 @@ final class Receiver implements Callable<Void> {
     // 入出力。
     private final BlockingQueue<ReceivedMail> receivedMailSink;
     private final BlockingQueue<MessengerReport> messengerReportSink;
+    private final TrafficLimiter limiter;
 
     // 通信周り。
     private final long timeout;
@@ -46,13 +47,16 @@ final class Receiver implements Callable<Void> {
 
     private Key decryptionKey;
 
-    Receiver(final BlockingQueue<ReceivedMail> receivedMailSink, final BlockingQueue<MessengerReport> messengerReportSink, final long timeout,
+    Receiver(final BlockingQueue<ReceivedMail> receivedMailSink, final BlockingQueue<MessengerReport> messengerReportSink, final TrafficLimiter limiter,
+            final long timeout,
             final Transceiver transceiver, final Connection connection, final InputStream input, final PrivateKey myKey, final PublicKey destinationKey,
             final Key firstDecryptionKey) {
         if (receivedMailSink == null) {
             throw new IllegalArgumentException("Null received mail sink.");
         } else if (messengerReportSink == null) {
             throw new IllegalArgumentException("Null messenger report sink.");
+        } else if (limiter == null) {
+            throw new IllegalArgumentException("Null limiter.");
         } else if (timeout < 0) {
             throw new IllegalArgumentException("Invalid timeout ( " + timeout + " ).");
         } else if (transceiver == null) {
@@ -71,6 +75,7 @@ final class Receiver implements Callable<Void> {
 
         this.receivedMailSink = receivedMailSink;
         this.messengerReportSink = messengerReportSink;
+        this.limiter = limiter;
         this.timeout = timeout;
         this.transceiver = transceiver;
         this.connection = connection;
@@ -86,7 +91,7 @@ final class Receiver implements Callable<Void> {
 
         try {
             subCall();
-        } catch (final SocketTimeoutException e) {
+        } catch (final SocketTimeoutException | InterruptedException e) {
             // 正常な終了信号。
         } catch (final Exception e) {
             if (!Thread.currentThread().isInterrupted() && !this.connection.isClosed()) {
@@ -96,13 +101,18 @@ final class Receiver implements Callable<Void> {
             }
         } finally {
             this.connection.close();
+            try {
+                this.limiter.remove(this.connection.getDestination());
+            } catch (final InterruptedException ignored) {
+                // 正常な終了信号。
+            }
         }
 
         LOG.log(Level.FINE, "{0}: さようなら。", this.connection);
         return null;
     }
 
-    private void subCall() throws IOException, MyRuleException {
+    private void subCall() throws IOException, MyRuleException, InterruptedException {
         while (!Thread.currentThread().isInterrupted()) {
             final List<Message> mail = new ArrayList<>();
 
@@ -154,6 +164,13 @@ final class Receiver implements Callable<Void> {
 
             // 最終動作時刻を更新。
             this.connection.updateDate();
+
+            long sleep = this.limiter.nextSleep(size, this.connection.getDestination());
+            while (sleep > 0) {
+                LOG.log(Level.FINEST, "{0}: {1} ミリ秒さぼります。", new Object[] { this.connection, Long.toString(sleep) });
+                Thread.sleep(sleep);
+                sleep = this.limiter.nextSleep(this.connection.getDestination());
+            }
         }
     }
 

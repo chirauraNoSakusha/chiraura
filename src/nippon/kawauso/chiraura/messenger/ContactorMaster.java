@@ -33,6 +33,7 @@ final class ContactorMaster extends Reporter<Void> {
 
     private final BlockingQueue<ReceivedMail> receivedMailSink;
     private final SendQueuePool sendQueuePool;
+    private final TrafficLimiter limiter;
     private final BlockingQueue<MessengerReport> messengerReportSink;
     private final BoundConnectionPool<ContactingConnection> contactingConnectionPool;
     private final BoundConnectionPool<Connection> connectionPool;
@@ -53,7 +54,7 @@ final class ContactorMaster extends Reporter<Void> {
 
     ContactorMaster(final BlockingQueue<Reporter.Report> reportSink, final BlockingQueue<ConnectRequest> connectRequestSource,
             final AtomicInteger serialGenerator, final ExecutorService executor, final BlockingQueue<ReceivedMail> receivedMailSink,
-            final SendQueuePool sendQueuePool, final BlockingQueue<MessengerReport> messengerReportSink,
+            final SendQueuePool sendQueuePool, final TrafficLimiter limiter, final BlockingQueue<MessengerReport> messengerReportSink,
             final BoundConnectionPool<ContactingConnection> contactingConnectionPool, final BoundConnectionPool<Connection> connectionPool,
             final int receiveBufferSize, final int sendBufferSize, final long connectionTimeout, final long operationTimeout, final Transceiver transceiver,
             final long version, final long versionGapThreshold, final int port, final KeyPair id, final PublicKeyManager keyManager, final long keyLifetime,
@@ -70,6 +71,8 @@ final class ContactorMaster extends Reporter<Void> {
             throw new IllegalArgumentException("Null received mail sink.");
         } else if (sendQueuePool == null) {
             throw new IllegalArgumentException("Null send queue pool.");
+        } else if (limiter == null) {
+            throw new IllegalArgumentException("Null limiter.");
         } else if (messengerReportSink == null) {
             throw new IllegalArgumentException("Null messenger report sink.");
         } else if (contactingConnectionPool == null) {
@@ -101,6 +104,7 @@ final class ContactorMaster extends Reporter<Void> {
         this.executor = executor;
         this.receivedMailSink = receivedMailSink;
         this.sendQueuePool = sendQueuePool;
+        this.limiter = limiter;
         this.messengerReportSink = messengerReportSink;
         this.contactingConnectionPool = contactingConnectionPool;
         this.connectionPool = connectionPool;
@@ -131,8 +135,8 @@ final class ContactorMaster extends Reporter<Void> {
                         new Object[] { idNumber, Integer.toString(request.getConnectionType()), request.getDestination() });
                 final Contactor contactor = new Contactor(this.messengerReportSink, this.contactingConnectionPool, this.receiveBufferSize, this.sendBufferSize,
                         this.connectionTimeout, this.operationTimeout, this.transceiver, connection, this.version, this.versionGapThreshold, this.port,
-                        this.id,
-                        this.keyManager, this.self, this.executor, this.sendQueuePool, this.receivedMailSink, this.connectionPool, this.keyLifetime);
+                        this.id, this.keyManager, this.self, this.executor, this.sendQueuePool, this.receivedMailSink, this.limiter, this.connectionPool,
+                        this.keyLifetime);
                 this.executor.submit(contactor);
             } catch (final InterruptedException e) {
                 break;

@@ -44,6 +44,11 @@ public final class ReceiverTest {
         final TypeRegistry<Message> registry = TypeRegistries.newRegistry();
         transceiver = new Transceiver(Integer.MAX_VALUE, RegistryInitializer.init(registry));
     }
+    private static final long duration = Duration.SECOND / 2;
+    private static final long sizeLimit = 10_000_000L;
+    private static final int countLimit = 1_000;
+    private static final long penalty = 5 * Duration.SECOND;
+    private final TrafficLimiter limiter = new ConstantTrafficLimiter(duration, sizeLimit, countLimit, penalty);
 
     private static final long timeout = 10 * Duration.SECOND;
     private static final int idNumber = 1234;
@@ -90,7 +95,7 @@ public final class ReceiverTest {
 
         this.subjectSocket.setSoTimeout((int) timeout);
 
-        // DebugFunctions.startDebugLogging();
+        // LoggingFunctions.startDebugLogging();
     }
 
     /**
@@ -119,8 +124,8 @@ public final class ReceiverTest {
      */
     @Test
     public void testSample() throws Exception {
-        final Receiver instance = new Receiver(this.subjectReceivedMailQueue, this.subjectMessengerReportQueue, timeout, transceiver, this.subjectConnection,
-                this.subjectInput, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
+        final Receiver instance = new Receiver(this.subjectReceivedMailQueue, this.subjectMessengerReportQueue, this.limiter, timeout, transceiver,
+                this.subjectConnection, this.subjectInput, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
         this.executor.submit(instance);
 
         // 一回目。
@@ -152,8 +157,8 @@ public final class ReceiverTest {
      */
     @Test
     public void testKeyUpdate() throws Exception {
-        final Receiver instance = new Receiver(this.subjectReceivedMailQueue, this.subjectMessengerReportQueue, timeout, transceiver, this.subjectConnection,
-                this.subjectInput, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
+        final Receiver instance = new Receiver(this.subjectReceivedMailQueue, this.subjectMessengerReportQueue, this.limiter, timeout, transceiver,
+                this.subjectConnection, this.subjectInput, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
         this.executor.submit(instance);
 
         // 一回目。
@@ -187,10 +192,12 @@ public final class ReceiverTest {
      */
     @Test
     public void testErrorStream() throws Exception {
+        // LoggingFunctions.startDebugLogging();
+
         final int errorThreshold = 5;
         final InputStream subjectErrorInput = InputStreamWrapper.getErrorStream(this.subjectInput, errorThreshold);
 
-        final Receiver instance = new Receiver(this.subjectReceivedMailQueue, this.subjectMessengerReportQueue, errorThreshold, transceiver,
+        final Receiver instance = new Receiver(this.subjectReceivedMailQueue, this.subjectMessengerReportQueue, this.limiter, errorThreshold, transceiver,
                 this.subjectConnection, subjectErrorInput, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
         final Future<Void> future = this.executor.submit(instance);
 
@@ -227,8 +234,8 @@ public final class ReceiverTest {
      */
     @Test
     public void testInvalidMail() throws Exception {
-        final Receiver instance = new Receiver(this.subjectReceivedMailQueue, this.subjectMessengerReportQueue, timeout, transceiver, this.subjectConnection,
-                this.subjectInput, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
+        final Receiver instance = new Receiver(this.subjectReceivedMailQueue, this.subjectMessengerReportQueue, this.limiter, timeout, transceiver,
+                this.subjectConnection, this.subjectInput, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
         final Future<Void> future = this.executor.submit(instance);
 
         this.testerOutput.write(new byte[100]);
@@ -249,7 +256,7 @@ public final class ReceiverTest {
     public void testTimeout() throws Exception {
         final long shortTimeout = 100L;
         this.subjectSocket.setSoTimeout((int) shortTimeout);
-        final Receiver instance = new Receiver(this.subjectReceivedMailQueue, this.subjectMessengerReportQueue, shortTimeout, transceiver,
+        final Receiver instance = new Receiver(this.subjectReceivedMailQueue, this.subjectMessengerReportQueue, this.limiter, shortTimeout, transceiver,
                 this.subjectConnection, this.subjectInput, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
         final Future<Void> future = this.executor.submit(instance);
 
