@@ -18,11 +18,11 @@ final class IndexResponse extends BasicResponse {
         return fields;
     }
 
-    IndexResponse(final String board) {
+    IndexResponse(final String board, final String label) {
         super(Http.Status.OK, getFields(),
                 (new StringBuilder("<HTML>"))
                         .append("<HEAD>")
-                        .append("<title>").append(board).append("</title>") // 2chMate は小文字タグしか対応してないっぽい。
+                        .append("<title>").append(label).append("</title>") // 2chMate は小文字タグしか対応してないっぽい。
                         .append("</HEAD>")
                         .append("<BODY>")
                         .append('/').append(board).append('/').append(Constants.BOARD_FILE).append(" を利用してください。")
@@ -33,4 +33,7 @@ final class IndexResponse extends BasicResponse {
         }
     }
 
+    IndexResponse(final String board) {
+        this(board, board);
+    }
 }

@@ -43,7 +43,7 @@ final class GetBoardResponseMaker {
                 }
             }
 
-            return new ContentResponse(board);
+            return new BoardResponse(board);
         } else if (start + timeout <= System.currentTimeMillis()) {
             return new InternalServerErrorResponse("時間切れです。");
         } else {

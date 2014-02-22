@@ -26,6 +26,7 @@ final class Requests {
 
     private static final Logger LOG = Logger.getLogger(Requests.class.getName());
 
+    private static final String MENU_FILE = "bbsmenu.html";
     private static final String THREAD_DIR = "dat";
     private static final String THREAD_SUFFIX = ".dat";
     private static final String POST_DIR = "test";
@@ -46,13 +47,20 @@ final class Requests {
         if (tokens.length == 0) {
             // / アクセスは不許可。
             return new ForbiddenRequest(target);
-        } else if (!tokens[0].equals("")) { // tokens.length == 1 を含む。
+        } else if (!tokens[0].equals("")) { // 先頭が/ではない。tokens.length == 1 を含む。
             return new NotFoundRequest(target);
         }
 
-        if (tokens.length == 2 && target.charAt(target.length() - 1) == '/') {
-            // GET /[board]/ HTTP/1.1
-            return new GetIndexRequest(tokens[1]);
+        if (tokens.length == 2) {
+            if (tokens[1].equals(MENU_FILE)) {
+                // GET /bbsmenu.html HTTP/1.1
+                return new GetMenuRequest(MENU_FILE, fields.get(Http.Field.HOST));
+            } else if (target.charAt(target.length() - 1) == '/') {
+                // GET /[board]/ HTTP/1.1
+                return new GetIndexRequest(tokens[1]);
+            } else {
+                return new NotFoundRequest(target);
+            }
         } else if (tokens.length == 3) {
             // 板 (スレタイ一覧)。
             // GET /[board]/subject.txt HTTP/1.1

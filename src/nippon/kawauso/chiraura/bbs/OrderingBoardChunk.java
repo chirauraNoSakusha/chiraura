@@ -519,6 +519,11 @@ final class OrderingBoardChunk extends SkeletalChunk implements BoardChunk {
     }
 
     @Override
+    public String getContentType() {
+        return Http.ContentType.TEXT_PLAIN.toString();
+    }
+
+    @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;

@@ -308,9 +308,6 @@ final class ThreadChunk extends SkeletalChunk implements Mountain, Content {
     private boolean notHashed;
     private HashValue hashValue;
 
-    // chiraura:// 記法用。
-    private String host;
-
     private ThreadChunk(final Id id, final String title, final Entry firstEntry, final NavigableSet<Entry> entries, final int entrySize, final long updateDate,
             final boolean notHashed, final HashValue hashValue) {
         if (id == null) {
@@ -336,8 +333,6 @@ final class ThreadChunk extends SkeletalChunk implements Mountain, Content {
         this.updateDate = updateDate;
         this.notHashed = notHashed;
         this.hashValue = hashValue;
-
-        this.host = null;
     }
 
     private ThreadChunk(final Id id, final String title, final Entry firstEntry) {
@@ -497,34 +492,34 @@ final class ThreadChunk extends SkeletalChunk implements Mountain, Content {
         };
     }
 
-    void setHost(final String host, final int port) {
-        if (host != null && !host.isEmpty()) {
-            final StringBuilder buff = new StringBuilder("(").append(ContentConstants.CHIRAURA_NOTATION_LABEL).append(") ttp://").append(host);
-            if (host.indexOf(':') < 0 && port != Http.DEFAULT_PORT) {
-                buff.append(':').append(Integer.toString(port));
-            }
-            this.host = buff.append('/').toString();
-        }
-    }
-
-    private String wrapMessage(final String msg) {
-        if (this.host == null) {
+    private String wrapMessage(final String msg, final String after) {
+        if (after == null) {
             return msg;
         } else {
-            return ContentConstants.CHIRAURA_NOTATION_LABEL.matcher(msg).replaceAll(this.host);
+            return ContentConstants.CHIRAURA_NOTATION_LABEL.matcher(msg).replaceAll(after);
         }
     }
 
     private static final String TERMINAL = "1001<><>おわり<> もう綴れません。 <>\n";
 
-    @Override
-    public String toNetworkString() {
+    String toNetworkString(final String host, final int port) {
+        final String after;
+        if (host == null || host.isEmpty()) {
+            after = null;
+        } else {
+            final StringBuilder buff = new StringBuilder("(").append(ContentConstants.CHIRAURA_NOTATION_LABEL).append(") ttp://").append(host);
+            if (host.indexOf(':') < 0 && port != Http.DEFAULT_PORT) {
+                buff.append(':').append(Integer.toString(port));
+            }
+            after = buff.append('/').toString();
+        }
+
         final DateFormat formatter = new SimpleDateFormat("yyyy/MM/dd(E) HH:mm:ss");
         final StringBuilder buff = (new StringBuilder(this.firstEntry.author))
                 .append("<>").append(this.firstEntry.mail)
                 .append("<>").append(formatter.format(new Date(this.firstEntry.date)))
                 .append(" ID:").append(PostFunctions.idToString(this.firstEntry.id))
-                .append("<> ").append(wrapMessage(this.firstEntry.message))
+                .append("<> ").append(wrapMessage(this.firstEntry.message, after))
                 .append(" <>").append(this.title)
                 .append('\n');
         for (final Entry entry : this.entries) {
@@ -532,13 +527,18 @@ final class ThreadChunk extends SkeletalChunk implements Mountain, Content {
                     .append("<>").append(entry.mail)
                     .append("<>").append(formatter.format(new Date(entry.date)))
                     .append(" ID:").append(PostFunctions.idToString(entry.id))
-                    .append("<> ").append(wrapMessage(entry.message))
+                    .append("<> ").append(wrapMessage(entry.message, after))
                     .append(" <>\n");
         }
         if (isFull()) {
             buff.append(TERMINAL);
         }
         return buff.toString();
+    }
+
+    @Override
+    public String getContentType() {
+        return Http.ContentType.TEXT_PLAIN.toString();
     }
 
     @Override
@@ -591,9 +591,9 @@ final class ThreadChunk extends SkeletalChunk implements Mountain, Content {
 
         final ThreadChunk instance = new ThreadChunk("test", System.currentTimeMillis() / Duration.SECOND, "てすとスレ", "名無し", "age", System.currentTimeMillis(),
                 1234567890L, "テストだお。");
-        System.out.println("[" + instance.toNetworkString() + "]");
+        System.out.println("[" + instance.toNetworkString("localhost", 80) + "]");
         instance.patch(Entry.newInstance("メシア", "sage", System.currentTimeMillis(), 987654321L, "くそスレ乙"));
-        System.out.println("[" + instance.toNetworkString() + "]");
+        System.out.println("[" + instance.toNetworkString("192.168.0.1", 22222) + "]");
     }
 
 }

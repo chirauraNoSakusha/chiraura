@@ -10,18 +10,19 @@ import java.util.Map;
  * あったよー。
  * @author chirauraNoSakusha
  */
-final class ContentResponse extends BasicResponse {
+class ContentResponse extends BasicResponse {
 
     private static Map<Http.Field, String> getFields(final Content content) {
         final Map<Http.Field, String> fields = new EnumMap<>(Http.Field.class);
         fields.put(Http.Field.LAST_MODIFIED, Http.formatDate(content.getUpdateDate()));
         fields.put(Http.Field.ETAG, Long.toString(content.getNetworkTag()));
-        fields.put(Http.Field.CONTENT_TYPE, "text/plain; charset=" + Constants.CONTENT_CHARSET.name());
+        fields.put(Http.Field.CONTENT_TYPE, (new StringBuilder(content.getContentType())).append("; charset=").append(Constants.CONTENT_CHARSET.name())
+                .toString());
         return fields;
     }
 
-    ContentResponse(final Content content) {
-        super(Http.Status.OK, getFields(content), content.toNetworkString().getBytes(Constants.CONTENT_CHARSET));
+    ContentResponse(final Content content, final byte[] contentBytes) {
+        super(Http.Status.OK, getFields(content), contentBytes);
     }
 
 }

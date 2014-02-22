@@ -48,17 +48,15 @@ final class GetThreadResponseMaker {
                 }
             }
 
-            thread.setHost(request.getHost(), this.port);
-
+            final byte[] content = thread.toNetworkString(request.getHost(), this.port).getBytes(Constants.CONTENT_CHARSET);
             final Integer rangeHead = request.getRangeHead();
             if (rangeHead != null) {
-                final byte[] content = thread.toNetworkString().getBytes(Constants.CONTENT_CHARSET);
                 if (content.length <= rangeHead) {
                     return new RangeNotSatisfiableResponse(getTarget(request));
                 }
                 return new PartialContentResponse(thread, content, rangeHead);
             } else {
-                return new ContentResponse(thread);
+                return new ContentResponse(thread, content);
             }
         } else if (start + timeout <= System.currentTimeMillis()) {
             return new InternalServerErrorResponse("時間切れです。");

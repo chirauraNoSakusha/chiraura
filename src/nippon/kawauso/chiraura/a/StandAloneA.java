@@ -40,7 +40,7 @@ public final class StandAloneA implements AutoCloseable {
         this.closet = new StandAloneCloset(environment.getStorageRoot(), environment.getChunkSizeLimit(), environment.getStorageDirectoryBitSize(),
                 environment.getChunkCacheCapacity(), environment.getIndexCacheCapacity(), environment.getRangeCacheCapacity());
         this.bbs = new BasicBbs(environment.getBbsPort(), environment.getBbsConnectionTimeout(), environment.getBbsInternalTimeout(), this.closet,
-                environment.getBbsUpdateThreshold(), environment.getDefaultNames());
+                environment.getBbsUpdateThreshold(), environment.loadBbsMenu());
         this.stopper = new CountDownLatch(1);
     }
 

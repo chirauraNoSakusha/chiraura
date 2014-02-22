@@ -3,7 +3,6 @@
  */
 package nippon.kawauso.chiraura.bbs;
 
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
 import nippon.kawauso.chiraura.closet.Closet;
@@ -18,7 +17,7 @@ public final class BasicBbs implements Bbs {
     private final long connectionTimeout;
     private final long internalTimeout;
     private final ClosetWrapper closet;
-    private final Map<String, String> boardToName;
+    private final Menu menu;
 
     /**
      * 作成する。
@@ -27,10 +26,9 @@ public final class BasicBbs implements Bbs {
      * @param internalTimeout 内部動作を待つ時間 (ミリ秒)
      * @param closet 四次元押し入れ
      * @param updateThreshold 板更新自粛期間
-     * @param boardToName 板固有の名無し
+     * @param menu メニュー
      */
-    public BasicBbs(final int port, final long connectionTimeout, final long internalTimeout, final Closet closet, final long updateThreshold,
-            final Map<String, String> boardToName) {
+    public BasicBbs(final int port, final long connectionTimeout, final long internalTimeout, final Closet closet, final long updateThreshold, final Menu menu) {
         if (!PortFunctions.isValid(port)) {
             throw new IllegalArgumentException("Invalid port ( " + port + " ).");
         } else if (connectionTimeout < 0) {
@@ -41,20 +39,20 @@ public final class BasicBbs implements Bbs {
             throw new IllegalArgumentException("Negative update threshold ( " + updateThreshold + " ).");
         } else if (closet == null) {
             throw new IllegalArgumentException("Null closet.");
-        } else if (boardToName == null) {
-            throw new IllegalArgumentException("Null default names.");
+        } else if (menu == null) {
+            throw new IllegalArgumentException("Null menu.");
         }
 
         this.port = port;
         this.connectionTimeout = connectionTimeout;
         this.internalTimeout = internalTimeout;
         this.closet = new ClosetWrapper(closet, updateThreshold);
-        this.boardToName = boardToName;
+        this.menu = menu;
     }
 
     @Override
     public void start(final ExecutorService executor) {
-        executor.submit(new Boss(this.port, this.connectionTimeout, this.internalTimeout, this.closet, this.boardToName, executor));
+        executor.submit(new Boss(this.port, this.connectionTimeout, this.internalTimeout, this.closet, this.menu, executor));
     }
 
     @Override

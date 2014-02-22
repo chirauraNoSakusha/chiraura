@@ -8,7 +8,6 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -143,13 +142,13 @@ final class PostFunctions {
      * 書き込んだ人の名前を整形する。
      * @param author 元の名前
      * @param boardName 板名
-     * @param boardToName 板固有の名無し
+     * @param menu 板固有の名無し
      * @return 整形した名前
      */
-    static String wrapAuthor(final String author, final String boardName, final Map<String, String> boardToName) {
+    static String wrapAuthor(final String author, final String boardName, final Menu menu) {
         // 名無し。
         if (EMPTY_PATTERN.matcher(author).find()) {
-            final String name = boardToName.get(boardName);
+            final String name = menu.getNanashi(boardName);
             if (name != null) {
                 return name;
             } else {

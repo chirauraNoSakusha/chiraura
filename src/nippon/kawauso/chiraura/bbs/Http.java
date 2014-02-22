@@ -115,7 +115,7 @@ final class Http {
 
     }
 
-    enum Status {
+    static enum Status {
         /*
          * 使う分だけ定義すれば十分。
          */
@@ -149,7 +149,7 @@ final class Http {
 
         private final int number;
 
-        Status(final int number) {
+        private Status(final int number) {
             this.number = number;
         }
 
@@ -163,6 +163,25 @@ final class Http {
                     .append(' ')
                     .append(this.name().replaceAll("_", " "))
                     .toString();
+        }
+
+    }
+
+    static enum ContentType {
+        TEXT_PLAIN("text/plain"),
+        TEXT_HTML("text/html"),
+
+        ;
+
+        private final String label;
+
+        private ContentType(final String label) {
+            this.label = label;
+        }
+
+        @Override
+        public String toString() {
+            return this.label;
         }
 
     }

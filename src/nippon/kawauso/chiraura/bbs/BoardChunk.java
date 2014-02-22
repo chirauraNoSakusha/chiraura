@@ -20,4 +20,6 @@ interface BoardChunk extends Mountain, Content {
 
     Entry<?> getEntry(long thread);
 
+    String toNetworkString();
+
 }

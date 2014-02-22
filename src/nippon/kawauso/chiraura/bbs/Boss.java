@@ -6,7 +6,6 @@ package nippon.kawauso.chiraura.bbs;
 import java.io.IOException;
 import java.net.BindException;
 import java.net.ServerSocket;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
@@ -37,8 +36,7 @@ final class Boss extends Chief {
 
     private ServerSocket serverSocket;
 
-    Boss(final int port, final long connectionTimeout, final long internalTimeout, final ClosetWrapper closet, final Map<String, String> boardToName,
-            final ExecutorService executor) {
+    Boss(final int port, final long connectionTimeout, final long internalTimeout, final ClosetWrapper closet, final Menu menu, final ExecutorService executor) {
         super(new LinkedBlockingQueue<Reporter.Report>());
 
         if (!PortFunctions.isValid(port)) {
@@ -49,8 +47,8 @@ final class Boss extends Chief {
             throw new IllegalArgumentException("Negative internal timeout ( " + internalTimeout + " ).");
         } else if (closet == null) {
             throw new IllegalArgumentException("Null closet.");
-        } else if (boardToName == null) {
-            throw new IllegalArgumentException("Null default names.");
+        } else if (menu == null) {
+            throw new IllegalArgumentException("Null menu.");
         } else if (executor == null) {
             throw new IllegalArgumentException("Null executor.");
         }
@@ -61,7 +59,7 @@ final class Boss extends Chief {
         this.executor = executor;
 
         this.connectionPool = new ConnectionPool();
-        this.responseMaker = new ResponseMaker(closet, boardToName, port);
+        this.responseMaker = new ResponseMaker(closet, menu, port);
         this.serverSocket = null;
     }
 

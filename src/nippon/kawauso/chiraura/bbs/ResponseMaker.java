@@ -3,8 +3,6 @@
  */
 package nippon.kawauso.chiraura.bbs;
 
-import java.util.Map;
-
 import nippon.kawauso.chiraura.lib.connection.PortFunctions;
 
 /**
@@ -13,28 +11,34 @@ import nippon.kawauso.chiraura.lib.connection.PortFunctions;
  */
 final class ResponseMaker {
 
+    private final GetMenuResponseMaker getMenuResponseMaker;
+    private final GetIndexResponseMaker getIndexResponseMaker;
     private final GetBoardResponseMaker getBoardResponseMaker;
     private final GetThreadResponseMaker getThreadResponseMaker;
     private final AddThreadResponseMaker addThreadResponseMaker;
     private final AddCommentResponseMaker addCommentResponseMaker;
 
-    ResponseMaker(final ClosetWrapper closet, final Map<String, String> boardToName, final int port) {
+    ResponseMaker(final ClosetWrapper closet, final Menu menu, final int port) {
         if (closet == null) {
             throw new IllegalArgumentException("Null closet.");
-        } else if (boardToName == null) {
-            throw new IllegalArgumentException("Null default names.");
+        } else if (menu == null) {
+            throw new IllegalArgumentException("Null menu.");
         } else if (!PortFunctions.isValid(port)) {
             throw new IllegalArgumentException("Invalid port ( " + port + " ).");
         }
+        this.getMenuResponseMaker = new GetMenuResponseMaker(menu, port);
+        this.getIndexResponseMaker = new GetIndexResponseMaker(menu);
         this.getBoardResponseMaker = new GetBoardResponseMaker(closet);
         this.getThreadResponseMaker = new GetThreadResponseMaker(closet, port);
-        this.addThreadResponseMaker = new AddThreadResponseMaker(closet, boardToName);
-        this.addCommentResponseMaker = new AddCommentResponseMaker(closet, boardToName);
+        this.addThreadResponseMaker = new AddThreadResponseMaker(closet, menu);
+        this.addCommentResponseMaker = new AddCommentResponseMaker(closet, menu);
     }
 
     Response make(final Request request, final long timeout) throws InterruptedException {
-        if (request instanceof GetIndexRequest) {
-            return new IndexResponse(((GetIndexRequest) request).getBoard());
+        if (request instanceof GetMenuRequest) {
+            return this.getMenuResponseMaker.make((GetMenuRequest) request);
+        } else if (request instanceof GetIndexRequest) {
+            return this.getIndexResponseMaker.make((GetIndexRequest) request);
         } else if (request instanceof GetBoardRequest) {
             return this.getBoardResponseMaker.make((GetBoardRequest) request, timeout);
         } else if (request instanceof GetThreadRequest) {

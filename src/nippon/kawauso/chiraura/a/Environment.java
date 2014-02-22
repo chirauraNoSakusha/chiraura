@@ -15,7 +15,6 @@ import java.net.InetSocketAddress;
 import java.security.KeyPair;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.ConsoleHandler;
@@ -26,6 +25,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import nippon.kawauso.chiraura.Global;
+import nippon.kawauso.chiraura.bbs.Menu;
 import nippon.kawauso.chiraura.closet.p2p.AddressCalculator;
 import nippon.kawauso.chiraura.closet.p2p.HashingCalculator;
 import nippon.kawauso.chiraura.lib.Mosaic;
@@ -46,7 +46,7 @@ final class Environment {
      * {root}/: 使用する最上位のディレクトリ。
      * {root}/self.txt: 自身の公開用個体情報を保存するファイル。
      * {root}/peers.txt: 公開されている個体情報を保存するファイル。
-     * {root}/names.txt: 板固有の名無しを保存するファイル。
+     * {root}/menu.txt: メニュー構造とデフォルト名無しを保存するファイル。
      * {root}/storage/: Storage に使用するディレクトリ。
      * {root}/resource/: 何かと突っこんでおくディレクトリ。
      * {root}/resource/id.dat: 自身の識別用鍵を保存するファイル。
@@ -114,7 +114,7 @@ final class Environment {
     private final long bbsInternalTimeout;
     private final long bbsUpdateThreshold;
 
-    private final File bbsNameFile;
+    private final File bbsMenuFile;
 
     private final File selfFile;
     private final boolean gui;
@@ -242,7 +242,7 @@ final class Environment {
         this.bbsInternalTimeout = getLargerLong(option, Option.Item.bbsInternalTimeout);
         this.bbsUpdateThreshold = getLargerLong(option, Option.Item.bbsUpdateThreshold);
 
-        this.bbsNameFile = loadFile(new File(this.root, "names.txt"));
+        this.bbsMenuFile = loadFile(new File(this.root, "menu.txt"));
 
         this.selfFile = loadFile(new File(this.root, "self.txt"));
         this.gui = Boolean.parseBoolean(option.get(Option.Item.gui));
@@ -563,8 +563,8 @@ final class Environment {
         return new Self(self, mosaic);
     }
 
-    Map<String, String> getDefaultNames() {
-        return NameIo.fromTextFile(this.bbsNameFile);
+    Menu loadBbsMenu() {
+        return Menu.fromTextFile(this.bbsMenuFile);
     }
 
     void startLogging() {

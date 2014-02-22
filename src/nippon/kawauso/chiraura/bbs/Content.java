@@ -3,7 +3,6 @@
  */
 package nippon.kawauso.chiraura.bbs;
 
-
 /**
  * @author chirauraNoSakusha
  */
@@ -13,6 +12,9 @@ interface Content {
 
     long getNetworkTag();
 
-    String toNetworkString();
+    /**
+     * @return text/plain など
+     */
+    String getContentType();
 
 }
