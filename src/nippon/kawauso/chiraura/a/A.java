@@ -72,6 +72,8 @@ public final class A implements AutoCloseable {
                         .setSendBufferSize(environment.getSendBuffereSize())
                         .setPublicKeyLifetime(environment.getPublicKeyLifetime())
                         .setCommonKeyLifetime(environment.getCommonKeyLifetime())
+                        .setPortIgnore(environment.getPortIgnore())
+                        .setConnectionLimit(environment.getConnectionLimit())
                         .setTrafficDuration(environment.getTrafficDuration())
                         .setTrafficSizeLimit(environment.getTrafficSizeLimit())
                         .setTrafficCountLimit(environment.getTrafficCountLimit())

@@ -36,6 +36,10 @@ final class Acceptor implements Callable<Void> {
     private static final Logger LOG = Logger.getLogger(Acceptor.class.getName());
 
     // 参照。
+    // 接続制限。
+    private final boolean portIgnore;
+    private final int connectionLimit;
+
     // 入出力。
     private final BlockingQueue<MessengerReport> messengerReportSink;
     private final ConnectionPool<AcceptedConnection> acceptedConnectionPool;
@@ -63,13 +67,15 @@ final class Acceptor implements Callable<Void> {
     private final BoundConnectionPool<Connection> connectionPool;
     private final long keyLifetime;
 
-    Acceptor(final BlockingQueue<MessengerReport> messengerReportSink, final ConnectionPool<AcceptedConnection> acceptedConnectionPool,
-            final int sendBufferSize, final long connectionTimeout, final long operationTimeout, final Transceiver transceiver,
-            final AcceptedConnection acceptedConnection, final long version, final long versionGapThreshold, final KeyPair id,
-            final PublicKeyManager keyManager, final AtomicReference<InetSocketAddress> self, final ExecutorService executor,
-            final SendQueuePool sendQueuePool, final BlockingQueue<ReceivedMail> receivedMailSink, final TrafficLimiter limiter,
-            final BoundConnectionPool<Connection> connectionPool, final long keyLifetime) {
-        if (messengerReportSink == null) {
+    Acceptor(final boolean portIgnore, final int connectionLimit, final BlockingQueue<MessengerReport> messengerReportSink,
+            final ConnectionPool<AcceptedConnection> acceptedConnectionPool, final int sendBufferSize, final long connectionTimeout,
+            final long operationTimeout, final Transceiver transceiver, final AcceptedConnection acceptedConnection, final long version,
+            final long versionGapThreshold, final KeyPair id, final PublicKeyManager keyManager, final AtomicReference<InetSocketAddress> self,
+            final ExecutorService executor, final SendQueuePool sendQueuePool, final BlockingQueue<ReceivedMail> receivedMailSink,
+            final TrafficLimiter limiter, final BoundConnectionPool<Connection> connectionPool, final long keyLifetime) {
+        if (connectionLimit < 0) {
+            throw new IllegalArgumentException("Negative connection limit ( " + connectionLimit + " ).");
+        } else if (messengerReportSink == null) {
             throw new IllegalArgumentException("Null messenger report sink.");
         } else if (acceptedConnectionPool == null) {
             throw new IllegalArgumentException("Null accepted connection pool.");
@@ -102,6 +108,9 @@ final class Acceptor implements Callable<Void> {
         } else if (keyLifetime < 0) {
             throw new IllegalArgumentException("Invalid key lifetime ( " + keyLifetime + " ).");
         }
+
+        this.portIgnore = portIgnore;
+        this.connectionLimit = connectionLimit;
 
         this.messengerReportSink = messengerReportSink;
         this.acceptedConnectionPool = acceptedConnectionPool;
@@ -149,6 +158,18 @@ final class Acceptor implements Callable<Void> {
     }
 
     private void subCall() throws IOException, MyRuleException {
+
+        // ポートを気にしない接続数制限。
+        if (this.portIgnore) {
+            final int numOfConnections = this.acceptedConnectionPool.getNumOfConnections(this.acceptedConnection.getSocket().getInetAddress())
+                    + this.connectionPool.getNumOfConnections(this.acceptedConnection.getSocket().getInetAddress());
+            if (numOfConnections >= this.connectionLimit) {
+                LOG.log(Level.WARNING, "{0}: ポートは無視した接続数 ( {1} ) が限界 ( {2} ) に達しています。",
+                        new Object[] { this.acceptedConnection, Integer.toString(numOfConnections), Integer.toString(this.connectionLimit) });
+                this.acceptedConnection.close();
+                return;
+            }
+        }
 
         // 受信の時間制限を設定。
         this.acceptedConnection.getSocket().setSoTimeout((int) this.operationTimeout);
@@ -228,6 +249,18 @@ final class Acceptor implements Callable<Void> {
 
         // ポート検査。
         if (portCheck(destination, destinationId)) {
+
+            // ポートを気にする接続数制限。
+            if (!this.portIgnore) {
+                final int numOfConnections = this.connectionPool.getNumOfConnections(destination);
+                if (numOfConnections >= this.connectionLimit) {
+                    LOG.log(Level.WARNING, "{0}: ポートまで考慮した接続数 ( {1} ) が限界 ( {2} ) に達しています。",
+                            new Object[] { this.acceptedConnection, Integer.toString(numOfConnections), Integer.toString(this.connectionLimit) });
+                    this.acceptedConnection.close();
+                    return;
+                }
+            }
+
             // 二言目への相槌を送信。
             final KeyPair keyPair = this.keyManager.getPublicKeyPair();
             StartingProtocol.sendSecondReply(this.transceiver, output, communicationKey, this.id, watchword, keyPair.getPublic(), this.version, destination);

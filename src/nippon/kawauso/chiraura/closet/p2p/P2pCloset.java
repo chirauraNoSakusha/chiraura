@@ -82,6 +82,8 @@ public final class P2pCloset implements Closet {
         private long cacheDuration = 30 * Duration.SECOND;
         private long publicKeyLifetime = Duration.DAY;
         private long commonKeyLifetime = Duration.HOUR;
+        private boolean portIgnore = true;
+        private int connectionLimit = 5;
         private long trafficDuration = Duration.SECOND;
         private long trafficSizeLimit = 10 * 1024 * 1024; // 10MB.
         private int trafficCountLimit = 1_000;
@@ -257,6 +259,26 @@ public final class P2pCloset implements Closet {
          */
         public Parameters setCommonKeyLifetime(final long value) {
             this.commonKeyLifetime = value;
+            return this;
+        }
+
+        /**
+         * 接続制限にてポートの違いを無視するかどうかを変える。
+         * @param value 新しい値。無視するなら true
+         * @return this
+         */
+        public Parameters setPortIgnore(final boolean value) {
+            this.portIgnore = value;
+            return this;
+        }
+
+        /**
+         * 1 つの通信相手に対する接続の制限数を変える。
+         * @param value 新しい値
+         * @return this
+         */
+        public Parameters setConnectionLimit(final int value) {
+            this.connectionLimit = value;
             return this;
         }
 
@@ -447,7 +469,7 @@ public final class P2pCloset implements Closet {
 
         final Messenger messenger = Messengers.newInstance(param.port, param.receiveBufferSize, param.sendBufferSize, param.connectionTimeout,
                 param.operationTimeout, param.messageSizeLimit, VERSION, VERSION_GAP_THRESHOLD, param.id, param.publicKeyLifetime, param.commonKeyLifetime,
-                param.trafficDuration, param.trafficSizeLimit, param.trafficCountLimit, param.trafficPenalty);
+                param.portIgnore, param.connectionLimit, param.trafficDuration, param.trafficSizeLimit, param.trafficCountLimit, param.trafficPenalty);
         final AddressableNetwork rawNetwork = AddressableNetworks.newInstance(param.calculator.calculate(param.id.getPublic()), param.peerCapacity,
                 param.maintenanceInterval);
         final PeerBlacklist blacklist = new TimeLimitedPeerBlacklist(param.blacklistCapacity, param.blacklistTimeout);

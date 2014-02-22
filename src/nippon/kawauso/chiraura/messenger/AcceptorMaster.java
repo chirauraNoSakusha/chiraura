@@ -5,7 +5,6 @@ package nippon.kawauso.chiraura.messenger;
 
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.SocketException;
 import java.security.KeyPair;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -32,6 +31,9 @@ final class AcceptorMaster extends Reporter<Void> {
     private final AtomicInteger serialGenerator;
     private final ExecutorService executor;
 
+    private final boolean portIgnore;
+    private final int connectionLimit;
+
     private final BlockingQueue<ReceivedMail> receivedMailSink;
     private final SendQueuePool sendQueuePool;
     private final TrafficLimiter limiter;
@@ -52,12 +54,11 @@ final class AcceptorMaster extends Reporter<Void> {
     private final AtomicReference<InetSocketAddress> self;
 
     AcceptorMaster(final BlockingQueue<Reporter.Report> reportSink, final BlockingQueue<Socket> acceptedSocketSource, final AtomicInteger serialGenerator,
-            final ExecutorService executor, final BlockingQueue<ReceivedMail> receivedMailSink, final SendQueuePool sendQueuePool,
-            final TrafficLimiter limiter,
-            final BlockingQueue<MessengerReport> messengerReportSink, final ConnectionPool<AcceptedConnection> acceptedConnectionPool,
-            final BoundConnectionPool<Connection> connectionPool, final int sendBufferSize, final long connectionTimeout, final long operationTimeout,
-            final Transceiver transceiver, final long version, final long versionGapThreshold, final KeyPair id, final PublicKeyManager keyManager,
-            final long keyLifetime, final AtomicReference<InetSocketAddress> self) {
+            final ExecutorService executor, final boolean portIgnore, final int connectionLimit, final BlockingQueue<ReceivedMail> receivedMailSink,
+            final SendQueuePool sendQueuePool, final TrafficLimiter limiter, final BlockingQueue<MessengerReport> messengerReportSink,
+            final ConnectionPool<AcceptedConnection> acceptedConnectionPool, final BoundConnectionPool<Connection> connectionPool, final int sendBufferSize,
+            final long connectionTimeout, final long operationTimeout, final Transceiver transceiver, final long version, final long versionGapThreshold,
+            final KeyPair id, final PublicKeyManager keyManager, final long keyLifetime, final AtomicReference<InetSocketAddress> self) {
         super(reportSink);
 
         if (acceptedSocketSource == null) {
@@ -66,6 +67,8 @@ final class AcceptorMaster extends Reporter<Void> {
             throw new IllegalArgumentException("Null serial generator.");
         } else if (executor == null) {
             throw new IllegalArgumentException("Null executor.");
+        } else if (connectionLimit < 0) {
+            throw new IllegalArgumentException("Negative connection limit ( " + connectionLimit + " ).");
         } else if (receivedMailSink == null) {
             throw new IllegalArgumentException("Null received mail sink.");
         } else if (sendQueuePool == null) {
@@ -99,6 +102,8 @@ final class AcceptorMaster extends Reporter<Void> {
         this.acceptedSocketSource = acceptedSocketSource;
         this.serialGenerator = serialGenerator;
         this.executor = executor;
+        this.portIgnore = portIgnore;
+        this.connectionLimit = connectionLimit;
         this.receivedMailSink = receivedMailSink;
         this.sendQueuePool = sendQueuePool;
         this.limiter = limiter;
@@ -118,23 +123,20 @@ final class AcceptorMaster extends Reporter<Void> {
     }
 
     @Override
-    protected Void subCall() throws InterruptedException, SocketException {
+    protected Void subCall() throws InterruptedException {
         while (!Thread.currentThread().isInterrupted()) {
-            try {
-                final Socket socket = this.acceptedSocketSource.take();
-                final int idNumber = this.serialGenerator.getAndIncrement();
+            final Socket socket = this.acceptedSocketSource.take();
+            final int idNumber = this.serialGenerator.getAndIncrement();
 
-                final AcceptedConnection connection = new AcceptedConnection(idNumber, socket);
-                this.acceptedConnectionPool.add(connection);
+            final AcceptedConnection connection = new AcceptedConnection(idNumber, socket);
+            this.acceptedConnectionPool.add(connection);
 
-                LOG.log(Level.FINER, "接続番号 {0} で {1} の受け入れ作業を始めます。", new Object[] { Integer.toString(idNumber), socket.getInetAddress() });
-                final Acceptor acceptor = new Acceptor(this.messengerReportSink, this.acceptedConnectionPool, this.sendBufferSize, this.connectionTimeout,
-                        this.operationTimeout, this.transceiver, connection, this.version, this.versionGapThreshold, this.id, this.keyManager, this.self,
-                        this.executor, this.sendQueuePool, this.receivedMailSink, this.limiter, this.connectionPool, this.keyLifetime);
-                this.executor.submit(acceptor);
-            } catch (final InterruptedException e) {
-                break;
-            }
+            LOG.log(Level.FINER, "接続番号 {0} で {1} の受け入れ作業を始めます。", new Object[] { Integer.toString(idNumber), socket.getInetAddress() });
+            final Acceptor acceptor = new Acceptor(this.portIgnore, this.connectionLimit, this.messengerReportSink, this.acceptedConnectionPool,
+                    this.sendBufferSize, this.connectionTimeout, this.operationTimeout, this.transceiver, connection, this.version, this.versionGapThreshold,
+                    this.id, this.keyManager, this.self, this.executor, this.sendQueuePool, this.receivedMailSink, this.limiter, this.connectionPool,
+                    this.keyLifetime);
+            this.executor.submit(acceptor);
         }
 
         return null;

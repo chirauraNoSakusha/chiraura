@@ -123,24 +123,20 @@ final class ContactorMaster extends Reporter<Void> {
     }
 
     @Override
-    protected Void subCall() throws Exception {
+    protected Void subCall() throws InterruptedException {
         while (!Thread.currentThread().isInterrupted()) {
-            try {
-                final ConnectRequest request = this.connectRequestSource.take();
-                final int idNumber = this.serialGenerator.getAndIncrement();
+            final ConnectRequest request = this.connectRequestSource.take();
+            final int idNumber = this.serialGenerator.getAndIncrement();
 
-                final ContactingConnection connection = new ContactingConnection(idNumber, request.getDestination(), request.getConnectionType());
-                this.contactingConnectionPool.add(connection);
-                LOG.log(Level.FINER, "接続番号 {0} 種別 {1} で {2} へ接続します。",
-                        new Object[] { idNumber, Integer.toString(request.getConnectionType()), request.getDestination() });
-                final Contactor contactor = new Contactor(this.messengerReportSink, this.contactingConnectionPool, this.receiveBufferSize, this.sendBufferSize,
-                        this.connectionTimeout, this.operationTimeout, this.transceiver, connection, this.version, this.versionGapThreshold, this.port,
-                        this.id, this.keyManager, this.self, this.executor, this.sendQueuePool, this.receivedMailSink, this.limiter, this.connectionPool,
-                        this.keyLifetime);
-                this.executor.submit(contactor);
-            } catch (final InterruptedException e) {
-                break;
-            }
+            final ContactingConnection connection = new ContactingConnection(idNumber, request.getDestination(), request.getConnectionType());
+            this.contactingConnectionPool.add(connection);
+            LOG.log(Level.FINER, "接続番号 {0} 種別 {1} で {2} へ接続します。",
+                    new Object[] { idNumber, Integer.toString(request.getConnectionType()), request.getDestination() });
+            final Contactor contactor = new Contactor(this.messengerReportSink, this.contactingConnectionPool, this.receiveBufferSize, this.sendBufferSize,
+                    this.connectionTimeout, this.operationTimeout, this.transceiver, connection, this.version, this.versionGapThreshold, this.port,
+                    this.id, this.keyManager, this.self, this.executor, this.sendQueuePool, this.receivedMailSink, this.limiter, this.connectionPool,
+                    this.keyLifetime);
+            this.executor.submit(contactor);
         }
 
         return null;

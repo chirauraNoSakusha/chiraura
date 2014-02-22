@@ -41,6 +41,9 @@ final class ThreadMessenger implements Messenger {
     private final long publicKeyLifetime;
     private final long commonKeyLifetime;
 
+    private final boolean portIgnore;
+    private final int connectionLimit;
+
     private final long trafficDuration;
     private final long trafficSizeLimit;
     private final int trafficCountLimit;
@@ -61,8 +64,8 @@ final class ThreadMessenger implements Messenger {
 
     ThreadMessenger(final int port, final int receveBufferSize, final int sendBufferSize, final long connectionTimeout, final long operationTimeout,
             final int messageSizeLimit, final long version, final long versionGapThreshold, final KeyPair id, final long publicKeyLifetime,
-            final long commonKeyLifetime, final long trafficDuration, final long trafficSizeLimit, final int trafficCountLimit,
-            final long trafficPenalty) {
+            final long commonKeyLifetime, final boolean portIgnore, final int connectionLimit, final long trafficDuration, final long trafficSizeLimit,
+            final int trafficCountLimit, final long trafficPenalty) {
         if (!PortFunctions.isValid(port)) {
             throw new IllegalArgumentException("Invalid port ( " + port + " ).");
         } else if (connectionTimeout < 0) {
@@ -79,6 +82,8 @@ final class ThreadMessenger implements Messenger {
             throw new IllegalArgumentException("Invalid public key lifetime ( " + publicKeyLifetime + " ).");
         } else if (commonKeyLifetime < 0) {
             throw new IllegalArgumentException("Invalid common key lifetime ( " + publicKeyLifetime + " ).");
+        } else if (connectionLimit < 0) {
+            throw new IllegalArgumentException("Negative connection limit ( " + connectionLimit + " ).");
         } else if (trafficDuration < 0) {
             throw new IllegalArgumentException("Negative traffic duration ( " + trafficDuration + " ).");
         } else if (trafficSizeLimit < 0) {
@@ -100,6 +105,9 @@ final class ThreadMessenger implements Messenger {
         this.id = id;
         this.publicKeyLifetime = publicKeyLifetime;
         this.commonKeyLifetime = commonKeyLifetime;
+
+        this.portIgnore = portIgnore;
+        this.connectionLimit = connectionLimit;
 
         this.trafficDuration = trafficDuration;
         this.trafficSizeLimit = trafficSizeLimit;
@@ -156,29 +164,47 @@ final class ThreadMessenger implements Messenger {
 
     @Override
     public boolean containsConnection(final InetSocketAddress destination) {
-        return this.acceptedConnectionPool.contains(destination) ||
-                this.contactingConnectionPool.contains(destination) ||
-                this.connectionPool.contains(destination);
+        if (this.portIgnore) {
+            return this.acceptedConnectionPool.contains(destination.getAddress()) ||
+                    this.contactingConnectionPool.contains(destination.getAddress()) ||
+                    this.connectionPool.contains(destination.getAddress());
+        } else {
+            return this.contactingConnectionPool.contains(destination) ||
+                    this.connectionPool.contains(destination);
+        }
     }
 
     @Override
     public boolean removeConnection(final InetSocketAddress destination) {
         boolean removed = false;
 
-        for (final AcceptedConnection connection : this.acceptedConnectionPool.get(destination)) {
-            removed = true;
-            connection.close();
-            LOG.log(Level.FINEST, "接続 {0} をぶっ殺しました。", connection);
-        }
-        for (final ContactingConnection connection : this.contactingConnectionPool.get(destination)) {
-            removed = true;
-            connection.close();
-            LOG.log(Level.FINEST, "接続中の {0} をぶっ殺しました。", connection);
-        }
-        for (final Connection connection : this.connectionPool.get(destination)) {
-            removed = true;
-            connection.close();
-            LOG.log(Level.FINEST, "受け入れ中の {0} をぶっ殺しました。", connection);
+        if (this.portIgnore) {
+            for (final AcceptedConnection connection : this.acceptedConnectionPool.get(destination.getAddress())) {
+                removed = true;
+                connection.close();
+                LOG.log(Level.FINEST, "接続 {0} をぶっ殺しました。", connection);
+            }
+            for (final ContactingConnection connection : this.contactingConnectionPool.get(destination.getAddress())) {
+                removed = true;
+                connection.close();
+                LOG.log(Level.FINEST, "接続中の {0} をぶっ殺しました。", connection);
+            }
+            for (final Connection connection : this.connectionPool.get(destination.getAddress())) {
+                removed = true;
+                connection.close();
+                LOG.log(Level.FINEST, "受け入れ中の {0} をぶっ殺しました。", connection);
+            }
+        } else {
+            for (final ContactingConnection connection : this.contactingConnectionPool.get(destination)) {
+                removed = true;
+                connection.close();
+                LOG.log(Level.FINEST, "接続中の {0} をぶっ殺しました。", connection);
+            }
+            for (final Connection connection : this.connectionPool.get(destination)) {
+                removed = true;
+                connection.close();
+                LOG.log(Level.FINEST, "受け入れ中の {0} をぶっ殺しました。", connection);
+            }
         }
         return removed;
     }
@@ -188,8 +214,8 @@ final class ThreadMessenger implements Messenger {
         executor.submit(new Boss(executor, this.connectRequestQueue, this.receivedMailSink, this.sendQueuePool, this.messengerReportSink,
                 this.acceptedConnectionPool, this.contactingConnectionPool, this.connectionPool, this.port, this.receveBufferSize, this.sendBufferSize,
                 this.connectionTimeout, this.operationTimeout, this.messageSizeLimit, this.registry, this.version, this.versionGapThreshold, this.id,
-                this.publicKeyLifetime, this.commonKeyLifetime, this.self, this.trafficDuration, this.trafficSizeLimit, this.trafficCountLimit,
-                this.trafficPenalty));
+                this.publicKeyLifetime, this.commonKeyLifetime, this.self, this.portIgnore, this.connectionLimit, this.trafficDuration, this.trafficSizeLimit,
+                this.trafficCountLimit, this.trafficPenalty));
     }
 
     @Override

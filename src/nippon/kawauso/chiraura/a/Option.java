@@ -60,6 +60,7 @@ final class Option {
         idLifetime(Long.toString(7 * Duration.DAY), "個体識別用公開鍵を使い回す期間 (ミリ秒)"),
         publicKeyLifetime(Long.toString(Duration.DAY), "通信用公開鍵を使い回す期間 (ミリ秒)"),
         commonKeyLifetime(Long.toString(Duration.HOUR), "通信用共通鍵を使い回す期間 (ミリ秒)"),
+        connectionLimit(Integer.toString(5), "1 つの通信相手に対する接続の制限数"),
         trafficDuration(Long.toString(Duration.SECOND), "通信制限のための単位監視時間 (ミリ秒)"),
         trafficSizeLimit(Long.toString(10 * 1024 * 1024) /* 10 MB */, "通信を制限する通信量 (バイト)"),
         trafficCountLimit(Integer.toString(1_000), "通信を制限する通信回数 (バイト)"),

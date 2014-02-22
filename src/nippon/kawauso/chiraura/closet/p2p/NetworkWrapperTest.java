@@ -22,6 +22,9 @@ import nippon.kawauso.chiraura.network.AddressableNetworks;
  */
 public final class NetworkWrapperTest {
 
+    private static final boolean portIgnore = true;
+    private static final int connectionLimit = 5;
+
     private static final long duration = Duration.SECOND / 2;
     private static final long sizeLimit = 10_000_000L;
     private static final int countLimit = 1_000;
@@ -47,7 +50,7 @@ public final class NetworkWrapperTest {
         final long publicKeyLifetime = Duration.HOUR;
         final long commonKeyLifetime = 10 * Duration.MINUTE;
         return Messengers.newInstance(port, receivBufferSize, sendBufferSize, connectionTimeout, operationTimeout, messageSizeLimit, version,
-                versionGapThreshold, id, publicKeyLifetime, commonKeyLifetime, duration, sizeLimit, countLimit, penalty);
+                versionGapThreshold, id, publicKeyLifetime, commonKeyLifetime, portIgnore, connectionLimit, duration, sizeLimit, countLimit, penalty);
     }
 
     static NetworkWrapper sample(final Random random, final AddressCalculator calculator) {

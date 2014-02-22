@@ -46,6 +46,8 @@ public final class AcceptorTest {
         final TypeRegistry<Message> registry = TypeRegistries.newRegistry();
         transceiver = new Transceiver(Integer.MAX_VALUE, RegistryInitializer.init(registry));
     }
+    private static final boolean portIgnore = true;
+    private static final int connectionLimit = 5;
     private static final long duration = Duration.SECOND / 2;
     private static final long sizeLimit = 10_000_000L;
     private static final int countLimit = 1_000;
@@ -145,9 +147,10 @@ public final class AcceptorTest {
      */
     @Test
     public void testSample() throws Exception {
-        final Acceptor instance = new Acceptor(this.subjectMessengerReportQueue, this.subjectAcceptedConnectionPool, sendBufferSize, connectionTimeout,
-                operationTimeout, transceiver, this.subjectConnection, version, versionGapThreshold, subjectId, this.subjectKeyManager, this.subjectSelf,
-                this.executor, this.subjectSendQueuePool, this.subjectReceivedMailQueue, this.limiter, this.subjectConnectionPool, keyLifetime);
+        final Acceptor instance = new Acceptor(portIgnore, connectionLimit, this.subjectMessengerReportQueue, this.subjectAcceptedConnectionPool,
+                sendBufferSize, connectionTimeout, operationTimeout, transceiver, this.subjectConnection, version, versionGapThreshold, subjectId,
+                this.subjectKeyManager, this.subjectSelf, this.executor, this.subjectSendQueuePool, this.subjectReceivedMailQueue, this.limiter,
+                this.subjectConnectionPool, keyLifetime);
         this.executor.submit(instance);
 
         // 一言目の送信。
@@ -221,9 +224,10 @@ public final class AcceptorTest {
         final int errorThreshold = 0;
         final Socket errorSocket = SocketWrapper.getErrorInputSocket(this.subjectConnection.getSocket(), errorThreshold);
         final AcceptedConnection errorConnection = new AcceptedConnection(this.subjectConnection.getIdNumber(), errorSocket);
-        final Acceptor instance = new Acceptor(this.subjectMessengerReportQueue, this.subjectAcceptedConnectionPool, sendBufferSize, connectionTimeout,
-                operationTimeout, transceiver, errorConnection, version, versionGapThreshold, subjectId, this.subjectKeyManager, this.subjectSelf,
-                this.executor, this.subjectSendQueuePool, this.subjectReceivedMailQueue, this.limiter, this.subjectConnectionPool, keyLifetime);
+        final Acceptor instance = new Acceptor(portIgnore, connectionLimit, this.subjectMessengerReportQueue, this.subjectAcceptedConnectionPool,
+                sendBufferSize, connectionTimeout, operationTimeout, transceiver, errorConnection, version, versionGapThreshold, subjectId,
+                this.subjectKeyManager, this.subjectSelf, this.executor, this.subjectSendQueuePool, this.subjectReceivedMailQueue, this.limiter,
+                this.subjectConnectionPool, keyLifetime);
         final Future<Void> future = this.executor.submit(instance);
 
         // 一言目を送信。
@@ -243,9 +247,10 @@ public final class AcceptorTest {
      */
     @Test
     public void testInvalidMail() throws Exception {
-        final Acceptor instance = new Acceptor(this.subjectMessengerReportQueue, this.subjectAcceptedConnectionPool, sendBufferSize, connectionTimeout,
-                operationTimeout, transceiver, this.subjectConnection, version, versionGapThreshold, subjectId, this.subjectKeyManager, this.subjectSelf,
-                this.executor, this.subjectSendQueuePool, this.subjectReceivedMailQueue, this.limiter, this.subjectConnectionPool, keyLifetime);
+        final Acceptor instance = new Acceptor(portIgnore, connectionLimit, this.subjectMessengerReportQueue, this.subjectAcceptedConnectionPool,
+                sendBufferSize, connectionTimeout, operationTimeout, transceiver, this.subjectConnection, version, versionGapThreshold, subjectId,
+                this.subjectKeyManager, this.subjectSelf, this.executor, this.subjectSendQueuePool, this.subjectReceivedMailQueue, this.limiter,
+                this.subjectConnectionPool, keyLifetime);
         final Future<Void> future = this.executor.submit(instance);
 
         this.testerOutput.write(new byte[] { 0, 4, 1, 127, 1, 0 });
@@ -266,9 +271,10 @@ public final class AcceptorTest {
     @Test
     public void testTimeout() throws Exception {
         final long shortOperationTimeout = 100L;
-        final Acceptor instance = new Acceptor(this.subjectMessengerReportQueue, this.subjectAcceptedConnectionPool, sendBufferSize, operationTimeout,
-                shortOperationTimeout, transceiver, this.subjectConnection, version, versionGapThreshold, subjectId, this.subjectKeyManager, this.subjectSelf,
-                this.executor, this.subjectSendQueuePool, this.subjectReceivedMailQueue, this.limiter, this.subjectConnectionPool, keyLifetime);
+        final Acceptor instance = new Acceptor(portIgnore, connectionLimit, this.subjectMessengerReportQueue, this.subjectAcceptedConnectionPool,
+                sendBufferSize, operationTimeout, shortOperationTimeout, transceiver, this.subjectConnection, version, versionGapThreshold, subjectId,
+                this.subjectKeyManager, this.subjectSelf, this.executor, this.subjectSendQueuePool, this.subjectReceivedMailQueue, this.limiter,
+                this.subjectConnectionPool, keyLifetime);
         final Future<Void> future = this.executor.submit(instance);
 
         // 時間切れ待ち。
@@ -286,9 +292,10 @@ public final class AcceptorTest {
      */
     @Test
     public void testPortError() throws Exception {
-        final Acceptor instance = new Acceptor(this.subjectMessengerReportQueue, this.subjectAcceptedConnectionPool, sendBufferSize, operationTimeout,
-                operationTimeout, transceiver, this.subjectConnection, version, versionGapThreshold, subjectId, this.subjectKeyManager, this.subjectSelf,
-                this.executor, this.subjectSendQueuePool, this.subjectReceivedMailQueue, this.limiter, this.subjectConnectionPool, keyLifetime);
+        final Acceptor instance = new Acceptor(portIgnore, connectionLimit, this.subjectMessengerReportQueue, this.subjectAcceptedConnectionPool,
+                sendBufferSize, operationTimeout, operationTimeout, transceiver, this.subjectConnection, version, versionGapThreshold, subjectId,
+                this.subjectKeyManager, this.subjectSelf, this.executor, this.subjectSendQueuePool, this.subjectReceivedMailQueue, this.limiter,
+                this.subjectConnectionPool, keyLifetime);
         final Future<Void> future = this.executor.submit(instance);
 
         this.testerServerSocket.close();
@@ -322,9 +329,10 @@ public final class AcceptorTest {
      */
     @Test
     public void testOldVersion() throws Exception {
-        final Acceptor instance = new Acceptor(this.subjectMessengerReportQueue, this.subjectAcceptedConnectionPool, sendBufferSize, connectionTimeout,
-                operationTimeout, transceiver, this.subjectConnection, version, versionGapThreshold, subjectId, this.subjectKeyManager, this.subjectSelf,
-                this.executor, this.subjectSendQueuePool, this.subjectReceivedMailQueue, this.limiter, this.subjectConnectionPool, keyLifetime);
+        final Acceptor instance = new Acceptor(portIgnore, connectionLimit, this.subjectMessengerReportQueue, this.subjectAcceptedConnectionPool,
+                sendBufferSize, connectionTimeout, operationTimeout, transceiver, this.subjectConnection, version, versionGapThreshold, subjectId,
+                this.subjectKeyManager, this.subjectSelf, this.executor, this.subjectSendQueuePool, this.subjectReceivedMailQueue, this.limiter,
+                this.subjectConnectionPool, keyLifetime);
         this.executor.submit(instance);
 
         // 一言目の送信。
@@ -357,9 +365,10 @@ public final class AcceptorTest {
      */
     @Test
     public void testNewVersion() throws Exception {
-        final Acceptor instance = new Acceptor(this.subjectMessengerReportQueue, this.subjectAcceptedConnectionPool, sendBufferSize, connectionTimeout,
-                operationTimeout, transceiver, this.subjectConnection, version, versionGapThreshold, subjectId, this.subjectKeyManager, this.subjectSelf,
-                this.executor, this.subjectSendQueuePool, this.subjectReceivedMailQueue, this.limiter, this.subjectConnectionPool, keyLifetime);
+        final Acceptor instance = new Acceptor(portIgnore, connectionLimit, this.subjectMessengerReportQueue, this.subjectAcceptedConnectionPool,
+                sendBufferSize, connectionTimeout, operationTimeout, transceiver, this.subjectConnection, version, versionGapThreshold, subjectId,
+                this.subjectKeyManager, this.subjectSelf, this.executor, this.subjectSendQueuePool, this.subjectReceivedMailQueue, this.limiter,
+                this.subjectConnectionPool, keyLifetime);
         this.executor.submit(instance);
 
         // 一言目の送信。
@@ -388,4 +397,27 @@ public final class AcceptorTest {
         Assert.assertEquals(version + 1, newProtocol.getNewVersion());
     }
 
+    /**
+     * 接続制限。
+     * @throws Exception エラー
+     */
+    @Test
+    public void testConnectionLimit() throws Exception {
+        for (int i = 0; i < connectionLimit; i++) {
+            final AcceptedConnection connection = new AcceptedConnection(this.subjectConnection.getIdNumber() + i + 1, this.subjectConnection.getSocket());
+            this.subjectAcceptedConnectionPool.add(connection);
+        }
+
+        final Acceptor instance = new Acceptor(portIgnore, connectionLimit, this.subjectMessengerReportQueue, this.subjectAcceptedConnectionPool,
+                sendBufferSize, connectionTimeout, operationTimeout, transceiver, this.subjectConnection, version, versionGapThreshold, subjectId,
+                this.subjectKeyManager, this.subjectSelf, this.executor, this.subjectSendQueuePool, this.subjectReceivedMailQueue, this.limiter,
+                this.subjectConnectionPool, keyLifetime);
+        this.executor.submit(instance);
+
+        Assert.assertEquals(-1, this.testerInput.read(new byte[1]));
+
+        for (int i = 0; i < connectionLimit; i++) {
+            this.subjectAcceptedConnectionPool.remove(this.subjectConnection.getIdNumber() + i + 1);
+        }
+    }
 }

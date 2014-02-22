@@ -219,7 +219,8 @@ public final class P2pClosetTest {
                     .setMaintenanceInterval(maintenanceInterval)
                     .setOperationTimeout(operationTimeout)
                     .setPeerCapacity(bits)
-                    .setCalculator(calculator);
+                    .setCalculator(calculator)
+                    .setPortIgnore(false);
             if (i != 0) {
                 // 初期個体を追加。
                 param.setPeers(getPeers(ports[0]));
@@ -281,7 +282,8 @@ public final class P2pClosetTest {
                     .setOperationTimeout(operationTimeout)
                     .setBackupInterval(backupInterval)
                     .setCacheDuration(cacheDuration)
-                    .setPeerCapacity(numOfPeers);
+                    .setPeerCapacity(numOfPeers)
+                    .setPortIgnore(false);
             if (i == 0) {
                 port0 = port;
             } else {
@@ -1038,7 +1040,8 @@ public final class P2pClosetTest {
                     .setMaintenanceInterval(maintenanceInterval)
                     .setBackupInterval(maintenanceInterval)
                     .setOperationTimeout(operationTimeout)
-                    .setPeerCapacity(numOfPeers);
+                    .setPeerCapacity(numOfPeers)
+                    .setPortIgnore(false);
             if (i == 0) {
                 port0 = port;
             } else {
@@ -1138,7 +1141,8 @@ public final class P2pClosetTest {
                     .setBackupInterval(backupInterval)
                     .setCacheDuration(cacheDuration)
                     .setChunkCacheCapacity(0)
-                    .setPeerCapacity(numOfPeers);
+                    .setPeerCapacity(numOfPeers)
+                    .setPortIgnore(false);
             if (i == 0) {
                 port0 = port;
             } else {

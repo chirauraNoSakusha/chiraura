@@ -92,6 +92,8 @@ final class Environment {
     private final long idLifetime;
     private final long publicKeyLifetime;
     private final long commonKeyLifetime;
+    private final boolean portIgnore;
+    private final int connectionLimit;
     private final long trafficDuration;
     private final long trafficSizeLimit;
     private final int trafficCountLimit;
@@ -218,6 +220,8 @@ final class Environment {
         this.idLifetime = getLargerLong(option, Option.Item.idLifetime);
         this.publicKeyLifetime = getLargerLong(option, Option.Item.publicKeyLifetime);
         this.commonKeyLifetime = getLargerLong(option, Option.Item.commonKeyLifetime);
+        this.portIgnore = !Global.isDebug();
+        this.connectionLimit = getDefaultInt(option, Option.Item.connectionLimit);
         this.trafficDuration = getDefaultLong(option, Option.Item.trafficDuration);
         this.trafficSizeLimit = getDefaultLong(option, Option.Item.trafficSizeLimit);
         this.trafficCountLimit = getDefaultInt(option, Option.Item.trafficCountLimit);
@@ -374,6 +378,14 @@ final class Environment {
 
     long getCommonKeyLifetime() {
         return this.commonKeyLifetime;
+    }
+
+    boolean getPortIgnore() {
+        return this.portIgnore;
+    }
+
+    int getConnectionLimit() {
+        return this.connectionLimit;
     }
 
     long getTrafficDuration() {

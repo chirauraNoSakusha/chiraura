@@ -42,6 +42,9 @@ final class Boss extends Chief {
     private final BoundConnectionPool<ContactingConnection> contactingConnectionPool;
     private final BoundConnectionPool<Connection> connectionPool;
 
+    private final boolean portIgnore;
+    private final int connectionLimit;
+
     private final int port;
     private final int receiveBufferSize;
     private final int sendBufferSize;
@@ -73,8 +76,8 @@ final class Boss extends Chief {
             final BoundConnectionPool<Connection> connectionPool, final int port, final int receiveBufferSize, final int sendBufferSize,
             final long connectionTimeout, final long operationTimeout, final int messageSizeLimit, final TypeRegistry<Message> registry, final long version,
             final long versionGapThreshold, final KeyPair id, final long publicKeyLifetime, final long commonKeyLifetime,
-            final AtomicReference<InetSocketAddress> self, final long trafficDuration, final long trafficSizeLimit, final int trafficCountLimit,
-            final long trafficPenalty) {
+            final AtomicReference<InetSocketAddress> self, final boolean portIgnore, final int connectionLimit, final long trafficDuration,
+            final long trafficSizeLimit, final int trafficCountLimit, final long trafficPenalty) {
         super(new LinkedBlockingQueue<Reporter.Report>());
 
         if (executor == null) {
@@ -113,6 +116,8 @@ final class Boss extends Chief {
             throw new IllegalArgumentException("Negative common key lifetime ( " + commonKeyLifetime + " ).");
         } else if (self == null) {
             throw new IllegalArgumentException("Null self.");
+        } else if (connectionLimit < 0) {
+            throw new IllegalArgumentException("Negative connection limit ( " + connectionLimit + " ).");
         } else if (trafficDuration < 0) {
             throw new IllegalArgumentException("Negative traffic duration ( " + trafficDuration + " ).");
         } else if (trafficSizeLimit < 0) {
@@ -146,6 +151,9 @@ final class Boss extends Chief {
         this.commonKeyLifetime = commonKeyLifetime;
         this.self = self;
 
+        this.portIgnore = portIgnore;
+        this.connectionLimit = connectionLimit;
+
         this.connectionSerialGenerator = new AtomicInteger();
         this.acceptedSocketQueue = new LinkedBlockingQueue<>();
         this.transceiver = new Transceiver(messageSizeLimit, registry);
@@ -160,10 +168,10 @@ final class Boss extends Chief {
     }
 
     private AcceptorMaster newAcceptorMaster() {
-        return new AcceptorMaster(getReportQueue(), this.acceptedSocketQueue, this.connectionSerialGenerator, this.executor, this.receivedMailSink,
-                this.sendQueuePool, this.limiter, this.messengerReportSink, this.acceptedConnectionPool, this.connectionPool, this.sendBufferSize,
-                this.connectionTimeout, this.operationTimeout, this.transceiver, this.version, this.versionGapThreshold, this.id, this.keyManager,
-                this.commonKeyLifetime, this.self);
+        return new AcceptorMaster(getReportQueue(), this.acceptedSocketQueue, this.connectionSerialGenerator, this.executor, this.portIgnore,
+                this.connectionLimit, this.receivedMailSink, this.sendQueuePool, this.limiter, this.messengerReportSink, this.acceptedConnectionPool,
+                this.connectionPool, this.sendBufferSize, this.connectionTimeout, this.operationTimeout, this.transceiver, this.version,
+                this.versionGapThreshold, this.id, this.keyManager, this.commonKeyLifetime, this.self);
     }
 
     private ContactorMaster newContactorMaster() {
