@@ -118,231 +118,231 @@ public final class P2pCloset implements Closet {
 
         /**
          * データ片の許容サイズを変える。
-         * @param chunkSizeLimit 新しい値 (バイト)
+         * @param value 新しい値 (バイト)
          * @return this
          */
-        public Parameters setChunkSizeLimit(final int chunkSizeLimit) {
-            this.chunkSizeLimit = chunkSizeLimit;
+        public Parameters setChunkSizeLimit(final int value) {
+            this.chunkSizeLimit = value;
             return this;
         }
 
         /**
          * 倉庫のディレクトリ分けに使うビット数を変える。
-         * @param storageDirectoryBitSize 新しい値
+         * @param value 新しい値
          * @return this
          */
-        public Parameters setStorageDirectoryBitSize(final int storageDirectoryBitSize) {
-            this.storageDirectoryBitSize = storageDirectoryBitSize;
+        public Parameters setStorageDirectoryBitSize(final int value) {
+            this.storageDirectoryBitSize = value;
             return this;
         }
 
         /**
          * データ片をキャッシュする数を変える。
-         * @param chunkCacheCapacity 新しい値
+         * @param value 新しい値
          * @return this
          */
-        public Parameters setChunkCacheCapacity(final int chunkCacheCapacity) {
-            this.chunkCacheCapacity = chunkCacheCapacity;
+        public Parameters setChunkCacheCapacity(final int value) {
+            this.chunkCacheCapacity = value;
             return this;
         }
 
         /**
          * データ片の概要をキャッシュする数を変える。
-         * @param indexCacheCapacity 新しい値
+         * @param value 新しい値
          * @return this
          */
-        public Parameters setIndexCacheCapacity(final int indexCacheCapacity) {
-            this.indexCacheCapacity = indexCacheCapacity;
+        public Parameters setIndexCacheCapacity(final int value) {
+            this.indexCacheCapacity = value;
             return this;
         }
 
         /**
          * データ片の範囲取得結果をキャッシュする数を変える。
-         * @param rangeCacheCapacity 新しい値
+         * @param value 新しい値
          * @return this
          */
-        public Parameters setRangeCacheCapacity(final int rangeCacheCapacity) {
-            this.rangeCacheCapacity = rangeCacheCapacity;
+        public Parameters setRangeCacheCapacity(final int value) {
+            this.rangeCacheCapacity = value;
             return this;
         }
 
         /**
          * 個体を保持する数を変える。
-         * @param peerCapacity 新しい値
+         * @param value 新しい値
          * @return this
          */
-        public Parameters setPeerCapacity(final int peerCapacity) {
-            this.peerCapacity = peerCapacity;
+        public Parameters setPeerCapacity(final int value) {
+            this.peerCapacity = value;
             return this;
         }
 
         /**
          * 保守間隔を変える。
-         * @param maintenanceInterval 新しい値 (ミリ秒)
+         * @param value 新しい値 (ミリ秒)
          * @return this
          */
-        public Parameters setMaintenanceInterval(final long maintenanceInterval) {
-            this.maintenanceInterval = maintenanceInterval;
+        public Parameters setMaintenanceInterval(final long value) {
+            this.maintenanceInterval = value;
             return this;
         }
 
         /**
          * ふて寝の時間を変える。
-         * @param sleepTime 新しい値 (ミリ秒)
+         * @param value 新しい値 (ミリ秒)
          * @return this
          */
-        public Parameters setSleepTime(final long sleepTime) {
-            this.sleepTime = sleepTime;
+        public Parameters setSleepTime(final long value) {
+            this.sleepTime = value;
             return this;
         }
 
         /**
          * データ片の保守間隔を変える。
-         * @param backupInterval 新しい値 (ミリ秒)
+         * @param value 新しい値 (ミリ秒)
          * @return this
          */
-        public Parameters setBackupInterval(final long backupInterval) {
-            this.backupInterval = backupInterval;
+        public Parameters setBackupInterval(final long value) {
+            this.backupInterval = value;
             return this;
         }
 
         /**
          * 非通信接続を切断するまでの時間を変える。
-         * @param connectionTimeout 新しい値 (ミリ秒)
+         * @param value 新しい値 (ミリ秒)
          * @return this
          */
-        public Parameters setConnectionTimeout(final long connectionTimeout) {
-            this.connectionTimeout = connectionTimeout;
+        public Parameters setConnectionTimeout(final long value) {
+            this.connectionTimeout = value;
             return this;
         }
 
         /**
          * 受信バッファサイズを変える。
-         * @param receiveBufferSize 新しい値 (バイト)
+         * @param value 新しい値 (バイト)
          * @return this
          */
-        public Parameters setReceiveBufferSize(final int receiveBufferSize) {
-            this.receiveBufferSize = receiveBufferSize;
+        public Parameters setReceiveBufferSize(final int value) {
+            this.receiveBufferSize = value;
             return this;
         }
 
         /**
          * 送信バッファサイズを変える。
-         * @param sendBufferSize 新しい値 (バイト)
+         * @param value 新しい値 (バイト)
          * @return this
          */
-        public Parameters setSendBufferSize(final int sendBufferSize) {
-            this.sendBufferSize = sendBufferSize;
+        public Parameters setSendBufferSize(final int value) {
+            this.sendBufferSize = value;
             return this;
         }
 
         /**
          * 通信用公開鍵を使い回す期間を変える。
-         * @param publicKeyLifetime 新しい値 (ミリ秒)
+         * @param value 新しい値 (ミリ秒)
          * @return this
          */
-        public Parameters setPublicKeyLifetime(final long publicKeyLifetime) {
-            this.publicKeyLifetime = publicKeyLifetime;
+        public Parameters setPublicKeyLifetime(final long value) {
+            this.publicKeyLifetime = value;
             return this;
         }
 
         /**
          * 通信用共通鍵を使い回す期間を変える。
-         * @param commonKeyLifetime 新しい値 (ミリ秒)
+         * @param value 新しい値 (ミリ秒)
          * @return this
          */
-        public Parameters setCommonKeyLifetime(final long commonKeyLifetime) {
-            this.commonKeyLifetime = commonKeyLifetime;
+        public Parameters setCommonKeyLifetime(final long value) {
+            this.commonKeyLifetime = value;
             return this;
         }
 
         /**
          * 拒否対象の個体を保持する数を変える。
-         * @param blacklistCapacity 新しい値
+         * @param value 新しい値
          * @return this
          */
-        public Parameters setBlacklistCapacity(final int blacklistCapacity) {
-            this.blacklistCapacity = blacklistCapacity;
+        public Parameters setBlacklistCapacity(final int value) {
+            this.blacklistCapacity = value;
             return this;
         }
 
         /**
          * 個体の除外を解除するまでの時間を変える。
-         * @param blacklistTimeout 新しい値 (ミリ秒)
+         * @param value 新しい値 (ミリ秒)
          * @return this
          */
-        public Parameters setBlacklistTimeout(final long blacklistTimeout) {
-            this.blacklistTimeout = blacklistTimeout;
+        public Parameters setBlacklistTimeout(final long value) {
+            this.blacklistTimeout = value;
             return this;
         }
 
         /**
          * 予備に保持する個体の数を変える。
-         * @param potCapacity 新しい値
+         * @param value 新しい値
          * @return this
          */
-        public Parameters setPotCapacity(final int potCapacity) {
-            this.potCapacity = potCapacity;
+        public Parameters setPotCapacity(final int value) {
+            this.potCapacity = value;
             return this;
         }
 
         /**
          * 通信を要する操作を諦めるまでの時間を変える。
-         * @param operationTimeout 新しい値 (ミリ秒)
+         * @param value 新しい値 (ミリ秒)
          * @return this
          */
-        public Parameters setOperationTimeout(final long operationTimeout) {
-            this.operationTimeout = operationTimeout;
+        public Parameters setOperationTimeout(final long value) {
+            this.operationTimeout = value;
             return this;
         }
 
         /**
          * 通信結果を記録する数を変える。
-         * @param cacheLogCapacity 新しい値
+         * @param value 新しい値
          * @return this
          */
-        public Parameters setCacheLogCapacity(final int cacheLogCapacity) {
-            this.cacheLogCapacity = cacheLogCapacity;
+        public Parameters setCacheLogCapacity(final int value) {
+            this.cacheLogCapacity = value;
             return this;
         }
 
         /**
          * 通信結果を使い回す期間を変える。
-         * @param cacheDuration 新しい値
+         * @param value 新しい値 (ミリ秒)
          * @return this
          */
-        public Parameters setCacheDuration(final long cacheDuration) {
-            this.cacheDuration = cacheDuration;
+        public Parameters setCacheDuration(final long value) {
+            this.cacheDuration = value;
             return this;
         }
 
         /**
          * 言付けの許容サイズを変える。
-         * @param messageSizeLimit 新しい値 (バイト)
+         * @param value 新しい値 (バイト)
          * @return this
          */
-        public Parameters setMessageSizeLimit(final int messageSizeLimit) {
-            this.messageSizeLimit = messageSizeLimit;
+        public Parameters setMessageSizeLimit(final int value) {
+            this.messageSizeLimit = value;
             return this;
         }
 
         /**
          * 直接通信して得た個体の論理位置を記憶する数を変える。
-         * @param activeAddressLogCapacity 新しい値
+         * @param value 新しい値
          * @return this
          */
-        public Parameters setActiveAddressLogCapacity(final int activeAddressLogCapacity) {
-            this.activeAddressLogCapacity = activeAddressLogCapacity;
+        public Parameters setActiveAddressLogCapacity(final int value) {
+            this.activeAddressLogCapacity = value;
             return this;
         }
 
         /**
          * 直接通信して得た個体の論理位置を優先する期間を変える。
-         * @param activeAddressDuration 新しい値
+         * @param value 新しい値
          * @return this
          */
-        public Parameters setActiveAddressDuration(final long activeAddressDuration) {
-            this.activeAddressDuration = activeAddressDuration;
+        public Parameters setActiveAddressDuration(final long value) {
+            this.activeAddressDuration = value;
             return this;
         }
 
