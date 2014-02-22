@@ -167,7 +167,7 @@ final class Receiver implements Callable<Void> {
 
             long sleep = this.limiter.nextSleep(size, this.connection.getDestination());
             while (sleep > 0) {
-                LOG.log(Level.FINEST, "{0}: {1} ミリ秒さぼります。", new Object[] { this.connection, Long.toString(sleep) });
+                LOG.log(Level.WARNING, "{0}: {1} ミリ秒さぼります。", new Object[] { this.connection, Long.toString(sleep) });
                 Thread.sleep(sleep);
                 sleep = this.limiter.nextSleep(this.connection.getDestination());
             }
