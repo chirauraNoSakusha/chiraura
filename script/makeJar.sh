@@ -73,24 +73,24 @@ fi
 cp ${PEER_SOURCE} ${PEER}
 
 
-echo "名無しの準備開始。"
-NAME_SOURCE=${TOP}/names.txt
-NAME=${DESTINATION}/names.txt
+echo "メニューの準備開始。"
+MENU_SOURCE=${TOP}/menu.txt
+MENU=${DESTINATION}/menu.txt
 
-if ! [ -e ${NAME_SOURCE} ]; then
-    echo "デフォルト名無しが ${NAME_SOURCE} として指定されていません。"
+if ! [ -e ${MENU_SOURCE} ]; then
+    echo "メニューが ${MENU_SOURCE} として指定されていません。"
     echo "ここまでで終了します。"
     exit
 fi
 
 # 改行を CRLF に。長い物に巻かれる。改行として解釈されなくなることはないし。
-sed 's/$/\r/' ${NAME_SOURCE} > ${NAME}
+sed 's/$/\r/' ${MENU_SOURCE} > ${MENU}
 
 
 echo "書庫作成開始。"
 OUTPUT=${DESTINATION}/chiraura_$(date +%F).zip
 
-zip -q9 ${OUTPUT} -j ${JAR} ${PEER} ${NAME}
+zip -q9 ${OUTPUT} -j ${JAR} ${PEER} ${MENU}
 
 
 echo "チェックサム計算開始。"
