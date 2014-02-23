@@ -91,7 +91,7 @@ public final class P2pCloset implements Closet {
         private int connectionLimit = 5;
         private long trafficDuration = Duration.SECOND;
         private long trafficSizeLimit = 10 * 1024 * 1024; // 10MB.
-        private int trafficCountLimit = 1_000;
+        private int trafficCountLimit = 500;
         private long trafficPenalty = 10 * Duration.SECOND;
         private int blacklistCapacity = 200;
         private long blacklistTimeout = 30 * Duration.MINUTE;

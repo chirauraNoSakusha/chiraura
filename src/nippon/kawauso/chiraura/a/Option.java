@@ -63,7 +63,7 @@ final class Option {
         connectionLimit(Integer.toString(5), "1 つの通信相手に対する接続の制限数"),
         trafficDuration(Long.toString(Duration.SECOND), "通信制限のための単位監視時間 (ミリ秒)"),
         trafficSizeLimit(Long.toString(10 * 1024 * 1024) /* 10 MB */, "通信を制限する通信量 (バイト)"),
-        trafficCountLimit(Integer.toString(1_000), "通信を制限する通信回数 (バイト)"),
+        trafficCountLimit(Integer.toString(500), "通信を制限する通信回数 (バイト)"),
         trafficPenalty(Long.toString(10 * Duration.SECOND), "通信を制限する時間 (ミリ秒)"),
         blacklistCapacity(Integer.toString(200), "拒否対象の個体を保持する数"),
         blacklistTimeout(Long.toString(30 * Duration.MINUTE), "個体の拒否を解除するまでの時間 (ミリ秒)"),
