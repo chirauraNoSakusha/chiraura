@@ -507,7 +507,7 @@ final class ThreadChunk extends SkeletalChunk implements Mountain, Content {
         if (host == null || host.isEmpty()) {
             after = null;
         } else {
-            final StringBuilder buff = new StringBuilder("(").append(ContentConstants.CHIRAURA_NOTATION_LABEL).append(") ttp://").append(host);
+            final StringBuilder buff = new StringBuilder("(").append(ContentConstants.CHIRAURA_NOTATION_LABEL).append(")ttp://").append(host);
             if (host.indexOf(':') < 0 && port != Http.DEFAULT_PORT) {
                 buff.append(':').append(Integer.toString(port));
             }

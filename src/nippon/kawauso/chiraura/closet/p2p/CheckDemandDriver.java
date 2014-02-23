@@ -24,16 +24,16 @@ final class CheckDemandDriver {
 
     private static final Logger LOG = Logger.getLogger(CheckDemandDriver.class.getName());
 
-    private static final int STOCK_ENTRY_LIMIT = 200;
-
     // 参照。
     private final NetworkWrapper network;
     private final StorageWrapper storage;
     private final SessionManager sessionManager;
     private final TypeRegistry<Chunk.Id<?>> idRegistry;
 
+    private final int entryLimit;
+
     CheckDemandDriver(final NetworkWrapper network, final StorageWrapper storage, final SessionManager sessionManager,
-            final TypeRegistry<Chunk.Id<?>> idRegistry) {
+            final TypeRegistry<Chunk.Id<?>> idRegistry, final int entryLimit) {
         if (network == null) {
             throw new IllegalArgumentException("Null network.");
         } else if (storage == null) {
@@ -42,11 +42,15 @@ final class CheckDemandDriver {
             throw new IllegalArgumentException("Null session manager.");
         } else if (idRegistry == null) {
             throw new IllegalArgumentException("Null id registry.");
+        } else if (entryLimit < 0) {
+            throw new IllegalArgumentException("Negative entry limit ( " + entryLimit + " ).");
         }
         this.network = network;
         this.storage = storage;
         this.sessionManager = sessionManager;
         this.idRegistry = idRegistry;
+
+        this.entryLimit = entryLimit;
     }
 
     CheckDemandResult execute(final CheckDemandOperation operation, final long timeout) throws InterruptedException, IOException {
@@ -58,7 +62,7 @@ final class CheckDemandDriver {
         // 手紙の準備。
         final List<Message> mail = new ArrayList<>(2);
         final Pair<Address, Address> domain = this.network.getDomain();
-        final List<StockEntry> entries = StockEntry.getStockedEntries(this.storage, domain.getFirst(), domain.getSecond(), STOCK_ENTRY_LIMIT,
+        final List<StockEntry> entries = StockEntry.getStockedEntries(this.storage, domain.getFirst(), domain.getSecond(), this.entryLimit,
                 new ArrayList<StockEntry>(0), this.idRegistry);
         if (entries.isEmpty()) {
             // やるだけ無駄なんで止める。

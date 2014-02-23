@@ -21,6 +21,8 @@ import org.junit.Test;
  */
 public final class MailReaderTest {
 
+    private static final int entryLimit = 10;
+
     private static final long timeout = Duration.SECOND;
     private static final long shutdownTimeout = Duration.SECOND;
 
@@ -44,7 +46,7 @@ public final class MailReaderTest {
         this.executor = Executors.newCachedThreadPool();
 
         final StorageWrapper storage = StorageWrapperTest.sample(this.random, this.operationQueue);
-        this.drivers = new DriverSet(this.network, storage, this.sessionManager, new LinkedBlockingQueue<Operation>(), this.executor);
+        this.drivers = new DriverSet(this.network, storage, this.sessionManager, new LinkedBlockingQueue<Operation>(), this.executor, entryLimit);
     }
 
     /**

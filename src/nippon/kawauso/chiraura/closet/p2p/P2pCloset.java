@@ -51,6 +51,11 @@ public final class P2pCloset implements Closet {
     private static final long VERSION_GAP_THRESHOLD = 50L;
 
     /**
+     * 1 回の発注・在庫確認で調べるデータ片の最大数。
+     */
+    private static final int CHECK_CHUNK_LIMIT = 100;
+
+    /**
      * 引数用。
      * @author chirauraNoSakusha
      */
@@ -481,7 +486,7 @@ public final class P2pCloset implements Closet {
         Register.init(this.network, this.storage);
 
         this.closetReportQueue = new LinkedBlockingQueue<>();
-        this.drivers = new DriverSet(this.network, this.storage, this.sessionManager, this.operationQueue, param.executor);
+        this.drivers = new DriverSet(this.network, this.storage, this.sessionManager, this.operationQueue, param.executor, CHECK_CHUNK_LIMIT);
 
         this.maintenanceInterval = param.maintenanceInterval;
         this.sleepTime = param.sleepTime;

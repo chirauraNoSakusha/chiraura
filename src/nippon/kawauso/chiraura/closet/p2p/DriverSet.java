@@ -127,7 +127,7 @@ final class DriverSet implements MessageDriverSet, ReplyDriverSet, NonBlockingDr
     private final UnsentMailDriver unsentMail;
 
     DriverSet(final NetworkWrapper network, final StorageWrapper storage, final SessionManager sessionManager,
-            final BlockingQueue<Operation> operationSink, final ExecutorService executor) {
+            final BlockingQueue<Operation> operationSink, final ExecutorService executor, final int checkChunkLimit) {
         if (network == null) {
             throw new IllegalArgumentException("Null network.");
         } else if (storage == null) {
@@ -138,6 +138,8 @@ final class DriverSet implements MessageDriverSet, ReplyDriverSet, NonBlockingDr
             throw new IllegalArgumentException("Null operation sink.");
         } else if (executor == null) {
             throw new IllegalArgumentException("Null executor.");
+        } else if (checkChunkLimit < 0) {
+            throw new IllegalArgumentException("Negative check chunk limit ( " + checkChunkLimit + " ).");
         }
 
         final TypeRegistry<Chunk> chunkRegistry = storage.getChunkRegistry();
@@ -229,15 +231,15 @@ final class DriverSet implements MessageDriverSet, ReplyDriverSet, NonBlockingDr
         this.patchAndGetOrUpdateCacheReply = new PatchAndGetOrUpdateCacheReplyDriver(storage);
 
         final OperationAggregator<CheckStockOperation, CheckStockResult> checkStockAggregator = new OperationAggregator<>();
-        this.checkStock = new CheckStockDriver(network, storage, sessionManager, idRegistry);
+        this.checkStock = new CheckStockDriver(network, storage, sessionManager, idRegistry, checkChunkLimit);
         this.checkStockBlocking = new CheckStockBlockingDriver(checkStockAggregator, this.checkStock);
-        this.checkStockMessage = new CheckStockMessageDriver(network, storage, idRegistry);
+        this.checkStockMessage = new CheckStockMessageDriver(network, storage, idRegistry, checkChunkLimit);
         this.checkStockReply = new CheckStockReplyDriver();
 
         final OperationAggregator<CheckDemandOperation, CheckDemandResult> checkDemandAggregator = new OperationAggregator<>();
-        this.checkDemand = new CheckDemandDriver(network, storage, sessionManager, idRegistry);
+        this.checkDemand = new CheckDemandDriver(network, storage, sessionManager, idRegistry, checkChunkLimit);
         this.checkDemandBlocking = new CheckDemandBlockingDriver(checkDemandAggregator, this.checkDemand);
-        this.checkDemandMessage = new CheckDemandMessageDriver(network, storage, idRegistry);
+        this.checkDemandMessage = new CheckDemandMessageDriver(network, storage, idRegistry, checkChunkLimit);
         this.checkDemandReply = new CheckDemandReplyDriver();
 
         final OperationAggregator<RecoveryOperation, RecoveryResult> recoveryAggregator = new OperationAggregator<>();

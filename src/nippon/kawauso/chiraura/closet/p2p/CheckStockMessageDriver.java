@@ -23,24 +23,28 @@ final class CheckStockMessageDriver {
 
     private static final Logger LOG = Logger.getLogger(CheckStockMessageDriver.class.getName());
 
-    private static final int STOCK_ENTRY_LIMIT = 1_000;
-
     // 参照。
     private final NetworkWrapper network;
     private final StorageWrapper storage;
     private final TypeRegistry<Chunk.Id<?>> idRegistry;
 
-    CheckStockMessageDriver(final NetworkWrapper network, final StorageWrapper storage, final TypeRegistry<Chunk.Id<?>> idRegistry) {
+    private final int entryLimit;
+
+    CheckStockMessageDriver(final NetworkWrapper network, final StorageWrapper storage, final TypeRegistry<Chunk.Id<?>> idRegistry, final int entryLimit) {
         if (network == null) {
             throw new IllegalArgumentException("Null network.");
         } else if (storage == null) {
             throw new IllegalArgumentException("Null storage.");
         } else if (idRegistry == null) {
             throw new IllegalArgumentException("Null id registry.");
+        } else if (entryLimit < 0) {
+            throw new IllegalArgumentException("Negative entry limit ( " + entryLimit + " ).");
         }
         this.network = network;
         this.storage = storage;
         this.idRegistry = idRegistry;
+
+        this.entryLimit = entryLimit;
     }
 
     void execute(final CheckStockMessage message, final Session session, final PublicKey sourceId, final InetSocketAddress source) throws InterruptedException {
@@ -52,7 +56,7 @@ final class CheckStockMessageDriver {
             // データ片の列挙。
             List<StockEntry> entries = null;
             try {
-                entries = StockEntry.getStockedEntries(this.storage, message.getStartAddress(), message.getEndAddress(), STOCK_ENTRY_LIMIT,
+                entries = StockEntry.getStockedEntries(this.storage, message.getStartAddress(), message.getEndAddress(), this.entryLimit,
                         message.getExclusives(), this.idRegistry);
             } catch (final IOException e) {
                 LOG.log(Level.WARNING, source + " に依頼された " + message + " への応答中に異常が発生しました。", e);

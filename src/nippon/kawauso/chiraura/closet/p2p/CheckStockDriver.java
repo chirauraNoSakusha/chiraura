@@ -24,16 +24,16 @@ final class CheckStockDriver {
 
     private static final Logger LOG = Logger.getLogger(CheckStockDriver.class.getName());
 
-    private static final int STOCK_ENTRY_LIMIT = 200;
-
     // 参照。
     private final NetworkWrapper network;
     private final StorageWrapper storage;
     private final SessionManager sessionManager;
     private final TypeRegistry<Chunk.Id<?>> idRegistry;
 
+    private final int stockEntryLimit;
+
     CheckStockDriver(final NetworkWrapper network, final StorageWrapper storage, final SessionManager sessionManager,
-            final TypeRegistry<Chunk.Id<?>> idRegistry) {
+            final TypeRegistry<Chunk.Id<?>> idRegistry, final int stockEntryLimit) {
         if (network == null) {
             throw new IllegalArgumentException("Null network.");
         } else if (storage == null) {
@@ -42,11 +42,15 @@ final class CheckStockDriver {
             throw new IllegalArgumentException("Null session manager.");
         } else if (idRegistry == null) {
             throw new IllegalArgumentException("Null id registry.");
+        } else if (stockEntryLimit < 0) {
+            throw new IllegalArgumentException("Negative stock entry limit ( " + stockEntryLimit + " ).");
         }
         this.network = network;
         this.storage = storage;
         this.sessionManager = sessionManager;
         this.idRegistry = idRegistry;
+
+        this.stockEntryLimit = stockEntryLimit;
     }
 
     CheckStockResult execute(final CheckStockOperation operation, final long timeout) throws InterruptedException, IOException {
@@ -58,7 +62,7 @@ final class CheckStockDriver {
         // 手紙の準備。
         final List<Message> mail = new ArrayList<>(2);
         final Pair<Address, Address> domain = this.network.getDomain();
-        final List<StockEntry> exclusive = StockEntry.getStockedEntries(this.storage, domain.getFirst(), domain.getSecond(), STOCK_ENTRY_LIMIT,
+        final List<StockEntry> exclusive = StockEntry.getStockedEntries(this.storage, domain.getFirst(), domain.getSecond(), this.stockEntryLimit,
                 new ArrayList<StockEntry>(0), this.idRegistry);
         mail.add(new CheckStockMessage(domain.getFirst(), domain.getSecond(), exclusive));
         mail.add(new SessionMessage(session));

@@ -27,6 +27,7 @@ public final class BossTest {
     private static final long backupInterval = Duration.SECOND;
     private static final long timeout = 10 * Duration.SECOND;
     private static final long versionGapThreshold = 1L;
+    private static final int entryLimit = 10;
     private final Random random;
     private final BlockingQueue<Operation> operationQueue;
     private final BlockingQueue<ClosetReport> closetReportQueue;
@@ -49,7 +50,7 @@ public final class BossTest {
         this.sessionManager = new SessionManager();
         this.executor = Executors.newCachedThreadPool();
 
-        this.drivers = new DriverSet(this.network, this.storage, this.sessionManager, new LinkedBlockingQueue<Operation>(), this.executor);
+        this.drivers = new DriverSet(this.network, this.storage, this.sessionManager, new LinkedBlockingQueue<Operation>(), this.executor, entryLimit);
     }
 
     /**
