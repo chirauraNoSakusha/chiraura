@@ -40,7 +40,7 @@ public final class P2pCloset implements Closet {
     /**
      * バージョン。
      */
-    private static final long VERSION = 7L; // 2014/02/08.
+    private static final long VERSION = 8L; // 2014/02/23.
 
     /**
      * いくつ離れていたら切り捨てるか。
