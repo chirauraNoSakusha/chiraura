@@ -28,6 +28,9 @@ final class Receiver implements Callable<Void> {
 
     private static final Logger LOG = Logger.getLogger(Receiver.class.getName());
 
+    // 接続プロトコルの通信量制限に対する重み。
+    private static final int START_PROTOCOL_WEIGHT = 8192; // 8KB.
+
     // 参照
     // 入出力。
     private final BlockingQueue<ReceivedMail> receivedMailSink;
@@ -113,6 +116,9 @@ final class Receiver implements Callable<Void> {
     }
 
     private void subCall() throws IOException, MyRuleException, InterruptedException {
+        // 接続プロトコル分。
+        limitSleep(START_PROTOCOL_WEIGHT);
+
         while (!Thread.currentThread().isInterrupted()) {
             final List<Message> mail = new ArrayList<>();
 
@@ -165,12 +171,16 @@ final class Receiver implements Callable<Void> {
             // 最終動作時刻を更新。
             this.connection.updateDate();
 
-            long sleep = this.limiter.nextSleep(size, this.connection.getDestination());
-            while (sleep > 0) {
-                LOG.log(Level.WARNING, "{0}: {1} ミリ秒さぼります。", new Object[] { this.connection, Long.toString(sleep) });
-                Thread.sleep(sleep);
-                sleep = this.limiter.nextSleep(this.connection.getDestination());
-            }
+            limitSleep(size);
+        }
+    }
+
+    private void limitSleep(final int size) throws InterruptedException {
+        long sleep = this.limiter.nextSleep(size, this.connection.getDestination());
+        while (sleep > 0) {
+            LOG.log(Level.WARNING, "{0}: {1} ミリ秒さぼります。", new Object[] { this.connection, Long.toString(sleep) });
+            Thread.sleep(sleep);
+            sleep = this.limiter.nextSleep(this.connection.getDestination());
         }
     }
 
