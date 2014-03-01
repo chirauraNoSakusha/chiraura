@@ -99,8 +99,12 @@ public final class AcceptorMasterTest {
     public AcceptorMasterTest() throws Exception {
         this.executor = Executors.newCachedThreadPool();
 
-        this.testerServerSocket = new ServerSocket(testerPort);
-        this.subjectServerSocket = new ServerSocket(testerPort + 10);
+        this.testerServerSocket = new ServerSocket();
+        this.testerServerSocket.setReuseAddress(true);
+        this.testerServerSocket.bind(new InetSocketAddress(testerPort));
+        this.subjectServerSocket = new ServerSocket();
+        this.subjectServerSocket.setReuseAddress(true);
+        this.subjectServerSocket.bind(new InetSocketAddress(testerPort + 10));
         this.testerSocket = new Socket(InetAddress.getLocalHost(), this.subjectServerSocket.getLocalPort());
         this.subjectSocket = this.subjectServerSocket.accept();
         this.testerInput = new BufferedInputStream(this.testerSocket.getInputStream());

@@ -99,7 +99,9 @@ public final class ContactorMasterTest {
     public ContactorMasterTest() throws Exception {
         this.executor = Executors.newCachedThreadPool();
 
-        this.testerServerSocket = new ServerSocket(testerPort);
+        this.testerServerSocket = new ServerSocket();
+        this.testerServerSocket.setReuseAddress(true);
+        this.testerServerSocket.bind(new InetSocketAddress(testerPort));
 
         this.subjectReceivedMailQueue = new LinkedBlockingQueue<>();
         this.subjectSendQueuePool = new BasicSendQueuePool();

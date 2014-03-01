@@ -94,8 +94,12 @@ public final class AcceptorTest {
     public AcceptorTest() throws Exception {
         this.executor = Executors.newCachedThreadPool();
 
-        this.testerServerSocket = new ServerSocket(testerPort);
-        this.subjectServerSocket = new ServerSocket(testerPort + 1);
+        this.testerServerSocket = new ServerSocket();
+        this.testerServerSocket.setReuseAddress(true);
+        this.testerServerSocket.bind(new InetSocketAddress(testerPort));
+        this.subjectServerSocket = new ServerSocket();
+        this.subjectServerSocket.setReuseAddress(true);
+        this.subjectServerSocket.bind(new InetSocketAddress(testerPort + 1));
         this.testerSocket = new Socket(InetAddress.getLocalHost(), this.subjectServerSocket.getLocalPort());
         this.subjectConnection = new AcceptedConnection(1234, this.subjectServerSocket.accept());
         this.testerInput = new BufferedInputStream(this.testerSocket.getInputStream());

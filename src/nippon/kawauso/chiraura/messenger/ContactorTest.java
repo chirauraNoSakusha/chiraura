@@ -89,7 +89,9 @@ public final class ContactorTest {
      * @throws Exception 異常
      */
     public ContactorTest() throws Exception {
-        this.testerServerSocket = new ServerSocket(testerPort);
+        this.testerServerSocket = new ServerSocket();
+        this.testerServerSocket.setReuseAddress(true);
+        this.testerServerSocket.bind(new InetSocketAddress(testerPort));
 
         this.subjectConnection = new ContactingConnection(1234, new InetSocketAddress(InetAddress.getLocalHost(), testerPort), connectionType);
         this.subjectKeyManager = new PublicKeyManager(100 * Duration.SECOND);

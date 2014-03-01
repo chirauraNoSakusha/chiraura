@@ -75,7 +75,9 @@ public final class SenderTest {
         this.executor = Executors.newCachedThreadPool();
 
         final int port = 12345;
-        this.subjectServerSocket = new ServerSocket(port);
+        this.subjectServerSocket = new ServerSocket();
+        this.subjectServerSocket.setReuseAddress(true);
+        this.subjectServerSocket.bind(new InetSocketAddress(port));
         this.testerSocket = new Socket("localhost", port);
         this.subjectSocket = this.subjectServerSocket.accept();
         this.testerInput = new BufferedInputStream(this.testerSocket.getInputStream());

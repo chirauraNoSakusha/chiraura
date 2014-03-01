@@ -82,7 +82,9 @@ public final class ReceiverTest {
         this.executor = Executors.newCachedThreadPool();
 
         final int port = 12345;
-        this.testerServerSocket = new ServerSocket(port);
+        this.testerServerSocket = new ServerSocket();
+        this.testerServerSocket.setReuseAddress(true);
+        this.testerServerSocket.bind(new InetSocketAddress(port));
         this.subjectSocket = new Socket("localhost", port);
         this.testerSocket = this.testerServerSocket.accept();
         this.testerOutput = new BufferedOutputStream(this.testerSocket.getOutputStream());

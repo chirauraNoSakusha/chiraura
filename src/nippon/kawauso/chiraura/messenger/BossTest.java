@@ -106,7 +106,9 @@ public final class BossTest {
 
         this.subjectSelf = new AtomicReference<>(null);
 
-        this.testerServerSocket = new ServerSocket(testerPort);
+        this.testerServerSocket = new ServerSocket();
+        this.testerServerSocket.setReuseAddress(true);
+        this.testerServerSocket.bind(new InetSocketAddress(testerPort));
     }
 
     /**
