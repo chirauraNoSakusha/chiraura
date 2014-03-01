@@ -119,9 +119,13 @@ final class ThreadMessenger implements Messenger {
         this.connectRequestQueue = new LinkedBlockingQueue<>();
         this.messengerReportSink = new LinkedBlockingQueue<>();
         this.acceptedConnectionPool = new ConnectionPool<>();
-        this.contactingConnectionPool = new BoundConnectionPool<>();
-        this.connectionPool = new BoundConnectionPool<>();
-
+        if (portIgnore) {
+            this.contactingConnectionPool = new PortIgnoringBoundConnectionPool<>();
+            this.connectionPool = new PortIgnoringBoundConnectionPool<>();
+        } else {
+            this.contactingConnectionPool = new BasicBoundConnectionPool<>();
+            this.connectionPool = new BasicBoundConnectionPool<>();
+        }
         this.registry = TypeRegistries.newRegistry();
         RegistryInitializer.init(this.registry);
 
@@ -165,13 +169,12 @@ final class ThreadMessenger implements Messenger {
     @Override
     public boolean containsConnection(final InetSocketAddress destination) {
         if (this.portIgnore) {
-            return this.acceptedConnectionPool.contains(destination.getAddress()) ||
-                    this.contactingConnectionPool.contains(destination.getAddress()) ||
-                    this.connectionPool.contains(destination.getAddress());
-        } else {
-            return this.contactingConnectionPool.contains(destination) ||
-                    this.connectionPool.contains(destination);
+            if (this.acceptedConnectionPool.contains(destination.getAddress())) {
+                return true;
+            }
         }
+        return this.contactingConnectionPool.contains(destination) ||
+                this.connectionPool.contains(destination);
     }
 
     @Override
@@ -184,27 +187,16 @@ final class ThreadMessenger implements Messenger {
                 connection.close();
                 LOG.log(Level.FINEST, "接続 {0} をぶっ殺しました。", connection);
             }
-            for (final ContactingConnection connection : this.contactingConnectionPool.get(destination.getAddress())) {
-                removed = true;
-                connection.close();
-                LOG.log(Level.FINEST, "接続中の {0} をぶっ殺しました。", connection);
-            }
-            for (final Connection connection : this.connectionPool.get(destination.getAddress())) {
-                removed = true;
-                connection.close();
-                LOG.log(Level.FINEST, "受け入れ中の {0} をぶっ殺しました。", connection);
-            }
-        } else {
-            for (final ContactingConnection connection : this.contactingConnectionPool.get(destination)) {
-                removed = true;
-                connection.close();
-                LOG.log(Level.FINEST, "接続中の {0} をぶっ殺しました。", connection);
-            }
-            for (final Connection connection : this.connectionPool.get(destination)) {
-                removed = true;
-                connection.close();
-                LOG.log(Level.FINEST, "受け入れ中の {0} をぶっ殺しました。", connection);
-            }
+        }
+        for (final ContactingConnection connection : this.contactingConnectionPool.get(destination)) {
+            removed = true;
+            connection.close();
+            LOG.log(Level.FINEST, "接続中の {0} をぶっ殺しました。", connection);
+        }
+        for (final Connection connection : this.connectionPool.get(destination)) {
+            removed = true;
+            connection.close();
+            LOG.log(Level.FINEST, "受け入れ中の {0} をぶっ殺しました。", connection);
         }
         return removed;
     }

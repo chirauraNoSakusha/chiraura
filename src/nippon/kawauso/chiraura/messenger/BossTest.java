@@ -101,8 +101,8 @@ public final class BossTest {
         this.subjectConnectRequestQueue = new LinkedBlockingQueue<>();
         this.subjectMessengerReportQueue = new LinkedBlockingQueue<>();
         this.subjectAcceptedConnectionPool = new ConnectionPool<>();
-        this.subjectContactingConnectionPool = new BoundConnectionPool<>();
-        this.subjectConnectionPool = new BoundConnectionPool<>();
+        this.subjectContactingConnectionPool = new PortIgnoringBoundConnectionPool<>();
+        this.subjectConnectionPool = new PortIgnoringBoundConnectionPool<>();
 
         this.subjectSelf = new AtomicReference<>(null);
 

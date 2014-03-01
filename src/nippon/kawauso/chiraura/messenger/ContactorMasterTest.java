@@ -104,8 +104,8 @@ public final class ContactorMasterTest {
         this.subjectReceivedMailQueue = new LinkedBlockingQueue<>();
         this.subjectSendQueuePool = new BasicSendQueuePool();
         this.subjectMessengerReportQueue = new LinkedBlockingQueue<>();
-        this.subjectContactingConnectionPool = new BoundConnectionPool<>();
-        this.subjectConnectionPool = new BoundConnectionPool<>();
+        this.subjectContactingConnectionPool = new PortIgnoringBoundConnectionPool<>();
+        this.subjectConnectionPool = new PortIgnoringBoundConnectionPool<>();
 
         this.subjectSerialGenerator = new AtomicInteger(0);
         this.subjectReportQueue = new LinkedBlockingQueue<>();

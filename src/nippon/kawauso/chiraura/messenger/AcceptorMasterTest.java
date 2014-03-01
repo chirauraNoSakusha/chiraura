@@ -110,7 +110,7 @@ public final class AcceptorMasterTest {
         this.subjectSendQueuePool = new BasicSendQueuePool();
         this.subjectMessengerReportQueue = new LinkedBlockingQueue<>();
         this.subjectAcceptedConnectionPool = new ConnectionPool<>();
-        this.subjectConnectionPool = new BoundConnectionPool<>();
+        this.subjectConnectionPool = new PortIgnoringBoundConnectionPool<>();
 
         this.subjectSerialGenerator = new AtomicInteger();
         this.subjectAcceptedSocketQueue = new LinkedBlockingQueue<>();

@@ -161,8 +161,14 @@ final class Acceptor implements Callable<Void> {
 
         // ポートを気にしない接続数制限。
         if (this.portIgnore) {
+            final InetSocketAddress destination;
+            if (this.acceptedConnection.getSocket().getRemoteSocketAddress() instanceof InetSocketAddress) {
+                destination = (InetSocketAddress) this.acceptedConnection.getSocket().getRemoteSocketAddress();
+            } else {
+                destination = new InetSocketAddress(this.acceptedConnection.getSocket().getInetAddress(), 0);
+            }
             final int numOfConnections = this.acceptedConnectionPool.getNumOfConnections(this.acceptedConnection.getSocket().getInetAddress())
-                    + this.connectionPool.getNumOfConnections(this.acceptedConnection.getSocket().getInetAddress());
+                    + this.connectionPool.getNumOfConnections(destination);
             if (numOfConnections >= this.connectionLimit) {
                 LOG.log(Level.WARNING, "{0}: ポートは無視した接続数 ( {1} ) が限界 ( {2} ) に達しています。",
                         new Object[] { this.acceptedConnection, Integer.toString(numOfConnections), Integer.toString(this.connectionLimit) });

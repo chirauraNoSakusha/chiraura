@@ -94,8 +94,8 @@ public final class ContactorTest {
         this.subjectConnection = new ContactingConnection(1234, new InetSocketAddress(InetAddress.getLocalHost(), testerPort), connectionType);
         this.subjectKeyManager = new PublicKeyManager(100 * Duration.SECOND);
 
-        this.subjectContactingConnectionPool = new BoundConnectionPool<>();
-        this.subjectConnectionPool = new BoundConnectionPool<>();
+        this.subjectContactingConnectionPool = new PortIgnoringBoundConnectionPool<>();
+        this.subjectConnectionPool = new PortIgnoringBoundConnectionPool<>();
         this.subjectReceivedMailQueue = new LinkedBlockingQueue<>();
         this.subjectSendQueuePool = new BasicSendQueuePool();
         this.subjectMessengerReportQueue = new LinkedBlockingQueue<>();
