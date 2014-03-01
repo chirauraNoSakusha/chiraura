@@ -65,7 +65,7 @@ public final class SenderTest {
     private final Connection subjectConnection;
     private final SendQueuePool subjectSendQueuePool;
     private final BlockingQueue<MessengerReport> subjectMessengerReportQueue;
-    private final BoundConnectionPool<Connection> subjectConnectionPool;
+    private final ConnectionPool<Connection> subjectConnectionPool;
 
     /**
      * 初期化。
@@ -87,7 +87,7 @@ public final class SenderTest {
         this.subjectConnection = new Connection(idNumber, tester, testerIdPair.getPublic(), connectionType, this.subjectSocket);
         this.subjectSendQueuePool = new BasicSendQueuePool();
         this.subjectMessengerReportQueue = new LinkedBlockingQueue<>();
-        this.subjectConnectionPool = new PortIgnoringBoundConnectionPool<>();
+        this.subjectConnectionPool = new PortIgnoringConnectionPool<>();
 
         this.subjectConnectionPool.add(this.subjectConnection);
 

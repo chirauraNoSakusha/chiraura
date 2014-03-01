@@ -28,7 +28,7 @@ final class Sender implements Callable<Void> {
     // 入出力。
     private final SendQueuePool mailSource;
     private final BlockingQueue<MessengerReport> messengerReportSink;
-    private final BoundConnectionPool<Connection> connectionPool;
+    private final ConnectionPool<Connection> connectionPool;
 
     // 通信周り。
     private final long timeout;
@@ -45,7 +45,7 @@ final class Sender implements Callable<Void> {
 
     private Key encryptionKey;
 
-    Sender(final SendQueuePool mailSource, final BlockingQueue<MessengerReport> messengerReportSink, final BoundConnectionPool<Connection> connectionPool,
+    Sender(final SendQueuePool mailSource, final BlockingQueue<MessengerReport> messengerReportSink, final ConnectionPool<Connection> connectionPool,
             final long timeout, final Transceiver transceiver, final Connection connection, final OutputStream output, final long keyLifetime,
             final PrivateKey myKey, final PublicKey destinationKey, final Key firstEncryptionKey) {
         if (mailSource == null) {

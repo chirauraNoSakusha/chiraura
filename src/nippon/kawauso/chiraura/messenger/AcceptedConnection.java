@@ -3,6 +3,7 @@
  */
 package nippon.kawauso.chiraura.messenger;
 
+import java.net.InetSocketAddress;
 import java.net.Socket;
 
 /**
@@ -13,6 +14,17 @@ final class AcceptedConnection extends SkeletalConnection {
 
     AcceptedConnection(final int idNumber, final Socket socket) {
         super(idNumber, socket);
+    }
+
+    @Override
+    InetSocketAddress getDestination() {
+        final InetSocketAddress destination;
+        if (getSocket().getRemoteSocketAddress() instanceof InetSocketAddress) {
+            destination = (InetSocketAddress) getSocket().getRemoteSocketAddress();
+        } else {
+            destination = new InetSocketAddress(getSocket().getInetAddress(), getSocket().getPort());
+        }
+        return destination;
     }
 
     @Override

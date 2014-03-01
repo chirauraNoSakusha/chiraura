@@ -55,8 +55,8 @@ final class ThreadMessenger implements Messenger {
     private final BlockingQueue<ConnectRequest> connectRequestQueue;
     private final BlockingQueue<MessengerReport> messengerReportSink;
     private final ConnectionPool<AcceptedConnection> acceptedConnectionPool;
-    private final BoundConnectionPool<ContactingConnection> contactingConnectionPool;
-    private final BoundConnectionPool<Connection> connectionPool;
+    private final ConnectionPool<ContactingConnection> contactingConnectionPool;
+    private final ConnectionPool<Connection> connectionPool;
 
     private final TypeRegistry<Message> registry;
 
@@ -118,13 +118,13 @@ final class ThreadMessenger implements Messenger {
         this.sendQueuePool = new BasicSendQueuePool();
         this.connectRequestQueue = new LinkedBlockingQueue<>();
         this.messengerReportSink = new LinkedBlockingQueue<>();
-        this.acceptedConnectionPool = new ConnectionPool<>();
+        this.acceptedConnectionPool = new PortIgnoringConnectionPool<>();
         if (portIgnore) {
-            this.contactingConnectionPool = new PortIgnoringBoundConnectionPool<>();
-            this.connectionPool = new PortIgnoringBoundConnectionPool<>();
+            this.contactingConnectionPool = new PortIgnoringConnectionPool<>();
+            this.connectionPool = new PortIgnoringConnectionPool<>();
         } else {
-            this.contactingConnectionPool = new BasicBoundConnectionPool<>();
-            this.connectionPool = new BasicBoundConnectionPool<>();
+            this.contactingConnectionPool = new BoundConnectionPool<>();
+            this.connectionPool = new BoundConnectionPool<>();
         }
         this.registry = TypeRegistries.newRegistry();
         RegistryInitializer.init(this.registry);
@@ -169,7 +169,7 @@ final class ThreadMessenger implements Messenger {
     @Override
     public boolean containsConnection(final InetSocketAddress destination) {
         if (this.portIgnore) {
-            if (this.acceptedConnectionPool.contains(destination.getAddress())) {
+            if (this.acceptedConnectionPool.contains(destination)) {
                 return true;
             }
         }
@@ -182,7 +182,7 @@ final class ThreadMessenger implements Messenger {
         boolean removed = false;
 
         if (this.portIgnore) {
-            for (final AcceptedConnection connection : this.acceptedConnectionPool.get(destination.getAddress())) {
+            for (final AcceptedConnection connection : this.acceptedConnectionPool.get(destination)) {
                 removed = true;
                 connection.close();
                 LOG.log(Level.FINEST, "接続 {0} をぶっ殺しました。", connection);

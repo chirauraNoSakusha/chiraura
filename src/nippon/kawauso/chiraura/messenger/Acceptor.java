@@ -64,7 +64,7 @@ final class Acceptor implements Callable<Void> {
     private final SendQueuePool sendQueuePool;
     private final BlockingQueue<ReceivedMail> receivedMailSink;
     private final TrafficLimiter limiter;
-    private final BoundConnectionPool<Connection> connectionPool;
+    private final ConnectionPool<Connection> connectionPool;
     private final long keyLifetime;
 
     Acceptor(final boolean portIgnore, final int connectionLimit, final BlockingQueue<MessengerReport> messengerReportSink,
@@ -72,7 +72,7 @@ final class Acceptor implements Callable<Void> {
             final long operationTimeout, final Transceiver transceiver, final AcceptedConnection acceptedConnection, final long version,
             final long versionGapThreshold, final KeyPair id, final PublicKeyManager keyManager, final AtomicReference<InetSocketAddress> self,
             final ExecutorService executor, final SendQueuePool sendQueuePool, final BlockingQueue<ReceivedMail> receivedMailSink,
-            final TrafficLimiter limiter, final BoundConnectionPool<Connection> connectionPool, final long keyLifetime) {
+            final TrafficLimiter limiter, final ConnectionPool<Connection> connectionPool, final long keyLifetime) {
         if (connectionLimit < 0) {
             throw new IllegalArgumentException("Negative connection limit ( " + connectionLimit + " ).");
         } else if (messengerReportSink == null) {
@@ -146,7 +146,7 @@ final class Acceptor implements Callable<Void> {
                 // 別プロセスが接続を閉じて終了を報せてくれたわけでもない。
                 LOG.log(Level.FINEST, "{0}: 異常発生: {1}", new Object[] { this.acceptedConnection, e.toString() });
                 this.acceptedConnection.close();
-                ConcurrentFunctions.completePut(new AcceptanceError(this.acceptedConnection.getSocket().getInetAddress(), e), this.messengerReportSink);
+                ConcurrentFunctions.completePut(new AcceptanceError(this.acceptedConnection.getDestination(), e), this.messengerReportSink);
             }
         } finally {
             // 登録の削除。

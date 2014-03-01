@@ -39,7 +39,7 @@ final class AcceptorMaster extends Reporter<Void> {
     private final TrafficLimiter limiter;
     private final BlockingQueue<MessengerReport> messengerReportSink;
     private final ConnectionPool<AcceptedConnection> acceptedConnectionPool;
-    private final BoundConnectionPool<Connection> connectionPool;
+    private final ConnectionPool<Connection> connectionPool;
 
     private final int sendBufferSize;
     private final long connectionTimeout;
@@ -56,7 +56,7 @@ final class AcceptorMaster extends Reporter<Void> {
     AcceptorMaster(final BlockingQueue<Reporter.Report> reportSink, final BlockingQueue<Socket> acceptedSocketSource, final AtomicInteger serialGenerator,
             final ExecutorService executor, final boolean portIgnore, final int connectionLimit, final BlockingQueue<ReceivedMail> receivedMailSink,
             final SendQueuePool sendQueuePool, final TrafficLimiter limiter, final BlockingQueue<MessengerReport> messengerReportSink,
-            final ConnectionPool<AcceptedConnection> acceptedConnectionPool, final BoundConnectionPool<Connection> connectionPool, final int sendBufferSize,
+            final ConnectionPool<AcceptedConnection> acceptedConnectionPool, final ConnectionPool<Connection> connectionPool, final int sendBufferSize,
             final long connectionTimeout, final long operationTimeout, final Transceiver transceiver, final long version, final long versionGapThreshold,
             final KeyPair id, final PublicKeyManager keyManager, final long keyLifetime, final AtomicReference<InetSocketAddress> self) {
         super(reportSink);

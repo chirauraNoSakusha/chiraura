@@ -82,8 +82,8 @@ public final class BossTest {
     private final BlockingQueue<ConnectRequest> subjectConnectRequestQueue;
     private final BlockingQueue<MessengerReport> subjectMessengerReportQueue;
     private final ConnectionPool<AcceptedConnection> subjectAcceptedConnectionPool;
-    private final BoundConnectionPool<ContactingConnection> subjectContactingConnectionPool;
-    private final BoundConnectionPool<Connection> subjectConnectionPool;
+    private final ConnectionPool<ContactingConnection> subjectContactingConnectionPool;
+    private final ConnectionPool<Connection> subjectConnectionPool;
 
     private final AtomicReference<InetSocketAddress> subjectSelf;
 
@@ -100,9 +100,9 @@ public final class BossTest {
         this.subjectSendQueuePool = new BasicSendQueuePool();
         this.subjectConnectRequestQueue = new LinkedBlockingQueue<>();
         this.subjectMessengerReportQueue = new LinkedBlockingQueue<>();
-        this.subjectAcceptedConnectionPool = new ConnectionPool<>();
-        this.subjectContactingConnectionPool = new PortIgnoringBoundConnectionPool<>();
-        this.subjectConnectionPool = new PortIgnoringBoundConnectionPool<>();
+        this.subjectAcceptedConnectionPool = new PortIgnoringConnectionPool<>();
+        this.subjectContactingConnectionPool = new PortIgnoringConnectionPool<>();
+        this.subjectConnectionPool = new PortIgnoringConnectionPool<>();
 
         this.subjectSelf = new AtomicReference<>(null);
 

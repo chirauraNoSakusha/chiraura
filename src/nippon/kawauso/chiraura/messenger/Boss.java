@@ -39,8 +39,8 @@ final class Boss extends Chief {
     private final SendQueuePool sendQueuePool;
     private final BlockingQueue<MessengerReport> messengerReportSink;
     private final ConnectionPool<AcceptedConnection> acceptedConnectionPool;
-    private final BoundConnectionPool<ContactingConnection> contactingConnectionPool;
-    private final BoundConnectionPool<Connection> connectionPool;
+    private final ConnectionPool<ContactingConnection> contactingConnectionPool;
+    private final ConnectionPool<Connection> connectionPool;
 
     private final boolean portIgnore;
     private final int connectionLimit;
@@ -72,8 +72,8 @@ final class Boss extends Chief {
 
     Boss(final ExecutorService executor, final BlockingQueue<ConnectRequest> connectRequestQueue, final BlockingQueue<ReceivedMail> receivedMailSink,
             final SendQueuePool sendQueuePool, final BlockingQueue<MessengerReport> messengerReportSink,
-            final ConnectionPool<AcceptedConnection> acceptedConnectionPool, final BoundConnectionPool<ContactingConnection> contactingConnectionPool,
-            final BoundConnectionPool<Connection> connectionPool, final int port, final int receiveBufferSize, final int sendBufferSize,
+            final ConnectionPool<AcceptedConnection> acceptedConnectionPool, final ConnectionPool<ContactingConnection> contactingConnectionPool,
+            final ConnectionPool<Connection> connectionPool, final int port, final int receiveBufferSize, final int sendBufferSize,
             final long connectionTimeout, final long operationTimeout, final int messageSizeLimit, final TypeRegistry<Message> registry, final long version,
             final long versionGapThreshold, final KeyPair id, final long publicKeyLifetime, final long commonKeyLifetime,
             final AtomicReference<InetSocketAddress> self, final boolean portIgnore, final int connectionLimit, final long trafficDuration,

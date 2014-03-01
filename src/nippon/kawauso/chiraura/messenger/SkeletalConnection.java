@@ -4,6 +4,7 @@
 package nippon.kawauso.chiraura.messenger;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 
 /**
@@ -32,6 +33,8 @@ abstract class SkeletalConnection {
     Socket getSocket() {
         return this.socket;
     }
+
+    abstract InetSocketAddress getDestination();
 
     synchronized boolean isClosed() {
         return this.isClosed;

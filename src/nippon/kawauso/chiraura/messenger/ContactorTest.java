@@ -77,8 +77,8 @@ public final class ContactorTest {
     private final BlockingQueue<ReceivedMail> subjectReceivedMailQueue;
     private final SendQueuePool subjectSendQueuePool;
     private final BlockingQueue<MessengerReport> subjectMessengerReportQueue;
-    private final BoundConnectionPool<ContactingConnection> subjectContactingConnectionPool;
-    private final BoundConnectionPool<Connection> subjectConnectionPool;
+    private final ConnectionPool<ContactingConnection> subjectContactingConnectionPool;
+    private final ConnectionPool<Connection> subjectConnectionPool;
 
     private final PublicKeyManager subjectKeyManager;
 
@@ -96,8 +96,8 @@ public final class ContactorTest {
         this.subjectConnection = new ContactingConnection(1234, new InetSocketAddress(InetAddress.getLocalHost(), testerPort), connectionType);
         this.subjectKeyManager = new PublicKeyManager(100 * Duration.SECOND);
 
-        this.subjectContactingConnectionPool = new PortIgnoringBoundConnectionPool<>();
-        this.subjectConnectionPool = new PortIgnoringBoundConnectionPool<>();
+        this.subjectContactingConnectionPool = new PortIgnoringConnectionPool<>();
+        this.subjectConnectionPool = new PortIgnoringConnectionPool<>();
         this.subjectReceivedMailQueue = new LinkedBlockingQueue<>();
         this.subjectSendQueuePool = new BasicSendQueuePool();
         this.subjectMessengerReportQueue = new LinkedBlockingQueue<>();
@@ -247,7 +247,7 @@ public final class ContactorTest {
         final MessengerReport report = this.subjectMessengerReportQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);
         Assert.assertTrue(report instanceof ContactError);
         Assert.assertTrue(((ContactError) report).getError() instanceof MyRuleException);
-        Assert.assertEquals(this.subjectConnection.getSocket().getInetAddress(), ((ContactError) report).getDestination().getAddress());
+        Assert.assertEquals(this.subjectConnection.getDestination(), ((ContactError) report).getDestination());
     }
 
     /**
@@ -269,7 +269,7 @@ public final class ContactorTest {
         final MessengerReport report = this.subjectMessengerReportQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);
         Assert.assertTrue(report instanceof ContactError);
         Assert.assertTrue(((ContactError) report).getError() instanceof SocketTimeoutException);
-        Assert.assertEquals(this.subjectConnection.getSocket().getInetAddress(), ((ContactError) report).getDestination().getAddress());
+        Assert.assertEquals(this.subjectConnection.getDestination(), ((ContactError) report).getDestination());
     }
 
     /**

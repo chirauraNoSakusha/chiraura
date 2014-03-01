@@ -14,7 +14,7 @@ import org.junit.Test;
 /**
  * @author chirauraNoSakusha
  */
-public final class PortIgnoringBoundConnectionPoolTest {
+public final class BoundConnectionPoolTest {
 
     /**
      * 検査。
@@ -22,7 +22,7 @@ public final class PortIgnoringBoundConnectionPoolTest {
      */
     @Test
     public void test() throws Exception {
-        final BoundConnectionPool<ContactingConnection> instance = new PortIgnoringBoundConnectionPool<>();
+        final ConnectionPool<ContactingConnection> instance = new BoundConnectionPool<>();
 
         final List<InetSocketAddress> destinations = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
@@ -46,21 +46,31 @@ public final class PortIgnoringBoundConnectionPoolTest {
 
         instance.add(new ContactingConnection(3, destinations.get(1), 0));
 
-        Assert.assertEquals(3, instance.getNumOfConnections(destinations.get(0)));
+        Assert.assertEquals(2, instance.getNumOfConnections(destinations.get(0)));
         Assert.assertEquals(1, instance.getNumOfConnections(destinations.get(5)));
+        Assert.assertEquals(1, instance.getNumOfConnections(destinations.get(1)));
 
         instance.remove(0);
 
-        Assert.assertEquals(2, instance.getNumOfConnections(destinations.get(0)));
+        Assert.assertEquals(1, instance.getNumOfConnections(destinations.get(0)));
         Assert.assertEquals(1, instance.getNumOfConnections(destinations.get(5)));
+        Assert.assertEquals(1, instance.getNumOfConnections(destinations.get(1)));
 
         instance.remove(3);
 
         Assert.assertEquals(1, instance.getNumOfConnections(destinations.get(0)));
         Assert.assertEquals(1, instance.getNumOfConnections(destinations.get(5)));
+        Assert.assertEquals(0, instance.getNumOfConnections(destinations.get(1)));
 
-        for (int i = 0; i < 10; i++) {
-            Assert.assertTrue(instance.contains(destinations.get(i)));
-        }
+        Assert.assertTrue(instance.contains(destinations.get(0)));
+        Assert.assertTrue(instance.contains(destinations.get(5)));
+        Assert.assertFalse(instance.contains(destinations.get(1)));
+        Assert.assertFalse(instance.contains(destinations.get(2)));
+        Assert.assertFalse(instance.contains(destinations.get(3)));
+        Assert.assertFalse(instance.contains(destinations.get(4)));
+        Assert.assertFalse(instance.contains(destinations.get(6)));
+        Assert.assertFalse(instance.contains(destinations.get(7)));
+        Assert.assertFalse(instance.contains(destinations.get(8)));
+        Assert.assertFalse(instance.contains(destinations.get(9)));
     }
 }

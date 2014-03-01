@@ -81,8 +81,8 @@ public final class ContactorMasterTest {
     private final BlockingQueue<ReceivedMail> subjectReceivedMailQueue;
     private final SendQueuePool subjectSendQueuePool;
     private final BlockingQueue<MessengerReport> subjectMessengerReportQueue;
-    private final BoundConnectionPool<ContactingConnection> subjectContactingConnectionPool;
-    private final BoundConnectionPool<Connection> subjectConnectionPool;
+    private final ConnectionPool<ContactingConnection> subjectContactingConnectionPool;
+    private final ConnectionPool<Connection> subjectConnectionPool;
 
     private final AtomicInteger subjectSerialGenerator;
     private final BlockingQueue<Reporter.Report> subjectReportQueue;
@@ -106,8 +106,8 @@ public final class ContactorMasterTest {
         this.subjectReceivedMailQueue = new LinkedBlockingQueue<>();
         this.subjectSendQueuePool = new BasicSendQueuePool();
         this.subjectMessengerReportQueue = new LinkedBlockingQueue<>();
-        this.subjectContactingConnectionPool = new PortIgnoringBoundConnectionPool<>();
-        this.subjectConnectionPool = new PortIgnoringBoundConnectionPool<>();
+        this.subjectContactingConnectionPool = new PortIgnoringConnectionPool<>();
+        this.subjectConnectionPool = new PortIgnoringConnectionPool<>();
 
         this.subjectSerialGenerator = new AtomicInteger(0);
         this.subjectReportQueue = new LinkedBlockingQueue<>();

@@ -40,7 +40,7 @@ final class Contactor implements Callable<Void> {
     // 参照。
     // 入出力。
     private final BlockingQueue<MessengerReport> messengerReportSink;
-    private final BoundConnectionPool<ContactingConnection> contactingConnectionPool;
+    private final ConnectionPool<ContactingConnection> contactingConnectionPool;
 
     // 通信周り。
     private final int receiveBufferSize;
@@ -64,15 +64,15 @@ final class Contactor implements Callable<Void> {
     private final SendQueuePool sendQueuePool;
     private final BlockingQueue<ReceivedMail> receivedMailSink;
     private final TrafficLimiter limiter;
-    private final BoundConnectionPool<Connection> connectionPool;
+    private final ConnectionPool<Connection> connectionPool;
     private final long keyLifetime;
 
-    Contactor(final BlockingQueue<MessengerReport> messengerReportSink, final BoundConnectionPool<ContactingConnection> contactingConnectionPool,
+    Contactor(final BlockingQueue<MessengerReport> messengerReportSink, final ConnectionPool<ContactingConnection> contactingConnectionPool,
             final int receiveBufferSize, final int sendBufferSize, final long connectionTimeout, final long operationTimeout, final Transceiver transceiver,
             final ContactingConnection contactingConnection, final long version, final long versionGapThreshold, final int port, final KeyPair id,
             final PublicKeyManager keyManager, final AtomicReference<InetSocketAddress> self, final ExecutorService executor,
             final SendQueuePool sendQueuePool, final BlockingQueue<ReceivedMail> receivedMailSink, final TrafficLimiter limiter,
-            final BoundConnectionPool<Connection> connectionPool, final long keyLifetime) {
+            final ConnectionPool<Connection> connectionPool, final long keyLifetime) {
         if (messengerReportSink == null) {
             throw new IllegalArgumentException("Null messenger report sink.");
         } else if (contactingConnectionPool == null) {
@@ -226,7 +226,12 @@ final class Contactor implements Callable<Void> {
         // 二言目の送信。
         final byte[] watchword = new byte[CryptographicKeys.PUBLIC_KEY_SIZE / Byte.SIZE / 2];
         ThreadLocalRandom.current().nextBytes(watchword);
-        final InetSocketAddress destination = (InetSocketAddress) this.contactingConnection.getSocket().getRemoteSocketAddress();
+        final InetSocketAddress destination;
+        if (this.contactingConnection.getSocket().getRemoteSocketAddress() instanceof InetSocketAddress) {
+            destination = (InetSocketAddress) this.contactingConnection.getSocket().getRemoteSocketAddress();
+        } else {
+            destination = new InetSocketAddress(this.contactingConnection.getSocket().getInetAddress(), this.contactingConnection.getSocket().getPort());
+        }
         StartingProtocol.sendSecond(this.transceiver, output, this.id, communicationKey, watchword, this.version, this.port,
                 this.contactingConnection.getType(), destination);
 

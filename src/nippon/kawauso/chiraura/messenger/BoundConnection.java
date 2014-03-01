@@ -23,6 +23,7 @@ abstract class BoundConnection extends SkeletalConnection {
         this.destination = destination;
     }
 
+    @Override
     InetSocketAddress getDestination() {
         return this.destination;
     }

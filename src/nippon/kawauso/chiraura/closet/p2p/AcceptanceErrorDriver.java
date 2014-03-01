@@ -27,13 +27,13 @@ final class AcceptanceErrorDriver {
 
     void execute(final AcceptanceError error) {
         if (error.getError() instanceof MyRuleException) {
-            if (this.network.removeInvalidPeer(error.getDestination())) {
+            if (this.network.removeInvalidPeer(error.getDestination().getAddress())) {
                 LOG.log(Level.FINER, "不正な個体 " + error.getDestination() + " を除外しました", error.getError());
             } else {
                 LOG.log(Level.FINEST, "不正な個体 " + error.getDestination() + " を検知しました", error.getError());
             }
         } else {
-            if (this.network.removePeer(error.getDestination())) {
+            if (this.network.removePeer(error.getDestination().getAddress())) {
                 LOG.log(Level.FINER, error.getDestination() + " を通信網から外しました", error.getError());
             } else {
                 LOG.log(Level.FINEST, error.getDestination() + " の異常を検知しました", error.getError());

@@ -83,7 +83,7 @@ public final class AcceptorTest {
     private final SendQueuePool subjectSendQueuePool;
     private final BlockingQueue<MessengerReport> subjectMessengerReportQueue;
     private final ConnectionPool<AcceptedConnection> subjectAcceptedConnectionPool;
-    private final BoundConnectionPool<Connection> subjectConnectionPool;
+    private final ConnectionPool<Connection> subjectConnectionPool;
     private final PublicKeyManager subjectKeyManager;
     private final AtomicReference<InetSocketAddress> subjectSelf;
 
@@ -108,8 +108,8 @@ public final class AcceptorTest {
         this.subjectReceivedMailQueue = new LinkedBlockingQueue<>();
         this.subjectSendQueuePool = new BasicSendQueuePool();
         this.subjectMessengerReportQueue = new LinkedBlockingQueue<>();
-        this.subjectAcceptedConnectionPool = new ConnectionPool<>();
-        this.subjectConnectionPool = new PortIgnoringBoundConnectionPool<>();
+        this.subjectAcceptedConnectionPool = new PortIgnoringConnectionPool<>();
+        this.subjectConnectionPool = new PortIgnoringConnectionPool<>();
         this.subjectKeyManager = new PublicKeyManager(100 * Duration.SECOND);
         this.subjectSelf = new AtomicReference<>(null);
 
@@ -242,7 +242,7 @@ public final class AcceptorTest {
         final MessengerReport report = this.subjectMessengerReportQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);
         Assert.assertTrue(report instanceof AcceptanceError);
         Assert.assertTrue(((AcceptanceError) report).getError() instanceof IOException);
-        Assert.assertEquals(this.subjectConnection.getSocket().getInetAddress(), ((AcceptanceError) report).getDestination());
+        Assert.assertEquals(this.subjectConnection.getDestination(), ((AcceptanceError) report).getDestination());
     }
 
     /**
@@ -265,7 +265,7 @@ public final class AcceptorTest {
         final MessengerReport report = this.subjectMessengerReportQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);
         Assert.assertTrue(report instanceof AcceptanceError);
         Assert.assertTrue(((AcceptanceError) report).getError() instanceof MyRuleException);
-        Assert.assertEquals(this.subjectConnection.getSocket().getInetAddress(), ((AcceptanceError) report).getDestination());
+        Assert.assertEquals(this.subjectConnection.getDestination(), ((AcceptanceError) report).getDestination());
     }
 
     /**
@@ -287,7 +287,7 @@ public final class AcceptorTest {
         final MessengerReport report = this.subjectMessengerReportQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);
         Assert.assertTrue(report instanceof AcceptanceError);
         Assert.assertTrue(((AcceptanceError) report).getError() instanceof SocketTimeoutException);
-        Assert.assertEquals(this.subjectConnection.getSocket().getInetAddress(), ((AcceptanceError) report).getDestination());
+        Assert.assertEquals(this.subjectConnection.getDestination(), ((AcceptanceError) report).getDestination());
     }
 
     /**

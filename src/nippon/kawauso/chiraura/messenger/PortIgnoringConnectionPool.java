@@ -17,12 +17,12 @@ import java.util.Set;
  * インスタンスを synchronized でロックすることにより、複数操作でも排他的に実行できる。
  * @author chirauraNoSakusha
  */
-final class PortIgnoringBoundConnectionPool<T extends BoundConnection> implements BoundConnectionPool<T> {
+final class PortIgnoringConnectionPool<T extends SkeletalConnection> implements ConnectionPool<T> {
 
     private final Map<Integer, T> idToConnection;
     private final Map<InetAddress, Set<T>> destinationToConnections;
 
-    PortIgnoringBoundConnectionPool() {
+    PortIgnoringConnectionPool() {
         this.idToConnection = new HashMap<>();
         this.destinationToConnections = new HashMap<>();
     }
