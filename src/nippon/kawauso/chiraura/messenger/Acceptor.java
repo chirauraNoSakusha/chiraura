@@ -157,24 +157,39 @@ final class Acceptor implements Callable<Void> {
         return null;
     }
 
+    private boolean isOverConnectionLimit(final InetSocketAddress destination) {
+        final int numOfConnections = this.connectionPool.getNumOfConnections(destination);
+
+        if (numOfConnections < this.connectionLimit) {
+            return false;
+        }
+
+        LOG.log(Level.WARNING, "{0}: 接続数 ( {1} ) が限界 ( {2} ) に達しています。",
+                new Object[] { this.acceptedConnection, Integer.toString(numOfConnections), Integer.toString(this.connectionLimit) });
+        this.acceptedConnection.close();
+        return true;
+    }
+
+    private boolean isOverConnectionLimit() {
+        final InetSocketAddress destination = this.acceptedConnection.getDestination();
+        final int numOfConnections = this.acceptedConnectionPool.getNumOfConnections(destination) + this.connectionPool.getNumOfConnections(destination);
+
+        if (numOfConnections < this.connectionLimit) {
+            return false;
+        }
+
+        LOG.log(Level.WARNING, "{0}: 接続数 ( {1} ) が限界 ( {2} ) に達しています。",
+                new Object[] { this.acceptedConnection, Integer.toString(numOfConnections), Integer.toString(this.connectionLimit) });
+        this.acceptedConnection.close();
+        return true;
+    }
+
     private void subCall() throws IOException, MyRuleException {
 
-        // ポートを気にしない接続数制限。
-        if (this.portIgnore) {
-            final InetSocketAddress destination;
-            if (this.acceptedConnection.getSocket().getRemoteSocketAddress() instanceof InetSocketAddress) {
-                destination = (InetSocketAddress) this.acceptedConnection.getSocket().getRemoteSocketAddress();
-            } else {
-                destination = new InetSocketAddress(this.acceptedConnection.getSocket().getInetAddress(), 0);
-            }
-            final int numOfConnections = this.acceptedConnectionPool.getNumOfConnections(this.acceptedConnection.getSocket().getInetAddress())
-                    + this.connectionPool.getNumOfConnections(destination);
-            if (numOfConnections >= this.connectionLimit) {
-                LOG.log(Level.WARNING, "{0}: ポートは無視した接続数 ( {1} ) が限界 ( {2} ) に達しています。",
-                        new Object[] { this.acceptedConnection, Integer.toString(numOfConnections), Integer.toString(this.connectionLimit) });
-                this.acceptedConnection.close();
-                return;
-            }
+        // ポートを気にしないなら、ここで接続数制限。
+        if (this.portIgnore && isOverConnectionLimit()) {
+            this.acceptedConnection.close();
+            return;
         }
 
         // 受信の時間制限を設定。
@@ -257,14 +272,9 @@ final class Acceptor implements Callable<Void> {
         if (portCheck(destination, destinationId)) {
 
             // ポートを気にする接続数制限。
-            if (!this.portIgnore) {
-                final int numOfConnections = this.connectionPool.getNumOfConnections(destination);
-                if (numOfConnections >= this.connectionLimit) {
-                    LOG.log(Level.WARNING, "{0}: ポートまで考慮した接続数 ( {1} ) が限界 ( {2} ) に達しています。",
-                            new Object[] { this.acceptedConnection, Integer.toString(numOfConnections), Integer.toString(this.connectionLimit) });
-                    this.acceptedConnection.close();
-                    return;
-                }
+            if (!this.portIgnore && isOverConnectionLimit(destination)) {
+                this.acceptedConnection.close();
+                return;
             }
 
             // 二言目への相槌を送信。
