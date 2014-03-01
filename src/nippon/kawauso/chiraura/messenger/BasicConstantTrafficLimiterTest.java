@@ -25,14 +25,14 @@ import org.junit.Test;
 /**
  * @author chirauraNoSakusha
  */
-public class ConstantTrafficLimiterTest {
+public class BasicConstantTrafficLimiterTest {
 
-    private static final Logger LOG = Logger.getLogger(ConstantTrafficLimiterTest.class.getName());
+    private static final Logger LOG = Logger.getLogger(BasicConstantTrafficLimiterTest.class.getName());
 
     /**
      * 初期化
      */
-    public ConstantTrafficLimiterTest() {
+    public BasicConstantTrafficLimiterTest() {
         TestFunctions.testLogging(this.getClass().getName());
     }
 
@@ -70,7 +70,7 @@ public class ConstantTrafficLimiterTest {
 
     private static void something(final long duration, final long sizeLimit, final int countLimit, final int numOfThreads, final int numOfAddresses,
             final int numOfLoops, final long penalty) throws Exception {
-        final ConstantTrafficLimiter controller = new ConstantTrafficLimiter(duration, sizeLimit, countLimit, penalty);
+        final TrafficLimiter controller = new BasicConstantTrafficLimiter(duration, sizeLimit, countLimit, penalty);
 
         // テストデータを用意。
         final InetSocketAddress[] addresses = new InetSocketAddress[numOfAddresses];
@@ -137,8 +137,6 @@ public class ConstantTrafficLimiterTest {
             controller.remove(address);
             Assert.assertEquals(0, controller.nextSleep(address));
         }
-
-        Assert.assertTrue(controller.isEmpty());
     }
 
 }

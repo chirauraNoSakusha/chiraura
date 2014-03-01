@@ -157,7 +157,11 @@ final class Boss extends Chief {
         this.connectionSerialGenerator = new AtomicInteger();
         this.acceptedSocketQueue = new LinkedBlockingQueue<>();
         this.transceiver = new Transceiver(messageSizeLimit, registry);
-        this.limiter = new ConstantTrafficLimiter(trafficDuration, trafficSizeLimit, trafficCountLimit, trafficPenalty);
+        if (portIgnore) {
+            this.limiter = new PortIgnoringConstantTrafficLimiter(trafficDuration, trafficSizeLimit, trafficCountLimit, trafficPenalty);
+        } else {
+            this.limiter = new BasicConstantTrafficLimiter(trafficDuration, trafficSizeLimit, trafficCountLimit, trafficPenalty);
+        }
         this.keyManager = new PublicKeyManager(publicKeyLifetime);
 
         this.serverSocket = null;

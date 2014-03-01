@@ -48,7 +48,7 @@ public final class ContactorMasterTest {
     private static final long sizeLimit = 10_000_000L;
     private static final int countLimit = 1_000;
     private static final long penalty = 5 * Duration.SECOND;
-    private final TrafficLimiter limiter = new ConstantTrafficLimiter(duration, sizeLimit, countLimit, penalty);
+    private final TrafficLimiter limiter = new PortIgnoringConstantTrafficLimiter(duration, sizeLimit, countLimit, penalty);
 
     private static final int receiveBufferSize = 128 * 1024;
     private static final int sendBufferSize = 128 * 1024;

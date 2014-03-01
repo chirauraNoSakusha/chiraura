@@ -3,7 +3,6 @@
  */
 package nippon.kawauso.chiraura.messenger;
 
-import java.net.InetSocketAddress;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -17,7 +16,7 @@ import java.util.logging.Logger;
  * 一定期間の一定量・一定回数で制限。
  * @author chirauraNoSakusha
  */
-final class ConstantTrafficLimiter implements TrafficLimiter {
+abstract class ConstantTrafficLimiter<T> {
 
     private static final Logger LOG = Logger.getLogger(ConstantTrafficLimiter.class.getName());
 
@@ -105,7 +104,7 @@ final class ConstantTrafficLimiter implements TrafficLimiter {
 
     // 保持。
     private final Lock lock;
-    private final Map<InetSocketAddress, Sum> sums;
+    private final Map<T, Sum> sums;
 
     ConstantTrafficLimiter(final long duration, final long sizeLimit, final int countLimit, final long penalty) {
         if (duration < 0) {
@@ -136,8 +135,7 @@ final class ConstantTrafficLimiter implements TrafficLimiter {
         }
     }
 
-    @Override
-    public long nextSleep(final long size, final InetSocketAddress destination) throws InterruptedException {
+    long nextSleep(final long size, final T destination) throws InterruptedException {
         long sleep = 0L;
 
         Sum sum = null;
@@ -174,8 +172,7 @@ final class ConstantTrafficLimiter implements TrafficLimiter {
         return sleep;
     }
 
-    @Override
-    public long nextSleep(final InetSocketAddress destination) throws InterruptedException {
+    long nextSleep(final T destination) throws InterruptedException {
         long sleep = 0L;
         boolean empty = false;
 
@@ -231,8 +228,7 @@ final class ConstantTrafficLimiter implements TrafficLimiter {
         return sleep;
     }
 
-    @Override
-    public void remove(final InetSocketAddress destination) throws InterruptedException {
+    void remove(final T destination) throws InterruptedException {
         long sleep = 0L;
 
         Sum sum = null;
