@@ -240,7 +240,7 @@ public final class CcViewTest {
             }
         }
 
-        Assert.assertTrue(instance.isEmpty());
+        Assert.assertEquals(new ArrayList<AddressedPeer>(0), instance.getPeers());
     }
 
     /**
@@ -271,6 +271,6 @@ public final class CcViewTest {
             }
         }
 
-        Assert.assertTrue(instance.isEmpty());
+        Assert.assertEquals(new ArrayList<AddressedPeer>(0), instance.getPeers());
     }
 }

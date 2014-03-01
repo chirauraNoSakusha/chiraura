@@ -134,7 +134,7 @@ public final class AcceptorTest {
         this.testerServerSocket.close();
         this.subjectServerSocket.close();
         Assert.assertTrue(this.executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
-        Assert.assertTrue(this.subjectAcceptedConnectionPool.isEmpty());
+        Assert.assertEquals(new ArrayList<AcceptedConnection>(0), this.subjectAcceptedConnectionPool.getAll());
         for (final MessengerReport report : this.subjectMessengerReportQueue) {
             // isEmpty でないのはデバッグのため。
             Assert.fail(report.toString());
@@ -360,7 +360,7 @@ public final class AcceptorTest {
         Assert.assertEquals(-1, this.testerInput.read());
 
         // 接続が登録されているかどうか。
-        Assert.assertTrue(this.subjectConnectionPool.isEmpty());
+        Assert.assertEquals(new ArrayList<Connection>(0), this.subjectConnectionPool.getAll());
     }
 
     /**

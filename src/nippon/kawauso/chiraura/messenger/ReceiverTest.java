@@ -114,10 +114,8 @@ public final class ReceiverTest {
         this.subjectSocket.close();
         this.executor.shutdownNow();
         Assert.assertTrue(this.executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
-        Assert.assertTrue(this.subjectReceivedMailQueue.isEmpty());
-        for (final MessengerReport report : this.subjectMessengerReportQueue) {
-            Assert.fail(report.toString());
-        }
+        Assert.assertNull(this.subjectReceivedMailQueue.poll());
+        Assert.assertNull(this.subjectMessengerReportQueue.poll());
     }
 
     /**

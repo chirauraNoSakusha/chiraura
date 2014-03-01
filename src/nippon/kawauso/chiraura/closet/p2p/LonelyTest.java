@@ -57,7 +57,7 @@ public final class LonelyTest {
         this.executor.shutdownNow();
 
         Assert.assertTrue(this.executor.awaitTermination(shutdownTimeout, TimeUnit.MILLISECONDS));
-        Assert.assertTrue(this.reportQueue.isEmpty());
+        Assert.assertNull(this.reportQueue.poll());
     }
 
 }

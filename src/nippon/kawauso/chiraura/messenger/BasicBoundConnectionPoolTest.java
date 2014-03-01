@@ -29,7 +29,7 @@ public final class BasicBoundConnectionPoolTest {
             destinations.add(new InetSocketAddress(InetAddress.getByAddress(new byte[] { 0, 0, 0, (byte) (i / 5) }), i % 5));
         }
 
-        Assert.assertTrue(instance.isEmpty());
+        Assert.assertEquals(new ArrayList<ContactingConnection>(0), instance.getAll());
 
         instance.add(new ContactingConnection(0, destinations.get(0), 0));
 

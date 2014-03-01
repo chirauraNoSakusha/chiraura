@@ -66,7 +66,7 @@ public final class CcBossTest {
 
         // 何も要請されないことの検査。
         Thread.sleep((long) (1.05 * interval));
-        Assert.assertTrue(taskQueue.isEmpty());
+        Assert.assertNull(taskQueue.poll());
 
         final Set<InetSocketAddress> socketAddresses = new HashSet<>();
         for (final Map.Entry<Address, InetSocketAddress> entry : peers.entrySet()) {
@@ -101,7 +101,7 @@ public final class CcBossTest {
         }
 
         Thread.sleep((long) (1.05 * interval));
-        Assert.assertTrue(taskQueue.isEmpty());
+        Assert.assertNull(taskQueue.poll());
 
         executor.shutdownNow();
         Assert.assertTrue(executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));

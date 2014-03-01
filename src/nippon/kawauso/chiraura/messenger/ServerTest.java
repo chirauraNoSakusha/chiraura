@@ -52,7 +52,7 @@ public final class ServerTest {
         Assert.assertNotNull(serverSocket);
         serverSocket.close();
         Assert.assertTrue(this.executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
-        Assert.assertTrue(this.acceptedSocketQueue.isEmpty());
+        Assert.assertNull(this.acceptedSocketQueue.poll());
     }
 
     /**

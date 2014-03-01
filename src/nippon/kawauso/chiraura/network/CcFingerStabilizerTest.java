@@ -45,7 +45,7 @@ public final class CcFingerStabilizerTest {
 
         // 何も要請されないことの検査。
         Thread.sleep((long) (1.5 * interval));
-        Assert.assertTrue(taskQueue.isEmpty());
+        Assert.assertNull(taskQueue.poll());
 
         // 生存個体が居るなら、論理位置への接触要請が出されることの検査。
         final int numOfPeers = 1000;
@@ -69,7 +69,7 @@ public final class CcFingerStabilizerTest {
         }
 
         Thread.sleep((long) (1.5 * interval));
-        Assert.assertTrue(taskQueue.isEmpty());
+        Assert.assertNull(taskQueue.poll());
 
         executor.shutdownNow();
         Assert.assertTrue(executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));

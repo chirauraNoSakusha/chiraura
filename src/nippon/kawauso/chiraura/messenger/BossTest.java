@@ -119,8 +119,8 @@ public final class BossTest {
     public void tearDown() throws Exception {
         this.executor.shutdownNow();
         Assert.assertTrue(this.executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
-        Assert.assertTrue(this.subjectReceivedMailQueue.isEmpty());
-        Assert.assertTrue(this.subjectMessengerReportQueue.isEmpty());
+        Assert.assertNull(this.subjectReceivedMailQueue.poll());
+        Assert.assertNull(this.subjectMessengerReportQueue.poll());
     }
 
     /**

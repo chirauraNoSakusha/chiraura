@@ -121,7 +121,7 @@ public final class ContactorTest {
         }
         this.testerServerSocket.close();
         Assert.assertTrue(this.executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
-        Assert.assertTrue(this.subjectContactingConnectionPool.isEmpty());
+        Assert.assertEquals(new ArrayList<ContactingConnection>(0), this.subjectContactingConnectionPool.getAll());
         for (final MessengerReport report : this.subjectMessengerReportQueue) {
             Assert.fail(report.toString());
         }
@@ -359,7 +359,7 @@ public final class ContactorTest {
         Assert.assertEquals(-1, testerInput.read());
 
         // 接続が登録されているかどうか。
-        Assert.assertTrue(this.subjectConnectionPool.isEmpty());
+        Assert.assertEquals(new ArrayList<Connection>(0), this.subjectConnectionPool.getAll());
     }
 
     /**

@@ -130,9 +130,9 @@ public final class ContactorMasterTest {
         }
         this.testerServerSocket.close();
         Assert.assertTrue(this.executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
-        Assert.assertTrue(this.subjectContactingConnectionPool.isEmpty());
-        Assert.assertTrue(this.subjectMessengerReportQueue.isEmpty());
-        Assert.assertTrue(this.subjectReportQueue.isEmpty());
+        Assert.assertEquals(new ArrayList<ContactingConnection>(0), this.subjectContactingConnectionPool.getAll());
+        Assert.assertNull(this.subjectMessengerReportQueue.poll());
+        Assert.assertNull(this.subjectReportQueue.poll());
     }
 
     /**

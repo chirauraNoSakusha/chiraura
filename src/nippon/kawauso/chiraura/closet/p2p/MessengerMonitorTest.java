@@ -62,7 +62,7 @@ public final class MessengerMonitorTest {
         this.executor.shutdownNow();
 
         Assert.assertTrue(this.executor.awaitTermination(this.shutdownTimeout, TimeUnit.MILLISECONDS));
-        Assert.assertTrue(this.reportQueue.isEmpty());
+        Assert.assertNull(this.reportQueue.poll());
     }
 
 }

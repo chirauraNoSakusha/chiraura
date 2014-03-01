@@ -225,7 +225,7 @@ public final class LinkedCellTest {
         while (true) {
             cur = list.removeTail();
             if (cur == null) {
-                Assert.assertTrue(answer.isEmpty());
+                Assert.assertEquals(new ArrayList<Integer>(0), answer);
                 break;
             }
             Assert.assertEquals(answer.remove(answer.size() - 1), cur.get());

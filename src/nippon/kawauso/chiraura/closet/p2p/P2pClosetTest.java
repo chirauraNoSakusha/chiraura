@@ -699,7 +699,7 @@ public final class P2pClosetTest {
         for (int i = 0; i < instances.length; i++) {
             for (int j = 0; j < instances.length; j++) {
                 if (j != i) {
-                    Assert.assertTrue(instances[i].checkStock(instances[j].getSelf(), Duration.SECOND).getStockedEntries().isEmpty());
+                    Assert.assertEquals(new ArrayList<StockEntry>(0), instances[i].checkStock(instances[j].getSelf(), Duration.SECOND).getStockedEntries());
                 }
             }
         }
@@ -717,7 +717,7 @@ public final class P2pClosetTest {
         // 管理者にも追加したら申告されなくなることの確認。
         instances[manager].addLocal(chunk);
         result = instances[manager].checkStock(instances[(manager + 1) % instances.length].getSelf(), Duration.SECOND);
-        Assert.assertTrue(result.getStockedEntries().isEmpty());
+        Assert.assertEquals(new ArrayList<StockEntry>(0), result.getStockedEntries());
 
         // 管理者以外の方が新しくなったら申告されることの確認。
         for (int i = 1; i < 5; i++) {
@@ -800,7 +800,7 @@ public final class P2pClosetTest {
         for (int i = 0; i < instances.length; i++) {
             for (int j = 0; j < instances.length; j++) {
                 if (j != i) {
-                    Assert.assertTrue(instances[i].checkDemand(instances[j].getSelf(), Duration.SECOND).getDemandedEntries().isEmpty());
+                    Assert.assertEquals(new ArrayList<DemandEntry>(0), instances[i].checkDemand(instances[j].getSelf(), Duration.SECOND).getDemandedEntries());
                 }
             }
         }
@@ -825,7 +825,7 @@ public final class P2pClosetTest {
         for (int i = 0; i < instances.length; i++) {
             if (i != manager) {
                 final CheckDemandResult result = instances[manager].checkDemand(instances[i].getSelf(), Duration.SECOND);
-                Assert.assertTrue(result.getDemandedEntries().isEmpty());
+                Assert.assertEquals(new ArrayList<DemandEntry>(0), result.getDemandedEntries());
             }
         }
 

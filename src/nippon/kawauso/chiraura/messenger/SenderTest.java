@@ -108,11 +108,9 @@ public final class SenderTest {
         this.subjectServerSocket.close();
         this.executor.shutdownNow();
         Assert.assertTrue(this.executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
-        Assert.assertTrue(this.subjectConnectionPool.isEmpty());
+        Assert.assertEquals(new ArrayList<Connection>(0), this.subjectConnectionPool.getAll());
         Assert.assertFalse(this.subjectSendQueuePool.containsQueue(tester, connectionType));
-        for (final MessengerReport report : this.subjectMessengerReportQueue) {
-            Assert.fail(report.toString());
-        }
+        Assert.assertNull(this.subjectMessengerReportQueue.poll());
     }
 
     /**

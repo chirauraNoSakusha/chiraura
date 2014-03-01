@@ -44,7 +44,7 @@ public final class CcSuccessorStabilizerTest {
 
         // 何も要請されないことの検査。
         Thread.sleep((long) (1.5 * interval));
-        Assert.assertTrue(taskQueue.isEmpty());
+        Assert.assertNull(taskQueue.poll());
 
         // 生存個体が居るなら、生存個体への接触要請が出されることの検査。
         final int numOfPeers = 1000;
@@ -67,7 +67,7 @@ public final class CcSuccessorStabilizerTest {
         }
 
         Thread.sleep((long) (1.5 * interval));
-        Assert.assertTrue(taskQueue.isEmpty());
+        Assert.assertNull(taskQueue.poll());
 
         executor.shutdownNow();
         Assert.assertTrue(executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
