@@ -76,22 +76,25 @@ abstract class ConstantTrafficLimiter<T> {
             this.sum += size;
         }
 
-        // 先頭から削除。
-        private void poll() {
-            final DateAndSize oldest = this.entries.pollFirst();
-            if (oldest != null) {
-                this.sum -= oldest.size;
-            }
-        }
-
         // 時刻が古いものを削除。
         private void trim(final long deadline) {
+            final DateAndSize latest = this.entries.peekLast();
+            if (latest == null) {
+                return;
+            } else if (latest.date <= deadline) {
+                // 全部期限切れ。
+                this.entries.clear();
+                this.sum = 0;
+                return;
+            }
+
             while (true) {
                 final DateAndSize oldest = this.entries.peekFirst();
                 if (oldest == null || deadline < oldest.date) {
                     break;
                 }
-                poll();
+                this.entries.pollFirst();
+                this.sum -= oldest.size;
             }
         }
     }
@@ -269,9 +272,7 @@ abstract class ConstantTrafficLimiter<T> {
             if (sum != null) {
                 sum.lock();
                 try {
-                    final long cur = System.currentTimeMillis();
-                    sum.trim(cur - this.duration);
-                    if (sum.isEmpty()) {
+                    if (sum.isEmpty() || sum.getLastDate() <= System.currentTimeMillis()) {
                         this.sums.remove(destination);
                     }
                 } finally {
