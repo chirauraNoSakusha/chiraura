@@ -118,9 +118,12 @@ final class Transceiver {
             }
         });
 
+        // 71 番。予約済み。HTTP 偽装時の [G]ET で使う。
+        // 72 番。予約済み。HTTP 偽装時の [H]TTP で使う。
+        // 80 番。予約済み。HTTP 偽装時の [P]OST で使う。
     }
 
-    <T extends Envelope> void register(final long id, final Class<T> type, final Sealer<T> sealer, final ParserGenerator<T> parserGenerator) {
+    private <T extends Envelope> void register(final long id, final Class<T> type, final Sealer<T> sealer, final ParserGenerator<T> parserGenerator) {
         final Long oldId = this.typeToId.put(type, id);
         if (oldId != null) {
             throw new IllegalStateException("Type ( " + type.getName() + " ) overlap.");
