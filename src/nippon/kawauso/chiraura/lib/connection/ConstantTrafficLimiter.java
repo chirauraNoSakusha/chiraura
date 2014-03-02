@@ -29,6 +29,11 @@ abstract class ConstantTrafficLimiter<T> {
             this.date = date;
             this.size = size;
         }
+
+        @Override
+        public String toString() {
+            return (new StringBuilder("[")).append(this.date).append(", ").append(this.size).append(']').toString();
+        }
     }
 
     private static final class Sum {
@@ -97,6 +102,15 @@ abstract class ConstantTrafficLimiter<T> {
                 this.sum -= oldest.size;
             }
         }
+
+        @Override
+        public String toString() {
+            return (new StringBuilder(ConstantTrafficLimiter.class.getSimpleName())).append('.').append(this.getClass().getSimpleName())
+                    .append('[').append(this.sum)
+                    .append(", ").append(this.entries)
+                    .append(']').toString();
+        }
+
     }
 
     // 参照。
