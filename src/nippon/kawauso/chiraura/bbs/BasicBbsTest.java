@@ -35,6 +35,9 @@ public final class BasicBbsTest {
     private static final long updateThreshold = 5 * Duration.MINUTE;
     private static final Menu menu = new Menu();
 
+    private static final long trafficDuration = Duration.SECOND;
+    private static final int trafficCountLimit = 10;
+
     private final Closet closet;
     private final ExecutorService executor;
 
@@ -213,7 +216,8 @@ public final class BasicBbsTest {
      */
     @Test
     public void testBoot() throws Exception {
-        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold, menu);
+        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold, menu, trafficDuration,
+                trafficCountLimit);
 
         instance.start(this.executor);
         Thread.sleep(100L);
@@ -229,7 +233,8 @@ public final class BasicBbsTest {
      */
     @Test
     public void testGetExistBoard() throws Exception {
-        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold, menu);
+        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold, menu, trafficDuration,
+                trafficCountLimit);
 
         instance.start(this.executor);
         Thread.sleep(100L);
@@ -249,7 +254,8 @@ public final class BasicBbsTest {
      */
     @Test
     public void testGetNewBoard() throws Exception {
-        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold, menu);
+        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold, menu, trafficDuration,
+                trafficCountLimit);
 
         instance.start(this.executor);
         Thread.sleep(100L);
@@ -269,14 +275,14 @@ public final class BasicBbsTest {
      */
     @Test
     public void testGetExistTread() throws Exception {
-        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold, menu);
+        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold, menu, trafficDuration,
+                trafficCountLimit);
 
         instance.start(this.executor);
         Thread.sleep(100L);
 
         for (final ThreadChunk thread : this.initialThreads) {
-            final Client.BbsThread result = Client.getThread(server, this.boardName,
-                    Long.toString(thread.getName()));
+            final Client.BbsThread result = Client.getThread(server, this.boardName, Long.toString(thread.getName()));
             Assert.assertEquals(thread.getTitle(), result.getTitle());
             Assert.assertEquals(thread.getNumOfComments(), result.getEntries().size());
         }
@@ -292,7 +298,8 @@ public final class BasicBbsTest {
      */
     @Test
     public void testGetNotExistTread() throws Exception {
-        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold, menu);
+        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold, menu, trafficDuration,
+                trafficCountLimit);
 
         instance.start(this.executor);
         Thread.sleep(100L);
@@ -311,7 +318,8 @@ public final class BasicBbsTest {
      */
     @Test
     public void testAddThread() throws Exception {
-        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold, menu);
+        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold, menu, trafficDuration,
+                trafficCountLimit);
 
         instance.start(this.executor);
         Thread.sleep(100L);
@@ -339,7 +347,8 @@ public final class BasicBbsTest {
      */
     @Test
     public void testAddComment() throws Exception {
-        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold, menu);
+        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold, menu, trafficDuration,
+                trafficCountLimit);
 
         instance.start(this.executor);
         Thread.sleep(100L);
@@ -368,9 +377,41 @@ public final class BasicBbsTest {
      */
     // @Test
     public void testCommunication() throws Exception {
-        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold, menu);
+        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold, menu, trafficDuration,
+                trafficCountLimit);
         instance.start(this.executor);
         Thread.sleep(10 * Duration.MINUTE);
+
+        this.executor.shutdownNow();
+        Assert.assertTrue(this.executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
+        instance.close();
+    }
+
+    /**
+     * 通信制限の発動検査。
+     * @throws Exception 異常
+     */
+    @Test
+    public void testConnectionLimit() throws Exception {
+        final BasicBbs instance = new BasicBbs(server.getPort(), clientTimeout, workTimeout, this.closet, updateThreshold, menu, trafficDuration,
+                trafficCountLimit);
+
+        instance.start(this.executor);
+        Thread.sleep(100L);
+
+        final ThreadChunk thread = (new ArrayList<>(this.initialThreads)).get(0);
+
+        final long start0 = System.currentTimeMillis();
+        for (int i = 0; i <= trafficCountLimit; i++) {
+            final Client.BbsThread result = Client.getThread(server, this.boardName, Long.toString(thread.getName()));
+            Assert.assertEquals(thread.getTitle(), result.getTitle());
+            Assert.assertEquals(thread.getNumOfComments(), result.getEntries().size());
+        }
+        final long end = System.currentTimeMillis();
+
+        if (end - start0 <= trafficDuration) {
+            Assert.fail("" + (end - start0));
+        }
 
         this.executor.shutdownNow();
         Assert.assertTrue(this.executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));

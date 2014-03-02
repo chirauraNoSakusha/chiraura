@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 
 import nippon.kawauso.chiraura.Global;
 import nippon.kawauso.chiraura.lib.connection.PortFunctions;
+import nippon.kawauso.chiraura.lib.connection.TrafficLimiter;
 import nippon.kawauso.chiraura.lib.process.Reporter;
 
 /**
@@ -32,11 +33,13 @@ final class Server extends Reporter<Void> {
     private final ResponseMaker responseMaker;
     private final long internalTimeout;
 
+    private final TrafficLimiter limiter;
+
     // 保持。
     private final ServerSocket serverSocket;
 
     Server(final BlockingQueue<? super Reporter.Report> reportSink, final int port, final ConnectionPool connectionPool, final ExecutorService executor,
-            final long connectionTimeout, final ResponseMaker responseMaker, final long internalTimeout) throws IOException {
+            final long connectionTimeout, final ResponseMaker responseMaker, final long internalTimeout, final TrafficLimiter limiter) throws IOException {
         super(reportSink);
 
         if (!PortFunctions.isValid(port)) {
@@ -51,6 +54,8 @@ final class Server extends Reporter<Void> {
             throw new IllegalArgumentException("Null response maker.");
         } else if (internalTimeout < 0) {
             throw new IllegalArgumentException("Negative internal timeout ( " + internalTimeout + " ).");
+        } else if (limiter == null) {
+            throw new IllegalArgumentException("Null limiter.");
         }
 
         this.port = port;
@@ -59,6 +64,9 @@ final class Server extends Reporter<Void> {
         this.connectionTimeout = connectionTimeout;
         this.responseMaker = responseMaker;
         this.internalTimeout = internalTimeout;
+
+        this.limiter = limiter;
+
         this.serverSocket = new ServerSocket();
     }
 
@@ -73,7 +81,7 @@ final class Server extends Reporter<Void> {
             // 受信の時間制限を設定。
             socket.setSoTimeout((int) this.connectionTimeout);
 
-            final Communicator communicator = new Communicator(connection, this.connectionPool, this.responseMaker, this.internalTimeout);
+            final Communicator communicator = new Communicator(connection, this.connectionPool, this.responseMaker, this.internalTimeout, this.limiter);
             this.executor.submit(communicator);
             LOG.log(Level.FINER, "{0} との通信を始めます。", socket);
         } catch (final IOException | RuntimeException e) {

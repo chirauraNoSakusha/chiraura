@@ -12,6 +12,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import nippon.kawauso.chiraura.lib.connection.PortFunctions;
+import nippon.kawauso.chiraura.lib.connection.PortIgnoringConstantTrafficLimiter;
+import nippon.kawauso.chiraura.lib.connection.TrafficLimiter;
 import nippon.kawauso.chiraura.lib.process.Chief;
 import nippon.kawauso.chiraura.lib.process.Reporter;
 import nippon.kawauso.chiraura.lib.process.Reporter.Report;
@@ -36,7 +38,10 @@ final class Boss extends Chief {
 
     private ServerSocket serverSocket;
 
-    Boss(final int port, final long connectionTimeout, final long internalTimeout, final ClosetWrapper closet, final Menu menu, final ExecutorService executor) {
+    private final TrafficLimiter limiter;
+
+    Boss(final int port, final long connectionTimeout, final long internalTimeout, final ClosetWrapper closet, final Menu menu, final ExecutorService executor,
+            final long trafficDuration, final int trafficCountLimit) {
         super(new LinkedBlockingQueue<Reporter.Report>());
 
         if (!PortFunctions.isValid(port)) {
@@ -51,6 +56,10 @@ final class Boss extends Chief {
             throw new IllegalArgumentException("Null menu.");
         } else if (executor == null) {
             throw new IllegalArgumentException("Null executor.");
+        } else if (trafficDuration < 0) {
+            throw new IllegalArgumentException("Negative traffic duration ( " + trafficDuration + " ).");
+        } else if (trafficCountLimit < 0) {
+            throw new IllegalArgumentException("Negative traffic count limit ( " + trafficCountLimit + " ).");
         }
 
         this.port = port;
@@ -61,10 +70,13 @@ final class Boss extends Chief {
         this.connectionPool = new ConnectionPool();
         this.responseMaker = new ResponseMaker(closet, menu, port);
         this.serverSocket = null;
+
+        this.limiter = new PortIgnoringConstantTrafficLimiter(trafficDuration, Long.MAX_VALUE, trafficCountLimit, 0L);
     }
 
     private Server newServer() throws IOException {
-        return new Server(getReportQueue(), this.port, this.connectionPool, this.executor, this.connectionTimeout, this.responseMaker, this.internalTimeout);
+        return new Server(getReportQueue(), this.port, this.connectionPool, this.executor, this.connectionTimeout, this.responseMaker, this.internalTimeout,
+                this.limiter);
     }
 
     @Override

@@ -11,6 +11,7 @@ import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import nippon.kawauso.chiraura.lib.connection.TrafficLimiter;
 import nippon.kawauso.chiraura.lib.exception.MyRuleException;
 
 /**
@@ -28,7 +29,10 @@ final class Communicator implements Callable<Void> {
     private final ResponseMaker responseMaker;
     private final long timeout;
 
-    Communicator(final Connection connection, final ConnectionPool connectionPool, final ResponseMaker responseMaker, final long timeout) {
+    private final TrafficLimiter limiter;
+
+    Communicator(final Connection connection, final ConnectionPool connectionPool, final ResponseMaker responseMaker, final long timeout,
+            final TrafficLimiter limiter) {
         if (connection == null) {
             throw new IllegalArgumentException("Null connection.");
         } else if (connectionPool == null) {
@@ -37,12 +41,16 @@ final class Communicator implements Callable<Void> {
             throw new IllegalArgumentException("Null response maker.");
         } else if (timeout < 0) {
             throw new IllegalArgumentException("Negative timeout ( " + timeout + " ).");
+        } else if (limiter == null) {
+            throw new IllegalArgumentException("Null limiter.");
         }
 
         this.connection = connection;
         this.connectionPool = connectionPool;
         this.responseMaker = responseMaker;
         this.timeout = timeout;
+
+        this.limiter = limiter;
     }
 
     @Override
@@ -68,9 +76,11 @@ final class Communicator implements Callable<Void> {
         return null;
     }
 
-    private void subCall() throws IOException, MyRuleException {
+    private void subCall() throws IOException, MyRuleException, InterruptedException {
         final InputStreamWrapper input = new InputStreamWrapper(this.connection.getSocket().getInputStream(), Http.HEADER_CHARSET, Http.SEPARATOR, LINE_SIZE);
         final OutputStream output = new BufferedOutputStream(this.connection.getSocket().getOutputStream());
+
+        limitSleep(false);
 
         while (!Thread.currentThread().isInterrupted()) {
             // リクエストの受信。
@@ -79,6 +89,8 @@ final class Communicator implements Callable<Void> {
                 break;
             }
             LOG.log(Level.FINEST, "リクエストを受信: {0}", httpRequest);
+
+            limitSleep(true);
 
             // if (httpRequest.getContent() != null) {
             // System.out.println("AhoBakaChinaDebuEroFunGeroHageIboJiKuso[" + new String(httpRequest.getContent(), Constants.CONTENT_CHARSET) + "]");
@@ -105,6 +117,23 @@ final class Communicator implements Callable<Void> {
                 // 閉じ宣言されてたら即閉じ。
                 break;
             }
+
         }
     }
+
+    private void limitSleep(final boolean received) throws InterruptedException {
+        long sleep;
+        if (received) {
+            // 回数制限だけだからサイズは 0 で報告。
+            sleep = this.limiter.nextSleep(0, this.connection.getDestination());
+        } else {
+            sleep = this.limiter.nextSleep(this.connection.getDestination());
+        }
+        while (sleep > 0) {
+            LOG.log(Level.WARNING, "{0}: {1} ミリ秒さぼります。", new Object[] { this.connection, Long.toString(sleep) });
+            Thread.sleep(sleep);
+            sleep = this.limiter.nextSleep(this.connection.getDestination());
+        }
+    }
+
 }

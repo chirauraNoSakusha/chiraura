@@ -113,6 +113,8 @@ final class Environment {
     private final long bbsConnectionTimeout;
     private final long bbsInternalTimeout;
     private final long bbsUpdateThreshold;
+    private final long bbsTrafficDuration;
+    private final int bbsTrafficCountLimit;
 
     private final File bbsMenuFile;
 
@@ -241,6 +243,8 @@ final class Environment {
         this.bbsConnectionTimeout = getDefaultLong(option, Option.Item.bbsConnectionTimeout);
         this.bbsInternalTimeout = getLargerLong(option, Option.Item.bbsInternalTimeout);
         this.bbsUpdateThreshold = getLargerLong(option, Option.Item.bbsUpdateThreshold);
+        this.bbsTrafficDuration = Long.parseLong(option.get(Option.Item.bbsTrafficDuration));
+        this.bbsTrafficCountLimit = Integer.parseInt(option.get(Option.Item.bbsTrafficDuration));
 
         this.bbsMenuFile = loadFile(new File(this.root, "menu.txt"));
 
@@ -450,6 +454,14 @@ final class Environment {
 
     long getBbsUpdateThreshold() {
         return this.bbsUpdateThreshold;
+    }
+
+    long getBbsTrafficDuration() {
+        return this.bbsTrafficDuration;
+    }
+
+    int getBbsTrafficCountLimit() {
+        return this.bbsTrafficCountLimit;
     }
 
     boolean getGui() {

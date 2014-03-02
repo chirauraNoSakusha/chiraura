@@ -4,6 +4,7 @@
 package nippon.kawauso.chiraura.bbs;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 
 /**
@@ -26,6 +27,16 @@ final class Connection implements AutoCloseable {
 
     Socket getSocket() {
         return this.socket;
+    }
+
+    InetSocketAddress getDestination() {
+        final InetSocketAddress destination;
+        if (getSocket().getRemoteSocketAddress() instanceof InetSocketAddress) {
+            destination = (InetSocketAddress) getSocket().getRemoteSocketAddress();
+        } else {
+            destination = new InetSocketAddress(getSocket().getInetAddress(), getSocket().getPort());
+        }
+        return destination;
     }
 
     synchronized boolean isClosed() {
