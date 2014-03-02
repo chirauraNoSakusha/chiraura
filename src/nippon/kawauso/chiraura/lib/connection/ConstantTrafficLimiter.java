@@ -1,7 +1,7 @@
 /**
  * 
  */
-package nippon.kawauso.chiraura.messenger;
+package nippon.kawauso.chiraura.lib.connection;
 
 import java.util.Deque;
 import java.util.HashMap;

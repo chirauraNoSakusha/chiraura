@@ -18,6 +18,7 @@ import java.util.logging.Logger;
 
 import nippon.kawauso.chiraura.lib.StreamFunctions;
 import nippon.kawauso.chiraura.lib.concurrent.ConcurrentFunctions;
+import nippon.kawauso.chiraura.lib.connection.TrafficLimiter;
 import nippon.kawauso.chiraura.lib.exception.MyRuleException;
 
 /**

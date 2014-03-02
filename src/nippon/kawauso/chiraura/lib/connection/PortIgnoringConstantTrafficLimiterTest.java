@@ -1,18 +1,18 @@
 /**
  * 
  */
-package nippon.kawauso.chiraura.messenger;
+package nippon.kawauso.chiraura.lib.connection;
 
 import org.junit.Test;
 
 /**
  * @author chirauraNoSakusha
  */
-public final class BasicConstantTrafficLimiterTest extends ConstantTrafficLimiterTest {
+public class PortIgnoringConstantTrafficLimiterTest extends ConstantTrafficLimiterTest {
 
     @Override
     TrafficLimiter getConstantTrafficLimiter(final long duration, final long sizeLimit, final int countLimit, final long penalty) {
-        return new BasicConstantTrafficLimiter(duration, sizeLimit, countLimit, penalty);
+        return new PortIgnoringConstantTrafficLimiter(duration, sizeLimit, countLimit, penalty);
     }
 
     /**

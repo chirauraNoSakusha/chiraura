@@ -1,7 +1,7 @@
 /**
  * 
  */
-package nippon.kawauso.chiraura.messenger;
+package nippon.kawauso.chiraura.lib.connection;
 
 import java.net.InetSocketAddress;
 
@@ -10,7 +10,7 @@ import java.net.InetSocketAddress;
  * nextSleep が 0 の場合だけ通信して良い。
  * @author chirauraNoSakusha
  */
-interface TrafficLimiter {
+public interface TrafficLimiter {
 
     /**
      * 通信サイズを報告して必要な通信自粛時間を得る。
@@ -19,22 +19,21 @@ interface TrafficLimiter {
      * @return 自粛期間。自粛期間 (ミリ秒)。自粛しなくて良い場合は 0
      * @throws InterruptedException 割り込まれた場合
      */
-    long nextSleep(long size, InetSocketAddress destination) throws InterruptedException;
+    public long nextSleep(long size, InetSocketAddress destination) throws InterruptedException;
 
     /**
      * 必要な通信自粛時間を得る。
-     * @param size 通信したサイズ
      * @param destination 通信先
      * @return 自粛期間 (ミリ秒)。自粛しなくて良い場合は 0
      * @throws InterruptedException 割り込まれた場合
      */
-    long nextSleep(InetSocketAddress destination) throws InterruptedException;
+    public long nextSleep(InetSocketAddress destination) throws InterruptedException;
 
     /**
      * 必要なければ、destination に関するリソースを解放する。
      * @param destination 通信先
      * @throws InterruptedException 割り込まれた場合
      */
-    void remove(InetSocketAddress destination) throws InterruptedException;
+    public void remove(InetSocketAddress destination) throws InterruptedException;
 
 }

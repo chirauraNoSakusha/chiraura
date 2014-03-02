@@ -1,7 +1,7 @@
 /**
  * 
  */
-package nippon.kawauso.chiraura.messenger;
+package nippon.kawauso.chiraura.lib.connection;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -93,10 +93,9 @@ abstract class ConstantTrafficLimiterTest {
         }
         Assert.assertEquals(numOfThreads * numOfLoops, sleepSum + throughSum);
 
-        LOG.log(Level.SEVERE, BasicSendQueuePoolTest.class.getName() + " プロセス数:" + numOfThreads + " 接続先数:" + numOfAddresses + " 繰り返し回数:" + numOfLoops + " 秒数:"
+        LOG.log(Level.SEVERE, getClass().getName() + " プロセス数:" + numOfThreads + " 接続先数:" + numOfAddresses + " 繰り返し回数:" + numOfLoops + " 秒数:"
                 + ((end - start) / 1_000_000_000.0) + " 単位消費ミリ秒数:" + ((end - start) / 1_000_000.0 / (numOfThreads * numOfLoops)) + " 睡眠数:" + sleepSum
                 + " 素通り数:" + throughSum);
-
         // 破棄できるか検査。
         for (final InetSocketAddress address : addresses) {
             controller.remove(address);
