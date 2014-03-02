@@ -67,7 +67,7 @@ public final class BossTest {
     private static final int testerPort = subjectPort + 10;
     private static final KeyPair testerId = CryptographicKeys.newPublicKeyPair();
 
-    private static final boolean portIgnore = true;
+    private static final boolean portIgnore = false;
     private static final int connectionLimit = 5;
 
     private static final long duration = Duration.SECOND / 2;
@@ -101,8 +101,8 @@ public final class BossTest {
         this.subjectConnectRequestQueue = new LinkedBlockingQueue<>();
         this.subjectMessengerReportQueue = new LinkedBlockingQueue<>();
         this.subjectAcceptedConnectionPool = new PortIgnoringConnectionPool<>();
-        this.subjectContactingConnectionPool = new PortIgnoringConnectionPool<>();
-        this.subjectConnectionPool = new PortIgnoringConnectionPool<>();
+        this.subjectContactingConnectionPool = new BoundConnectionPool<>();
+        this.subjectConnectionPool = new BoundConnectionPool<>();
 
         this.subjectSelf = new AtomicReference<>(null);
 

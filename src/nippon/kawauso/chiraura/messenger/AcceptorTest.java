@@ -46,13 +46,13 @@ public final class AcceptorTest {
         final TypeRegistry<Message> registry = TypeRegistries.newRegistry();
         transceiver = new Transceiver(Integer.MAX_VALUE, RegistryInitializer.init(registry));
     }
-    private static final boolean portIgnore = true;
+    private static final boolean portIgnore = false;
     private static final int connectionLimit = 5;
     private static final long duration = Duration.SECOND / 2;
     private static final long sizeLimit = 10_000_000L;
     private static final int countLimit = 1_000;
     private static final long penalty = 5 * Duration.SECOND;
-    private final TrafficLimiter limiter = new PortIgnoringConstantTrafficLimiter(duration, sizeLimit, countLimit, penalty);
+    private final TrafficLimiter limiter = new BasicConstantTrafficLimiter(duration, sizeLimit, countLimit, penalty);
 
     private static final int sendBufferSize = 128 * 1024;
     private static final long connectionTimeout = 10 * Duration.SECOND;
@@ -109,7 +109,7 @@ public final class AcceptorTest {
         this.subjectSendQueuePool = new BasicSendQueuePool();
         this.subjectMessengerReportQueue = new LinkedBlockingQueue<>();
         this.subjectAcceptedConnectionPool = new PortIgnoringConnectionPool<>();
-        this.subjectConnectionPool = new PortIgnoringConnectionPool<>();
+        this.subjectConnectionPool = new BoundConnectionPool<>();
         this.subjectKeyManager = new PublicKeyManager(100 * Duration.SECOND);
         this.subjectSelf = new AtomicReference<>(null);
 
@@ -135,14 +135,8 @@ public final class AcceptorTest {
         this.subjectServerSocket.close();
         Assert.assertTrue(this.executor.awaitTermination(Duration.SECOND, TimeUnit.MILLISECONDS));
         Assert.assertEquals(new ArrayList<AcceptedConnection>(0), this.subjectAcceptedConnectionPool.getAll());
-        for (final MessengerReport report : this.subjectMessengerReportQueue) {
-            // isEmpty でないのはデバッグのため。
-            Assert.fail(report.toString());
-        }
-        for (final ReceivedMail mail : this.subjectReceivedMailQueue) {
-            // isEmpty でないのはデバッグのため。
-            Assert.fail(mail.toString());
-        }
+        Assert.assertNull(this.subjectMessengerReportQueue.poll());
+        Assert.assertNull(this.subjectReceivedMailQueue.poll());
     }
 
     /**
@@ -412,7 +406,7 @@ public final class AcceptorTest {
             this.subjectAcceptedConnectionPool.add(connection);
         }
 
-        final Acceptor instance = new Acceptor(portIgnore, connectionLimit, this.subjectMessengerReportQueue, this.subjectAcceptedConnectionPool,
+        final Acceptor instance = new Acceptor(true, connectionLimit, this.subjectMessengerReportQueue, this.subjectAcceptedConnectionPool,
                 sendBufferSize, connectionTimeout, operationTimeout, transceiver, this.subjectConnection, version, versionGapThreshold, subjectId,
                 this.subjectKeyManager, this.subjectSelf, this.executor, this.subjectSendQueuePool, this.subjectReceivedMailQueue, this.limiter,
                 this.subjectConnectionPool, keyLifetime);

@@ -87,7 +87,7 @@ public final class SenderTest {
         this.subjectConnection = new Connection(idNumber, tester, testerIdPair.getPublic(), connectionType, this.subjectSocket);
         this.subjectSendQueuePool = new BasicSendQueuePool();
         this.subjectMessengerReportQueue = new LinkedBlockingQueue<>();
-        this.subjectConnectionPool = new PortIgnoringConnectionPool<>();
+        this.subjectConnectionPool = new BoundConnectionPool<>();
 
         this.subjectConnectionPool.add(this.subjectConnection);
 

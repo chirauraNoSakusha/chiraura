@@ -22,7 +22,7 @@ import nippon.kawauso.chiraura.network.AddressableNetworks;
  */
 public final class NetworkWrapperTest {
 
-    private static final boolean portIgnore = true;
+    private static final boolean portIgnore = false;
     private static final int connectionLimit = 5;
 
     private static final long duration = Duration.SECOND / 2;

@@ -91,7 +91,7 @@ public final class P2pClosetTest {
         final File root1 = new File(ROOT, "connect1");
         final KeyPair id1 = CryptographicKeys.newPublicKeyPair();
         final int port1 = FIRST_PORT + portOffset.getAndIncrement();
-        final P2pCloset instance1 = new P2pCloset(new P2pCloset.Parameters(root1, id1, port1, executor));
+        final P2pCloset instance1 = new P2pCloset(new P2pCloset.Parameters(root1, id1, port1, executor).setPortIgnore(false));
         instance1.start(executor);
 
         // 起動待ち。
@@ -101,7 +101,7 @@ public final class P2pClosetTest {
         final File root2 = new File(ROOT, "connect2");
         final KeyPair id2 = CryptographicKeys.newPublicKeyPair();
         final int port2 = FIRST_PORT + portOffset.getAndIncrement();
-        final P2pCloset instance2 = new P2pCloset(new P2pCloset.Parameters(root2, id2, port2, executor).setPeers(getPeers(port1)));
+        final P2pCloset instance2 = new P2pCloset(new P2pCloset.Parameters(root2, id2, port2, executor).setPortIgnore(false).setPeers(getPeers(port1)));
         instance2.start(executor);
 
         // 安定待ち。
@@ -927,7 +927,8 @@ public final class P2pClosetTest {
                     .setMaintenanceInterval(maintenanceInterval)
                     .setBackupInterval(backupInterval)
                     .setOperationTimeout(operationTimeout)
-                    .setPeerCapacity(1);
+                    .setPeerCapacity(1)
+                    .setPortIgnore(false);
             if (i == 0) {
                 port0 = port;
             } else {

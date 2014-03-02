@@ -43,13 +43,13 @@ public final class AcceptorMasterTest {
         final TypeRegistry<Message> registry = TypeRegistries.newRegistry();
         transceiver = new Transceiver(Integer.MAX_VALUE, RegistryInitializer.init(registry));
     }
-    private static final boolean portIgnore = true;
+    private static final boolean portIgnore = false;
     private static final int connectionLimit = 5;
     private static final long duration = Duration.SECOND / 2;
     private static final long sizeLimit = 10_000_000L;
     private static final int countLimit = 1_000;
     private static final long penalty = 5 * Duration.SECOND;
-    private final TrafficLimiter limiter = new PortIgnoringConstantTrafficLimiter(duration, sizeLimit, countLimit, penalty);
+    private final TrafficLimiter limiter = new BasicConstantTrafficLimiter(duration, sizeLimit, countLimit, penalty);
 
     /*
      * 検査インスタンス側は a、検査者側は b を頭に付ける。
@@ -114,7 +114,7 @@ public final class AcceptorMasterTest {
         this.subjectSendQueuePool = new BasicSendQueuePool();
         this.subjectMessengerReportQueue = new LinkedBlockingQueue<>();
         this.subjectAcceptedConnectionPool = new PortIgnoringConnectionPool<>();
-        this.subjectConnectionPool = new PortIgnoringConnectionPool<>();
+        this.subjectConnectionPool = new BoundConnectionPool<>();
 
         this.subjectSerialGenerator = new AtomicInteger();
         this.subjectAcceptedSocketQueue = new LinkedBlockingQueue<>();
