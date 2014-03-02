@@ -176,7 +176,7 @@ abstract class ConstantTrafficLimiter<T> {
             final long cur = System.currentTimeMillis();
             sum.trim(cur - this.duration);
             sum.add(cur, size);
-            if (this.sizeLimit <= sum.getSize() || this.countLimit <= sum.getCount()) {
+            if (this.sizeLimit < sum.getSize() || this.countLimit < sum.getCount()) {
                 sleep = sum.getFirstDate() + this.duration - cur // 一番古いのが削除されるまでの時間。
                         + this.penalty;
             }
@@ -212,7 +212,7 @@ abstract class ConstantTrafficLimiter<T> {
             sum.trim(cur - this.duration);
             if (sum.isEmpty()) {
                 empty = true;
-            } else if (this.sizeLimit <= sum.getSize() || this.countLimit <= sum.getCount()) {
+            } else if (this.sizeLimit < sum.getSize() || this.countLimit < sum.getCount()) {
                 sleep = sum.getFirstDate() + this.duration - cur // 一番古いのが削除されるまでの時間。
                         + this.penalty;
             }
