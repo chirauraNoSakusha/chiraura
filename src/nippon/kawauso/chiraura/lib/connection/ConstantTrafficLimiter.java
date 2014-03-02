@@ -56,7 +56,9 @@ abstract class ConstantTrafficLimiter<T> {
         }
 
         private boolean isEmpty() {
-            return this.sum == 0;
+            // 回数制限だけのときは size == 0 で使うこともあるので、
+            // return size == 0 では駄目。
+            return this.entries.isEmpty();
         }
 
         private long getSize() {
