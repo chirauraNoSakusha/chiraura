@@ -157,9 +157,7 @@ final class Acceptor implements Callable<Void> {
         return null;
     }
 
-    private boolean isOverConnectionLimit(final InetSocketAddress destination) {
-        final int numOfConnections = this.connectionPool.getNumOfConnections(destination);
-
+    private boolean isOverConnectionLimit(final int numOfConnections) {
         if (numOfConnections < this.connectionLimit) {
             return false;
         }
@@ -170,24 +168,23 @@ final class Acceptor implements Callable<Void> {
         return true;
     }
 
-    private boolean isOverConnectionLimit() {
-        final InetSocketAddress destination = this.acceptedConnection.getDestination();
-        final int numOfConnections = this.acceptedConnectionPool.getNumOfConnections(destination) + this.connectionPool.getNumOfConnections(destination);
+    private boolean isOverConnectionLimit(final InetSocketAddress destination) {
+        // acceptedConnectionPool を含めてはいけない。
+        return isOverConnectionLimit(this.connectionPool.getNumOfConnections(destination));
+    }
 
-        if (numOfConnections < this.connectionLimit) {
-            return false;
-        }
+    private boolean isOverPortIgnoringConnectionLimit(final InetSocketAddress destination) {
+        return isOverConnectionLimit(this.acceptedConnectionPool.getNumOfConnections(destination) + this.connectionPool.getNumOfConnections(destination));
+    }
 
-        LOG.log(Level.WARNING, "{0}: 接続数 ( {1} ) が限界 ( {2} ) に達しています。",
-                new Object[] { this.acceptedConnection, Integer.toString(numOfConnections), Integer.toString(this.connectionLimit) });
-        this.acceptedConnection.close();
-        return true;
+    private boolean isOverPortIgnoringConnectionLimit() {
+        return isOverPortIgnoringConnectionLimit(this.acceptedConnection.getDestination());
     }
 
     private void subCall() throws IOException, MyRuleException {
 
         // ポートを気にしないなら、ここで接続数制限。
-        if (this.portIgnore && isOverConnectionLimit()) {
+        if (this.portIgnore && isOverPortIgnoringConnectionLimit()) {
             this.acceptedConnection.close();
             return;
         }
