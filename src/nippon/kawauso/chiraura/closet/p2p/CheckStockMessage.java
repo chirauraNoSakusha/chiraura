@@ -85,7 +85,7 @@ final class CheckStockMessage implements Message {
         return (new StringBuilder(this.getClass().getSimpleName()))
                 .append("[[").append(this.start)
                 .append(", ").append(this.end)
-                .append("], numOfExclusive=").append(Integer.toString(this.exclusives.size()))
+                .append("], numOfExclusive=").append(this.exclusives.size())
                 .append(']').toString();
     }
 

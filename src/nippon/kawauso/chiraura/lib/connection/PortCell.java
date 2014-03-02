@@ -72,7 +72,7 @@ public final class PortCell implements BytesConvertible {
     @Override
     public String toString() {
         return (new StringBuilder(this.getClass().getSimpleName()))
-                .append('[').append(Integer.toString(PortFunctions.decodeFromShort(this.value)))
+                .append('[').append(PortFunctions.decodeFromShort(this.value))
                 .append(']').toString();
     }
 

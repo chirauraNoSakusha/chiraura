@@ -14,7 +14,7 @@ public final class NewProtocolWarning implements MessengerReport {
 
     NewProtocolWarning(final long version, final long newVersion) {
         if (newVersion <= version) {
-            throw new IllegalArgumentException("New version ( " + Long.toString(newVersion) + " ) smaller current version ( " + Long.toString(version) + " ).");
+            throw new IllegalArgumentException("New version ( " + newVersion + " ) smaller current version ( " + version + " ).");
         }
         this.version = version;
         this.newVersion = newVersion;

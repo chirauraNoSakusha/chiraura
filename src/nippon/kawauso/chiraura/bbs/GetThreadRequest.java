@@ -58,7 +58,7 @@ final class GetThreadRequest implements Request {
     public String toString() {
         return (new StringBuilder(this.getClass().getSimpleName()))
                 .append('[').append(this.board)
-                .append(", ").append(Long.toString(this.thread))
+                .append(", ").append(this.thread)
                 .append(", ").append(this.ifModifiedSince)
                 .append(", ").append(this.ifNoneMatch)
                 .append(", ").append(this.rangeHead)

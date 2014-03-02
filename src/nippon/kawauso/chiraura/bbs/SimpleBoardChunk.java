@@ -227,9 +227,9 @@ final class SimpleBoardChunk extends SkeletalChunk implements BoardChunk {
         public String toString() {
             return (new StringBuilder(SimpleBoardChunk.class.getSimpleName())).append('.').append(this.getClass().getSimpleName())
                     .append('[').append(LoggingFunctions.getSimpleDate(this.date))
-                    .append(", ").append(Long.toString(this.name))
+                    .append(", ").append(this.name)
                     .append(", ").append(this.title)
-                    .append(", ").append(Integer.toString(this.numOfComments))
+                    .append(", ").append(this.numOfComments)
                     .append(']').toString();
         }
 
@@ -490,9 +490,9 @@ final class SimpleBoardChunk extends SkeletalChunk implements BoardChunk {
             }
             count++;
 
-            buff.append(Long.toString(entry.name))
+            buff.append(entry.name)
                     .append(".dat<>").append(entry.title)
-                    .append(" (").append(Integer.toString(entry.numOfComments))
+                    .append(" (").append(entry.numOfComments)
                     .append(")\n");
         }
         return buff.toString();
@@ -538,7 +538,7 @@ final class SimpleBoardChunk extends SkeletalChunk implements BoardChunk {
     public String toString() {
         return (new StringBuilder(this.getClass().getSimpleName()))
                 .append('[').append(this.id.name)
-                .append(", numOfEntries=").append(Integer.toString(this.threadToEntry.size()))
+                .append(", numOfEntries=").append(this.threadToEntry.size())
                 .append(']').toString();
     }
 

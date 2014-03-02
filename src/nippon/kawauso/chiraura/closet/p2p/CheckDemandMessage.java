@@ -85,7 +85,7 @@ final class CheckDemandMessage implements Message {
         return (new StringBuilder(this.getClass().getSimpleName()))
                 .append("[[").append(this.start)
                 .append(", ").append(this.end)
-                .append("], numOfCandidates=").append(Integer.toString(this.candidates.size()))
+                .append("], numOfCandidates=").append(this.candidates.size())
                 .append(']').toString();
     }
 

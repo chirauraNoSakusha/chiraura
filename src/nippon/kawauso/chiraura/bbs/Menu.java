@@ -82,7 +82,7 @@ public final class Menu implements Content {
     String toNetworkString(final String host, final int port) {
         final String after;
         if (host.indexOf(':') < 0 && port != Http.DEFAULT_PORT) {
-            after = (new StringBuilder(host)).append(':').append(Integer.toString(port)).toString();
+            after = (new StringBuilder(host)).append(':').append(port).toString();
         } else {
             after = host;
         }

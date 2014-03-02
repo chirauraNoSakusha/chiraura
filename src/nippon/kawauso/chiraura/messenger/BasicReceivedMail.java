@@ -57,7 +57,7 @@ final class BasicReceivedMail implements ReceivedMail {
     public String toString() {
         final StringBuilder buff = new StringBuilder(this.getClass().getSimpleName())
                 .append("[from=(").append(this.sourcePeer)
-                .append(", ").append(Integer.toString(this.connectionType))
+                .append(", ").append(this.connectionType)
                 .append("), {");
         boolean first = true;
         for (final Message message : this.mail) {

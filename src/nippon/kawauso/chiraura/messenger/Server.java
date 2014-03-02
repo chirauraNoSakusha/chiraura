@@ -61,8 +61,7 @@ final class Server extends Reporter<Void> {
             final int oldReceiveBufferSize = this.serverSocket.getReceiveBufferSize();
             if (oldReceiveBufferSize < this.receiveBufferSize) {
                 this.serverSocket.setReceiveBufferSize(this.receiveBufferSize);
-                LOG.log(Level.FINER, "受信バッファサイズを {0} から {1} に変更しました。",
-                        new Object[] { Integer.toString(oldReceiveBufferSize), Integer.toString(this.receiveBufferSize) });
+                LOG.log(Level.FINER, "受信バッファサイズを {0} から {1} に変更しました。", new Object[] { oldReceiveBufferSize, this.receiveBufferSize });
             }
 
             if (Global.isDebug()) {

@@ -151,7 +151,7 @@ final class UpdateChunkReply implements Message {
         } else if (this.diffs == null) {
             buff.append("notFound");
         } else {
-            buff.append("numOfDiffs=").append(Integer.toString(this.diffs.size()));
+            buff.append("numOfDiffs=").append(this.diffs.size());
         }
         return buff.append(']').toString();
     }

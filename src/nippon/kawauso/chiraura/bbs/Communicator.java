@@ -130,7 +130,7 @@ final class Communicator implements Callable<Void> {
             sleep = this.limiter.nextSleep(this.connection.getDestination());
         }
         while (sleep > 0) {
-            LOG.log(Level.WARNING, "{0}: {1} ミリ秒さぼります。", new Object[] { this.connection, Long.toString(sleep) });
+            LOG.log(Level.WARNING, "{0}: {1} ミリ秒さぼります。", new Object[] { this.connection, sleep });
             Thread.sleep(sleep);
             sleep = this.limiter.nextSleep(this.connection.getDestination());
         }

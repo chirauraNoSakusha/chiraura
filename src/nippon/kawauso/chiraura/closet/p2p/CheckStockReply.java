@@ -121,7 +121,7 @@ final class CheckStockReply implements Message {
         } else if (this.giveUp) {
             buff.append("giveUp");
         } else {
-            buff.append("numOfStocked=").append(Integer.toString(this.stocks.size()));
+            buff.append("numOfStocked=").append(this.stocks.size());
         }
         return buff.append(']').toString();
     }

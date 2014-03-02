@@ -150,7 +150,7 @@ final class BackupperMaster extends Reporter<Void> {
             }
             pre = cur;
         }
-        LOG.log(Level.FINEST, "{0} ミリ秒で安定しました。", Long.toString(System.currentTimeMillis() - start));
+        LOG.log(Level.FINEST, "{0} ミリ秒で安定しました。", System.currentTimeMillis() - start);
     }
 
     @Override

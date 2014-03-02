@@ -116,7 +116,7 @@ final class ThreadChunk extends SkeletalChunk implements Mountain, Content {
         public String toString() {
             return (new StringBuilder(ThreadChunk.class.getSimpleName())).append('.').append(this.getClass().getSimpleName())
                     .append('[').append(this.board)
-                    .append('/').append(Long.toString(this.thread))
+                    .append('/').append(this.thread)
                     .append(']').toString();
         }
     }
@@ -509,7 +509,7 @@ final class ThreadChunk extends SkeletalChunk implements Mountain, Content {
         } else {
             final StringBuilder buff = new StringBuilder("(").append(ContentConstants.CHIRAURA_NOTATION_LABEL).append(")ttp://").append(host);
             if (host.indexOf(':') < 0 && port != Http.DEFAULT_PORT) {
-                buff.append(':').append(Integer.toString(port));
+                buff.append(':').append(port);
             }
             after = buff.append('/').toString();
         }
@@ -579,9 +579,9 @@ final class ThreadChunk extends SkeletalChunk implements Mountain, Content {
     public String toString() {
         return (new StringBuilder(this.getClass().getSimpleName()))
                 .append('[').append(this.id.board)
-                .append('/').append(Long.toString(this.id.thread))
+                .append('/').append(this.id.thread)
                 .append(", ").append(this.firstEntry)
-                .append(", numOfEntries=").append(Integer.toString(this.entries.size()))
+                .append(", numOfEntries=").append(this.entries.size())
                 .append(']').toString();
     }
 

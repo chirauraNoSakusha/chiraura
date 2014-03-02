@@ -158,11 +158,11 @@ final class Receiver implements Callable<Void> {
 
             if (!mail.isEmpty() && mail.get(mail.size() - 1) instanceof KeyUpdateMessage) {
                 // 暗号鍵の更新。
-                LOG.log(Level.FINER, "{0}: {1} バイト受信 ( 鍵更新含む )。", new Object[] { this.connection, Integer.toString(size) });
+                LOG.log(Level.FINER, "{0}: {1} バイト受信 ( 鍵更新含む )。", new Object[] { this.connection, size });
                 final KeyUpdateMessage message = (KeyUpdateMessage) mail.remove(mail.size() - 1);
                 this.decryptionKey = message.getKey(this.myKey, this.destinationKey);
             } else {
-                LOG.log(Level.FINER, "{0}: {1} バイト受信。", new Object[] { this.connection, Integer.toString(size) });
+                LOG.log(Level.FINER, "{0}: {1} バイト受信。", new Object[] { this.connection, size });
             }
 
             final ReceivedMail receivedMail = new BasicReceivedMail(this.connection.getDestinationId(), this.connection.getDestination(),
@@ -179,7 +179,7 @@ final class Receiver implements Callable<Void> {
     private void limitSleep(final int size) throws InterruptedException {
         long sleep = this.limiter.nextSleep(size, this.connection.getDestination());
         while (sleep > 0) {
-            LOG.log(Level.WARNING, "{0}: {1} ミリ秒さぼります。", new Object[] { this.connection, Long.toString(sleep) });
+            LOG.log(Level.WARNING, "{0}: {1} ミリ秒さぼります。", new Object[] { this.connection, sleep });
             Thread.sleep(sleep);
             sleep = this.limiter.nextSleep(this.connection.getDestination());
         }

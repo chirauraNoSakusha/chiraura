@@ -106,14 +106,12 @@ final class Backupper extends Reporter<Void> {
                 // ふて寝。
                 Thread.sleep(this.interval / 2);
             } else {
-                LOG.log(Level.FINEST, "{0} から最初の在庫が {1} 個報告されました。",
-                        new Object[] { this.destination, Integer.toString(result.getStockedEntries().size()) });
+                LOG.log(Level.FINEST, "{0} から最初の在庫が {1} 個報告されました。", new Object[] { this.destination, result.getStockedEntries().size() });
                 for (int i = 0; i < result.getStockedEntries().size(); i++) {
                     if (isEnd()) {
                         break;
                     }
-                    LOG.log(Level.FINEST, "{0} からの最初の取り寄せ {1} 個目 {2} を始めます。",
-                            new Object[] { this.destination, Integer.toString(i), result.getStockedEntries().get(i).getId() });
+                    LOG.log(Level.FINEST, "{0} からの最初の取り寄せ {1} 個目 {2} を始めます。", new Object[] { this.destination, i, result.getStockedEntries().get(i).getId() });
                     this.drivers.getRecoverySelect().execute(new RecoveryOperation(result.getStockedEntries().get(i), this.destination), this.timeout);
                 }
                 break;
@@ -131,7 +129,7 @@ final class Backupper extends Reporter<Void> {
             return;
         }
 
-        LOG.log(Level.FINEST, "{0} から在庫が {1} 個報告されました。", new Object[] { this.destination, Integer.toString(result.getStockedEntries().size()) });
+        LOG.log(Level.FINEST, "{0} から在庫が {1} 個報告されました。", new Object[] { this.destination, result.getStockedEntries().size() });
 
         for (int i = 0; i < result.getStockedEntries().size(); i++) {
             if (isEnd()) {
@@ -144,8 +142,7 @@ final class Backupper extends Reporter<Void> {
                 break;
             }
 
-            LOG.log(Level.FINEST, "{0} からの取り寄せ {1} 個目 {2} を始めます。",
-                    new Object[] { this.destination, Integer.toString(i), result.getStockedEntries().get(i).getId() });
+            LOG.log(Level.FINEST, "{0} からの取り寄せ {1} 個目 {2} を始めます。", new Object[] { this.destination, i, result.getStockedEntries().get(i).getId() });
             this.drivers.getRecoverySelect().execute(new RecoveryOperation(result.getStockedEntries().get(i), this.destination), currentTimeout);
         }
     }
@@ -160,7 +157,7 @@ final class Backupper extends Reporter<Void> {
             return;
         }
 
-        LOG.log(Level.FINEST, "{0} から {1} 個の発注が来ました。", new Object[] { this.destination, Integer.toString(result.getDemandedEntries().size()) });
+        LOG.log(Level.FINEST, "{0} から {1} 個の発注が来ました。", new Object[] { this.destination, result.getDemandedEntries().size() });
 
         for (int i = 0; i < result.getDemandedEntries().size(); i++) {
             if (isEnd()) {
@@ -173,8 +170,7 @@ final class Backupper extends Reporter<Void> {
                 break;
             }
 
-            LOG.log(Level.FINEST, "{0} への複製 {1} 個目 {2} を始めます。",
-                    new Object[] { this.destination, Integer.toString(i), result.getDemandedEntries().get(i).getId() });
+            LOG.log(Level.FINEST, "{0} への複製 {1} 個目 {2} を始めます。", new Object[] { this.destination, i, result.getDemandedEntries().get(i).getId() });
             this.drivers.getBackupSelect().execute(new BackupOperation(result.getDemandedEntries().get(i), this.destination), currentTimeout);
         }
     }

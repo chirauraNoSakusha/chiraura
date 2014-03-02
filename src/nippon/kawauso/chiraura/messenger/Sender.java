@@ -146,14 +146,14 @@ final class Sender implements Callable<Void> {
             final long date = System.currentTimeMillis();
             if (date < keyUpdateDate + this.keyLifetime) {
                 final int size = this.transceiver.toStream(this.output, mail, GZippedEncryptedEnvelope.class, this.encryptionKey);
-                LOG.log(Level.FINER, "{0}: {1} バイト送信。", new Object[] { this.connection, Integer.toString(size) });
+                LOG.log(Level.FINER, "{0}: {1} バイト送信。", new Object[] { this.connection, size });
             } else {
                 // 暗号鍵の更新。
                 final Key newEncryptionKey = CryptographicKeys.newCommonKey();
                 mail.add(KeyUpdateMessage.newInstance(this.destinationKey, this.myKey, newEncryptionKey));
 
                 final int size = this.transceiver.toStream(this.output, mail, GZippedEncryptedEnvelope.class, this.encryptionKey);
-                LOG.log(Level.FINER, "{0}: {1} バイト送信 ( 鍵更新含む )。", new Object[] { this.connection, Integer.toString(size) });
+                LOG.log(Level.FINER, "{0}: {1} バイト送信 ( 鍵更新含む )。", new Object[] { this.connection, size });
 
                 keyUpdateDate = date;
                 this.encryptionKey = newEncryptionKey;
@@ -169,7 +169,7 @@ final class Sender implements Callable<Void> {
                     break;
                 }
                 final int size = this.transceiver.toStream(this.output, mail, GZippedEncryptedEnvelope.class, this.encryptionKey);
-                LOG.log(Level.FINER, "{0}: ついでに {1} バイト送信。", new Object[] { this.connection, Integer.toString(size) });
+                LOG.log(Level.FINER, "{0}: ついでに {1} バイト送信。", new Object[] { this.connection, size });
 
                 // 最終動作時刻を更新。
                 this.connection.updateDate();

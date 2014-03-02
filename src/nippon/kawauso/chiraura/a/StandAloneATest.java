@@ -36,7 +36,7 @@ public final class StandAloneATest {
         LoggingFunctions.startLogging();
 
         final int numOfClients = 10;
-        final File dir = new File(root, "backup" + Integer.toString(numOfClients));
+        final File dir = new File(root, "backup" + numOfClients);
 
         final Option option = new Option(("-root " + dir.getPath()).split(" "));
         final Environment environment = new Environment(option);

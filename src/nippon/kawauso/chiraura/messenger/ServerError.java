@@ -44,7 +44,7 @@ public final class ServerError implements MessengerReport {
     @Override
     public String toString() {
         return (new StringBuilder(this.getClass().getSimpleName()))
-                .append('[').append(Integer.toString(this.port))
+                .append('[').append(this.port)
                 .append(", ").append(this.error)
                 .append(']').toString();
     }

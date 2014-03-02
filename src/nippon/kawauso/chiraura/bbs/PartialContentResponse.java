@@ -19,7 +19,7 @@ final class PartialContentResponse extends BasicResponse {
         fields.put(Http.Field.ETAG, Long.toString(content.getNetworkTag()));
         fields.put(Http.Field.CONTENT_TYPE, "text/plain; charset=" + Constants.CONTENT_CHARSET.name());
         fields.put(Http.Field.CONTENT_RANGE,
-                "bytes " + Integer.toString(rangeHead) + "-" + Integer.toString(contentBytes.length - 1) + "/" + Integer.toString(contentBytes.length));
+                (new StringBuilder("bytes ")).append(rangeHead).append('-').append(contentBytes.length - 1).append('/').append(contentBytes.length).toString());
         return fields;
     }
 

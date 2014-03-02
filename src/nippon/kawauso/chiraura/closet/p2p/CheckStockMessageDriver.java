@@ -65,7 +65,7 @@ final class CheckStockMessageDriver {
             if (entries == null) {
                 reply.add(CheckStockReply.newGiveUp());
             } else {
-                LOG.log(Level.FINEST, "{0} に依頼された {1} への返答に {3} 個の在庫を報告しました。", new Object[] { source, message, Integer.toString(entries.size()) });
+                LOG.log(Level.FINEST, "{0} に依頼された {1} への返答に {3} 個の在庫を報告しました。", new Object[] { source, message, entries.size() });
                 reply.add(new CheckStockReply(entries));
             }
         }

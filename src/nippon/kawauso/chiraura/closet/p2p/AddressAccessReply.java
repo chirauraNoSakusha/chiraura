@@ -140,7 +140,7 @@ final class AddressAccessReply implements Message {
             if (this.manager != null) {
                 buff.append(this.manager).append(", ");
             }
-            buff.append("numOfPeers=").append(Integer.toString(this.peers.size()));
+            buff.append("numOfPeers=").append(this.peers.size());
         }
         return buff.append(']').toString();
     }

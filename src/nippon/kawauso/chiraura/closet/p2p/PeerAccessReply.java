@@ -61,7 +61,7 @@ final class PeerAccessReply implements Message {
     @Override
     public String toString() {
         return (new StringBuilder(this.getClass().getSimpleName()))
-                .append("[numOfPeers=").append(Integer.toString(this.peers.size()))
+                .append("[numOfPeers=").append(this.peers.size())
                 .append(']').toString();
     }
 

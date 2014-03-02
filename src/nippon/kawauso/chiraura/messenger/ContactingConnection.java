@@ -27,9 +27,9 @@ final class ContactingConnection extends BoundConnection {
     @Override
     public String toString() {
         return (new StringBuilder(this.getClass().getSimpleName()))
-                .append('[').append(Integer.toString(this.getIdNumber()))
+                .append('[').append(this.getIdNumber())
                 .append(", ").append(this.getDestination())
-                .append(", ").append(Integer.toString(this.type))
+                .append(", ").append(this.type)
                 .append(']').toString();
     }
 

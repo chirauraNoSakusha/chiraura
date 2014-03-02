@@ -100,8 +100,8 @@ final class KeyUpdateMessage implements Message {
     @Override
     public String toString() {
         return (new StringBuilder(this.getClass().getSimpleName()))
-                .append("[encryptedNewKeySize=").append(Integer.toString(this.encryptedNewKey.length))
-                .append(", signedHashValueSize=").append(Integer.toString(this.signedHashValue.length))
+                .append("[encryptedNewKeySize=").append(this.encryptedNewKey.length)
+                .append(", signedHashValueSize=").append(this.signedHashValue.length)
                 .append(']').toString();
     }
 }

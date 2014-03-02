@@ -340,20 +340,20 @@ final class Option {
         String format;
         format = "%-" + (nameMax - StringFunctions.getWidth(nameLabel) + nameLabel.length()) + "s %-"
                 + (initialMax - StringFunctions.getWidth(initialLabel) + initialLabel.length()) + "s %s%n";
-        final StringBuilder sb = new StringBuilder(String.format(format, nameLabel, initialLabel, descryptionTag));
+        final StringBuilder buff = new StringBuilder(String.format(format, nameLabel, initialLabel, descryptionTag));
         for (final Item item : Item.values()) {
             if (item == Item.help || item.initial == null) {
                 format = "%-" + nameMax + "s %-" + initialMax + "s %s%n";
-                sb.append(String.format(format, item.name(), "", item.descryption));
+                buff.append(String.format(format, item.name(), "", item.descryption));
             } else if (item.descryption == null) {
                 format = "%-" + nameMax + "s %-" + initialMax + "%n";
-                sb.append(String.format(format, item.name(), item.initial));
+                buff.append(String.format(format, item.name(), item.initial));
             } else {
                 format = "%-" + nameMax + "s %-" + initialMax + "s %s%n";
-                sb.append(String.format(format, item.name(), item.initial, item.descryption));
+                buff.append(String.format(format, item.name(), item.initial, item.descryption));
             }
         }
-        return sb.toString();
+        return buff.toString();
     }
 
     /**
@@ -374,7 +374,7 @@ final class Option {
             }
         }
         final String format = "-%-" + max + "s %s";
-        final StringBuilder sb = new StringBuilder();
+        final StringBuilder buff = new StringBuilder();
         boolean first = true;
         for (final Item item : Item.values()) {
             if (item == Item.help ||
@@ -386,11 +386,11 @@ final class Option {
             if (first) {
                 first = false;
             } else {
-                sb.append(String.format(" \\%n"));
+                buff.append(String.format(" \\%n"));
             }
-            sb.append(String.format(format, item.name(), this.items.get(item)));
+            buff.append(String.format(format, item.name(), this.items.get(item)));
         }
-        return sb.toString();
+        return buff.toString();
     }
 
     public static void main(final String[] args) throws FileNotFoundException, IOException {

@@ -114,7 +114,7 @@ final class Lonely extends Reporter<Void> {
                     // 接続候補が一巡してたら 1 回休み。
                     final long nextInterval = Math.min(interval * 2, this.maxInterval);
                     if (nextInterval > interval) {
-                        LOG.log(Level.FINER, "少し手を抜くか ( {0} )。", Long.toString(nextInterval));
+                        LOG.log(Level.FINER, "少し手を抜くか ( {0} ミリ秒)。", nextInterval);
                         interval = nextInterval;
                     }
                     tried.clear();

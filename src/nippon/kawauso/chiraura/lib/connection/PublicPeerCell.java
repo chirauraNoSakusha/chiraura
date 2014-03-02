@@ -115,7 +115,7 @@ public final class PublicPeerCell implements Cell<InetSocketAddress> {
     public String toString() {
         return (new StringBuilder(this.getClass().getSimpleName()))
                 .append('[').append(this.peer.getHostString())
-                .append(":").append(Integer.toString(this.peer.getPort()))
+                .append(":").append(this.peer.getPort())
                 .append(']').toString();
     }
 

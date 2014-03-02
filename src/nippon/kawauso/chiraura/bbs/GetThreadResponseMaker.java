@@ -66,7 +66,7 @@ final class GetThreadResponseMaker {
     }
 
     private static String getTarget(final GetThreadRequest request) {
-        return (new StringBuilder("/")).append(request.getBoard()).append('/').append(Long.toString(request.getThread())).toString();
+        return (new StringBuilder("/")).append(request.getBoard()).append('/').append(request.getThread()).toString();
     }
 
 }

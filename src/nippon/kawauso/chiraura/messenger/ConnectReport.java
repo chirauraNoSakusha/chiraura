@@ -55,7 +55,7 @@ public final class ConnectReport implements MessengerReport {
     public String toString() {
         return (new StringBuilder(this.getClass().getSimpleName()))
                 .append('[').append(this.destination)
-                .append(", ").append(Integer.toString(this.connectionType))
+                .append(", ").append(this.connectionType)
                 .append(']').toString();
     }
 

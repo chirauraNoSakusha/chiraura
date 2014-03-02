@@ -278,7 +278,7 @@ abstract class ConstantTrafficLimiter<T> {
         }
 
         if (sleep > 0) {
-            LOG.log(Level.FINEST, "削除待ちで {0} ミリ秒さぼります。", Long.toString(sleep));
+            LOG.log(Level.FINEST, "削除待ちで {0} ミリ秒さぼります。", sleep);
             Thread.sleep(sleep);
         }
 

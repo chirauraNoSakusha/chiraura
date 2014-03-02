@@ -130,7 +130,7 @@ final class BasicCcShortcutTable implements CcShortcutTable {
             } else {
                 buff.append(", ");
             }
-            buff.append(Integer.toString(CcFunctions.distanceLevel(distance))).append(':').append(distance);
+            buff.append(CcFunctions.distanceLevel(distance)).append(':').append(distance);
         }
         return buff.append("}]").toString();
     }

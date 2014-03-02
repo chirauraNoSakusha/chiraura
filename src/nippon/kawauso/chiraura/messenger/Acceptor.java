@@ -163,8 +163,7 @@ final class Acceptor implements Callable<Void> {
             return false;
         }
 
-        LOG.log(Level.WARNING, "{0}: 接続数 ( {1} ) が限界 ( {2} ) に達しています。",
-                new Object[] { this.acceptedConnection, Integer.toString(numOfConnections), Integer.toString(this.connectionLimit) });
+        LOG.log(Level.WARNING, "{0}: 接続数 ( {1} ) が限界 ( {2} ) に達しています。", new Object[] { this.acceptedConnection, numOfConnections, this.connectionLimit });
         this.acceptedConnection.close();
         return true;
     }
@@ -198,8 +197,7 @@ final class Acceptor implements Callable<Void> {
         final int oldSendBufferSize = this.acceptedConnection.getSocket().getSendBufferSize();
         if (this.acceptedConnection.getSocket().getSendBufferSize() < this.sendBufferSize) {
             this.acceptedConnection.getSocket().setSendBufferSize(this.sendBufferSize);
-            LOG.log(Level.FINEST, "{0}: 送信バッファサイズを {1} から {2} に変更しました。",
-                    new Object[] { this.acceptedConnection, Integer.toString(oldSendBufferSize), Integer.toString(this.sendBufferSize) });
+            LOG.log(Level.FINEST, "{0}: 送信バッファサイズを {1} から {2} に変更しました。", new Object[] { this.acceptedConnection, oldSendBufferSize, this.sendBufferSize });
         }
 
         final InputStream input = new BufferedInputStream(this.acceptedConnection.getSocket().getInputStream(),

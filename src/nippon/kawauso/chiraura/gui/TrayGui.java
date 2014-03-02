@@ -301,7 +301,7 @@ public final class TrayGui implements Gui {
                     if (nextInterval != curInterval) {
                         curInterval = nextInterval;
                         setInterval(nextInterval);
-                        LOG.log(Level.FINEST, "報告間隔を {0} ミリ秒に変更しました。", Long.toString(nextInterval));
+                        LOG.log(Level.FINEST, "報告間隔を {0} ミリ秒に変更しました。", nextInterval);
                     }
                     printWarnings();
                 }
@@ -344,7 +344,7 @@ public final class TrayGui implements Gui {
         }
         buff.append(System.lineSeparator());
 
-        buff.append("2chポート:").append(Integer.toString(this.bbsPort)).append(", ").append(System.lineSeparator());
+        buff.append("2chポート:").append(this.bbsPort).append(", ").append(System.lineSeparator());
 
         buff.append("作業場:").append(this.rootPath).append(", ").append(System.lineSeparator());
 
@@ -369,20 +369,19 @@ public final class TrayGui implements Gui {
         }
 
         if (this.closePortWarning >= 0) {
-            buff.append("ポート").append(Integer.toString(this.closePortWarning)).append("が開いていないかもしれません").append(", ").append(System.lineSeparator());
+            buff.append("ポート").append(this.closePortWarning).append("が開いていないかもしれません").append(", ").append(System.lineSeparator());
         }
 
         if (this.versionGapWarning != null) {
             buff.append("この個体より ");
             if (this.versionGapWarning.getFirst() > 0) {
                 if (this.versionGapWarning.getSecond() > 0) {
-                    buff.append(Long.toString(this.versionGapWarning.getFirst())).append(" 段階と ")
-                            .append(Long.toString(this.versionGapWarning.getSecond())).append(" 歩");
+                    buff.append(this.versionGapWarning.getFirst()).append(" 段階と ").append(this.versionGapWarning.getSecond()).append(" 歩");
                 } else {
-                    buff.append(Long.toString(this.versionGapWarning.getFirst())).append(" 段階");
+                    buff.append(this.versionGapWarning.getFirst()).append(" 段階");
                 }
             } else {
-                buff.append(Long.toString(this.versionGapWarning.getSecond())).append(" 歩");
+                buff.append(this.versionGapWarning.getSecond()).append(" 歩");
             }
             buff.append("だけ新しい個体がいるようです, ").append(System.lineSeparator());
         }
@@ -487,7 +486,7 @@ public final class TrayGui implements Gui {
             } else if (this.start < 0) {
                 // ネットワークに入ってから時間が経っていて、遅延が始まっていない。
                 this.start = cur;
-                LOG.log(Level.FINEST, "{0} ミリ秒お待ちください。", Long.toString(this.delay));
+                LOG.log(Level.FINEST, "{0} ミリ秒お待ちください。", this.delay);
                 this.executor.submit(new Reporter<Void>(Level.WARNING) {
                     @Override
                     protected Void subCall() throws InterruptedException {

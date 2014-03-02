@@ -146,7 +146,7 @@ final class GrowingBytes extends SkeletalChunk implements Mountain {
         public String toString() {
             return (new StringBuilder(GrowingBytes.class.getSimpleName())).append('.').append(this.getClass().getSimpleName())
                     .append("[").append(LoggingFunctions.getSimpleDate(this.date))
-                    .append(", size=").append(Integer.toString(this.bytes.length))
+                    .append(", size=").append(this.bytes.length)
                     .append(']').toString();
         }
 
@@ -284,7 +284,7 @@ final class GrowingBytes extends SkeletalChunk implements Mountain {
         final StringBuilder buff = (new StringBuilder(this.getClass().getSimpleName()))
                 .append('[').append(this.id.name)
                 .append(", ").append(LoggingFunctions.getSimpleDate(this.date))
-                .append(", numOfEntries=").append(Integer.toString(this.entries.size()));
+                .append(", numOfEntries=").append(this.entries.size());
         if (!this.entries.isEmpty()) {
             buff.append(", ").append(LoggingFunctions.getSimpleDate(this.entries.last().date));
         }

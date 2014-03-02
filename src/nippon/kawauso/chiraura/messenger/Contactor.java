@@ -192,12 +192,11 @@ final class Contactor implements Callable<Void> {
         if (oldReceiveBufferSize < this.receiveBufferSize) {
             this.contactingConnection.getSocket().setReceiveBufferSize(this.receiveBufferSize);
             LOG.log(Level.FINEST, "{0}: 受信バッファサイズを {1} から {2} に変更しました。",
-                    new Object[] { this.contactingConnection, Integer.toString(oldReceiveBufferSize), Integer.toString(this.receiveBufferSize) });
+                    new Object[] { this.contactingConnection, oldReceiveBufferSize, this.receiveBufferSize });
         }
         if (oldSendBufferSize < this.sendBufferSize) {
             this.contactingConnection.getSocket().setSendBufferSize(this.sendBufferSize);
-            LOG.log(Level.FINEST, "{0}: 送信バッファサイズを {1} から {2} に変更しました。",
-                    new Object[] { this.contactingConnection, Integer.toString(oldSendBufferSize), Integer.toString(this.sendBufferSize) });
+            LOG.log(Level.FINEST, "{0}: 送信バッファサイズを {1} から {2} に変更しました。", new Object[] { this.contactingConnection, oldSendBufferSize, this.sendBufferSize });
         }
 
         if (Global.isDebug()) {

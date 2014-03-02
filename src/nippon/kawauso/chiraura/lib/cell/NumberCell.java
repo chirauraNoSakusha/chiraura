@@ -62,7 +62,7 @@ public final class NumberCell implements BytesConvertible {
     @Override
     public String toString() {
         return (new StringBuilder(this.getClass().getSimpleName()))
-                .append('[').append(Long.toString(this.value))
+                .append('[').append(this.value)
                 .append(']').toString();
     }
 

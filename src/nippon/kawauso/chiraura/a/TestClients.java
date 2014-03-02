@@ -68,13 +68,13 @@ final class TestClients {
         @Override
         public String toString() {
             final StringBuilder buff = (new StringBuilder(this.getClass().getSimpleName()))
-                    .append('[').append(Long.toString(this.name))
+                    .append('[').append(this.name)
                     .append(", ").append(this.title)
-                    .append(", ").append(Integer.toString(this.numOfComments));
+                    .append(", ").append(this.numOfComments);
             if (this.thread != null) {
                 buff.append('[').append(this.thread.getName())
                         .append(", ").append(this.thread.getTitle())
-                        .append(", ").append(Integer.toString(this.thread.getEntries().size()))
+                        .append(", ").append(this.thread.getEntries().size())
                         .append(']');
             }
             return buff.append(']').toString();

@@ -94,7 +94,7 @@ final class TestMessage implements Message {
     @Override
     public String toString() {
         return (new StringBuilder(this.getClass().getSimpleName()))
-                .append('[').append(Integer.toString(this.value))
+                .append('[').append(this.value)
                 .append(", ").append(this.string)
                 .append(']').toString();
     }

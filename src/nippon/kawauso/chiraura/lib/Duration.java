@@ -72,7 +72,7 @@ public final class Duration {
             if (milliSeconds < list.get(i + 1).getFirst()) {
                 final long unit = list.get(i).getFirst();
                 final long val = Math.round(milliSeconds / (double) unit);
-                buff.append(Long.toString(val)).append(list.get(i).getSecond());
+                buff.append(val).append(list.get(i).getSecond());
                 if (Math.abs(val * unit - milliSeconds) >= list.get(i - 1).getFirst()) {
                     buff.append("くらい");
                 }

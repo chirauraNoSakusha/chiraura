@@ -198,7 +198,7 @@ public final class P2pClosetTest {
     }
 
     private static String getLabel(final int all, final int n) {
-        return Integer.toString(all) + "-" + String.format("%0" + Integer.toString((int) Math.ceil(Math.log10(all))) + "d", n);
+        return all + "-" + String.format("%0" + ((int) Math.ceil(Math.log10(all))) + "d", n);
     }
 
     private static void testNetwork(final int bits) throws Exception {

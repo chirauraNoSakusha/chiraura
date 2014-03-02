@@ -15,7 +15,7 @@ public final class ClosePortWarning implements MessengerReport {
 
     ClosePortWarning(final int port) {
         if (!PortFunctions.isValid(port)) {
-            throw new IllegalArgumentException("Invalid port ( " + Integer.toString(port) + " ).");
+            throw new IllegalArgumentException("Invalid port ( " + port + " ).");
         }
         this.port = port;
     }
@@ -31,7 +31,7 @@ public final class ClosePortWarning implements MessengerReport {
     @Override
     public String toString() {
         return (new StringBuilder(this.getClass().getSimpleName()))
-                .append('[').append(Integer.toString(this.port))
+                .append('[').append(this.port)
                 .append(']').toString();
     }
 

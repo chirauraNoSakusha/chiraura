@@ -78,7 +78,7 @@ final class AddCommentRequest implements Request {
     public String toString() {
         return (new StringBuilder(this.getClass().getSimpleName()))
                 .append('[').append(this.board)
-                .append(", ").append(Long.toString(this.thread))
+                .append(", ").append(this.thread)
                 .append(", ").append(this.author)
                 .append(", ").append(this.mail)
                 .append(", ").append(LoggingFunctions.getSimpleDate(this.date))

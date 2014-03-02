@@ -21,7 +21,7 @@ final class PeerUnmosaicer {
      */
     public static void main(final String[] args) throws MyRuleException {
         final InetSocketAddress peer = Mosaic.peerFrom(args[0]);
-        System.out.println(peer.getHostString() + " " + Integer.toString(peer.getPort()));
+        System.out.println(peer.getHostString() + " " + peer.getPort());
     }
 
 }

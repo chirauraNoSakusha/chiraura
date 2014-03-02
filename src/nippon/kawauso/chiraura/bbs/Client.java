@@ -386,7 +386,7 @@ public final class Client {
             final StringBuilder request = (new StringBuilder("GET /")).append(thread.getBoard()).append("/dat/").append(thread.getName())
                     .append(".dat HTTP/1.1").append(Http.SEPARATOR)
                     .append("Host: ").append(server.getHostString()).append(Http.SEPARATOR)
-                    .append("Range: bytes=").append(Integer.toString(resumable.rawDat.length - 1)).append('-').append(Http.SEPARATOR);
+                    .append("Range: bytes=").append(resumable.rawDat.length - 1).append('-').append(Http.SEPARATOR);
             if (resumable.lastModified != null) {
                 request.append("If-Modified-Since: ").append(resumable.lastModified).append(Http.SEPARATOR);
             }
@@ -519,14 +519,14 @@ public final class Client {
             final String message) throws MyRuleException, IOException {
         final StringBuilder content = (new StringBuilder("bbs=")).append(StringFunctions.urlEncode(board, CHARSET))
                 .append("&subject=").append(StringFunctions.urlEncode(title, CHARSET))
-                .append("&time=").append(Long.toString(System.currentTimeMillis()))
+                .append("&time=").append(System.currentTimeMillis())
                 .append("&from=").append(StringFunctions.urlEncode(author, CHARSET))
                 .append("&mail=").append(StringFunctions.urlEncode(mail, CHARSET))
                 .append("&message=").append(StringFunctions.urlEncode(message, CHARSET))
                 .append("&submit=").append(StringFunctions.urlEncode("新規スレッド作成", CHARSET));
         final String request = (new StringBuilder("POST /test/bbs.cgi HTTP/1.1")).append(Http.SEPARATOR)
                 .append("Host: ").append(server.getHostString()).append(Http.SEPARATOR)
-                .append("Content-Length: ").append(Integer.toString(content.length())).append(Http.SEPARATOR)
+                .append("Content-Length: ").append(content.length()).append(Http.SEPARATOR)
                 .append(Http.SEPARATOR)
                 .append(content)
                 .toString();
@@ -562,14 +562,14 @@ public final class Client {
             final String message) throws MyRuleException, IOException {
         final StringBuilder content = (new StringBuilder("bbs=")).append(StringFunctions.urlEncode(board, CHARSET))
                 .append("&key=").append(StringFunctions.urlEncode(thread, CHARSET))
-                .append("&time=").append(Long.toString(System.currentTimeMillis()))
+                .append("&time=").append(System.currentTimeMillis())
                 .append("&from=").append(StringFunctions.urlEncode(author, CHARSET))
                 .append("&mail=").append(StringFunctions.urlEncode(mail, CHARSET))
                 .append("&message=").append(StringFunctions.urlEncode(message, CHARSET))
                 .append("&submit=").append(StringFunctions.urlEncode("書き込む", CHARSET));
         final String request = (new StringBuilder("POST /test/bbs.cgi HTTP/1.1")).append(Http.SEPARATOR)
                 .append("Host: ").append(server.getHostString()).append(Http.SEPARATOR)
-                .append("Content-Length: ").append(Integer.toString(content.length())).append(Http.SEPARATOR)
+                .append("Content-Length: ").append(content.length()).append(Http.SEPARATOR)
                 .append(Http.SEPARATOR)
                 .append(content)
                 .toString();

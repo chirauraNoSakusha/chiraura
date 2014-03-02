@@ -84,8 +84,8 @@ public final class ATest {
             @Override
             public Void subCall() throws Exception {
                 A.main(("-root " + root.getPath() +
-                        " -port " + Integer.toString(port) +
-                        " -bbsPort " + Integer.toString(bbsPort) +
+                        " -port " + port +
+                        " -bbsPort " + bbsPort +
                         " -consoleLogLevel " + Level.WARNING.getName() +
                         " -fileLogLevel " + Level.OFF.getName()).split(" "));
                 return null;
@@ -191,8 +191,8 @@ public final class ATest {
         final long operationTimeout = 750L;
         final long maintenanceInterval = Duration.SECOND;
         for (int i = 0; i < numOfPeers; i++) {
-            final File root = new File(ROOT, "operation" + Integer.toString(numOfPeers) + "-"
-                    + String.format("%0" + Integer.toString((int) Math.ceil(Math.log10(numOfPeers))) + "d", i));
+            final File root = new File(ROOT, "operation" + numOfPeers + "-"
+                    + String.format("%0" + ((int) Math.ceil(Math.log10(numOfPeers))) + "d", i));
             final int port = FIRST_PORT + portOffset.getAndIncrement();
             final int bbsPort = FIRST_PORT + portOffset.getAndIncrement();
             (new File(root, "peers.txt")).delete();
@@ -217,11 +217,11 @@ public final class ATest {
             FileFunctions.deleteContents(storage);
 
             final Option option = new Option(("-root " + root.getPath() +
-                    " -port " + Integer.toString(port) +
-                    " -bbsPort " + Integer.toString(bbsPort) +
-                    " -maintenanceInterval " + Long.toString(maintenanceInterval) +
-                    " -operationTimeout " + Long.toString(operationTimeout) +
-                    " -peerCapacity " + Integer.toString((int) Math.ceil(MathFunctions.log2(numOfPeers)))).split(" "));
+                    " -port " + port +
+                    " -bbsPort " + bbsPort +
+                    " -maintenanceInterval " + maintenanceInterval +
+                    " -operationTimeout " + operationTimeout +
+                    " -peerCapacity " + ((int) Math.ceil(MathFunctions.log2(numOfPeers)))).split(" "));
             environments[i] = new Environment(option);
 
             covers[i] = new A(environments[i]);
@@ -245,7 +245,7 @@ public final class ATest {
         final String title = "死ね死ねマン参上";
         final String author = "影のキリコ";
         final String mail = "";
-        String message = "死ね×" + Long.toString(System.currentTimeMillis());
+        String message = "死ね×" + System.currentTimeMillis();
         Assert.assertTrue(Client.addThread(server, boardName, title, author, mail, message));
 
         // 板の再取得。
@@ -307,8 +307,8 @@ public final class ATest {
         final ExecutorService executor = Executors.newCachedThreadPool();
 
         for (int i = 0; i < numOfPeers; i++) {
-            final File root = new File(ROOT, "manual" + Integer.toString(numOfPeers) + "-" + Integer.toString(numOfClients) + "-"
-                    + String.format("%0" + Integer.toString((int) Math.ceil(Math.log10(numOfPeers))) + "d", i));
+            final File root = new File(ROOT, "manual" + numOfPeers + "-" + numOfClients + "-"
+                    + String.format("%0" + ((int) Math.ceil(Math.log10(numOfPeers))) + "d", i));
             final int port = FIRST_PORT + portOffset.getAndIncrement();
             final int bbsPort = (i == 0 ? 22_266 : FIRST_PORT + portOffset.getAndIncrement());
             (new File(root, "peers.txt")).delete();
@@ -333,12 +333,12 @@ public final class ATest {
             FileFunctions.deleteContents(storage);
 
             final Option option = new Option(("-root " + root.getPath() +
-                    " -port " + Integer.toString(port) +
-                    " -bbsPort " + Integer.toString(bbsPort) +
-                    " -operationTimeout " + Long.toString(operationTimeout) +
-                    " -maintenanceInterval " + Long.toString(maintenanceInterval) +
-                    " -backupInterval " + Long.toString(backupInterval) +
-                    " -peerCapacity " + Integer.toString((int) Math.ceil(MathFunctions.log2(numOfPeers))) +
+                    " -port " + port +
+                    " -bbsPort " + bbsPort +
+                    " -operationTimeout " + operationTimeout +
+                    " -maintenanceInterval " + maintenanceInterval +
+                    " -backupInterval " + backupInterval +
+                    " -peerCapacity " + ((int) Math.ceil(MathFunctions.log2(numOfPeers))) +
                     " -gui " + (i == 0)).split(" "));
             environments[i] = new Environment(option);
 

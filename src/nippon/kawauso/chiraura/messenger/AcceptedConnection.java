@@ -30,7 +30,7 @@ final class AcceptedConnection extends SkeletalConnection {
     @Override
     public String toString() {
         return (new StringBuilder(this.getClass().getSimpleName()))
-                .append('[').append(Integer.toString(this.getIdNumber()))
+                .append('[').append(this.getIdNumber())
                 .append(", ").append(getSocket().getInetAddress())
                 .append(']').toString();
     }

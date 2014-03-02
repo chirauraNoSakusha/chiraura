@@ -65,7 +65,7 @@ final class CheckDemandMessageDriver {
             if (entries == null) {
                 reply.add(CheckDemandReply.newGiveUp());
             } else {
-                LOG.log(Level.FINEST, "{0} に依頼された {1} への返答に {2} 個発注しました。", new Object[] { source, message, Integer.toString(entries.size()) });
+                LOG.log(Level.FINEST, "{0} に依頼された {1} への返答に {2} 個発注しました。", new Object[] { source, message, entries.size() });
                 reply.add(new CheckDemandReply(entries));
             }
         }
