@@ -18,15 +18,12 @@ import java.util.logging.Logger;
 import nippon.kawauso.chiraura.Global;
 import nippon.kawauso.chiraura.bbs.BasicBbs;
 import nippon.kawauso.chiraura.bbs.Bbs;
-import nippon.kawauso.chiraura.bbs.BoardChunkConverter;
 import nippon.kawauso.chiraura.closet.p2p.P2pCloset;
 import nippon.kawauso.chiraura.gui.Gui;
 import nippon.kawauso.chiraura.gui.TrayGui;
 import nippon.kawauso.chiraura.lib.exception.MyRuleException;
 import nippon.kawauso.chiraura.lib.logging.LoggingFunctions;
 import nippon.kawauso.chiraura.network.AddressedPeer;
-import nippon.kawauso.chiraura.storage.Storage;
-import nippon.kawauso.chiraura.storage.Storages;
 
 /**
  * @author chirauraNoSakusha
@@ -221,9 +218,6 @@ public final class A implements AutoCloseable {
 
             LOG.log(Level.CONFIG, "以下の設定が使用されます: " + System.lineSeparator() + option.toCommandlineString());
 
-            // TODO 暫定的処置なので、そのうち消すように。
-            preprocess(environment);
-
             final A instance = new A(environment);
 
             Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -279,14 +273,6 @@ public final class A implements AutoCloseable {
         if (gui) {
             System.exit(0);
         }
-    }
-
-    static void preprocess(final Environment env) throws IOException, InterruptedException, MyRuleException {
-        // 旧板データを新板データに変換する。
-        final Storage storage = Storages.newInstance(env.getStorageRoot(), env.getChunkSizeLimit(), env.getStorageDirectoryBitSize(),
-                env.getChunkCacheCapacity(), env.getIndexCacheCapacity(), env.getRangeCacheCapacity());
-        BoardChunkConverter.convert(storage);
-        storage.close();
     }
 
 }

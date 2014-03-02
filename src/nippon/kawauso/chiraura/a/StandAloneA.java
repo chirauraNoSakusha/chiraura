@@ -103,9 +103,6 @@ public final class StandAloneA implements AutoCloseable {
 
             LOG.log(Level.CONFIG, "以下の設定が使用されます: " + System.lineSeparator() + option.toCommandlineString());
 
-            // TODO 暫定的処置なので、そのうち消すように。
-            A.preprocess(environment);
-
             final StandAloneA instance = new StandAloneA(environment);
 
             Runtime.getRuntime().addShutdownHook(new Thread() {
