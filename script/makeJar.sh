@@ -5,7 +5,8 @@ set -e
 TOP=${TOP:=$(dirname ${0})/..}
 DESTINATION=${DESTINATION:=${HOME}/tmp/$(date +%F-%H-%M-%S)}
 MAIN=${MAIN:=nippon.kawauso.chiraura.a.A}
-TEST_CHECKER=${TEST_CHECKER:=nippon.kawauso.chiraura.util.TestChecker}
+MODE_PRINTER=${MODE_PRINTER:=nippon.kawauso.chiraura.util.ModePrinter}
+VERSION_PRINTER=${VERSION_PRINTER:=nippon.kawauso.chiraura.util.VersionPrinter}
 MOSAICER=${MOSAICER:=nippon.kawauso.chiraura.util.PeerMosaicer}
 UNMOSAICER=${UNMOSAICER:=nippon.kawauso.chiraura.util.PeerUnmosaicer}
 
@@ -34,11 +35,20 @@ jar cfe ${JAR} ${MAIN} -C ${CLASS} .
 echo "状態検査開始。"
 # 事後検査なのは、余計なことせずに、 余計なクラスを jar に入れずに済むから。
 
-javac -sourcepath ${SOURCE} -d ${CLASS} ${SOURCE}/$(echo ${TEST_CHECKER} | sed 's/\./\//g').java
+javac -sourcepath ${SOURCE} -d ${CLASS} ${SOURCE}/$(echo ${MODE_PRINTER} | sed 's/\./\//g').java
 
-TEST_STATE=$(java -classpath ${CLASS} ${TEST_CHECKER})
-if [ ${TEST_STATE} = "true" ]; then
-    echo "非制限状態です。"
+MODE=$(java -classpath ${CLASS} ${MODE_PRINTER})
+if [ ${MODE} != "RELEASE" ]; then
+    echo "公開できない状態 ( ${MODE} ) です。"
+    echo "ここまでで終了します。"
+    exit 0
+fi
+
+javac -sourcepath ${SOURCE} -d ${CLASS} ${SOURCE}/$(echo ${VERSION_PRINTER} | sed 's/\./\//g').java
+
+VERSION=$(java -classpath ${CLASS} ${VERSION_PRINTER})
+if [ ${VERSION} != $(date -I) ]; then
+    echo "バージョン ( ${VERSION} ) が今日の日付 ( $(date -I) ) になっていません。"
     echo "ここまでで終了します。"
     exit 0
 fi

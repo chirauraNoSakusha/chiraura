@@ -34,6 +34,7 @@ import java.util.logging.Logger;
 
 import javax.swing.JDialog;
 
+import nippon.kawauso.chiraura.Global;
 import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.concurrent.ConcurrentFunctions;
 import nippon.kawauso.chiraura.lib.container.Pair;
@@ -330,6 +331,9 @@ public final class TrayGui implements Gui {
         this.tray = null;
     }
 
+    // Linux 環境では改行されないようなので、カンマと空白を入れる。
+    private static final String separator = ", " + System.lineSeparator();
+
     private synchronized String makePeerInfo() {
         final StringBuilder buff = new StringBuilder();
 
@@ -338,21 +342,26 @@ public final class TrayGui implements Gui {
         }
 
         if (this.self != null) {
-            buff.append(this.self.getFirst()).append(", ");
+            buff.append(this.self.getFirst());
         } else {
-            buff.append("ぼっち, ");
+            buff.append("ぼっち");
         }
-        buff.append(System.lineSeparator());
 
-        buff.append("2chポート:").append(this.bbsPort).append(", ").append(System.lineSeparator());
+        buff.append(separator);
+        buff.append("2chポート:").append(this.bbsPort);
 
-        buff.append("作業場:").append(this.rootPath).append(", ").append(System.lineSeparator());
+        buff.append(separator);
+        buff.append("作業場:").append(this.rootPath);
 
+        buff.append(separator);
         if (this.interval <= 0) {
             buff.append("定期報告しない");
         } else {
             buff.append("定期報告間隔:").append(Duration.toString(this.interval));
         }
+
+        buff.append(separator);
+        buff.append("バージョン:").append(Global.VERSION);
 
         return buff.toString();
     }

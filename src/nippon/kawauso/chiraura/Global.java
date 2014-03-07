@@ -20,6 +20,12 @@ public final class Global {
     }
 
     /**
+     * バージョン。
+     * ISO 8601 形式の日付。
+     */
+    public static final String VERSION = "2014-03-02";
+
+    /**
      * 内部で使う文字コード。
      */
     public static final Charset INTERNAL_CHARSET = Charset.forName("UTF-8");
