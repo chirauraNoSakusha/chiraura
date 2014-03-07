@@ -4,6 +4,7 @@
  */
 package nippon.kawauso.chiraura.gui;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 
@@ -33,8 +34,9 @@ public interface Gui extends AutoCloseable {
      * 自分の個体情報を変更する。
      * @param self 個体情報
      * @param publicString 公開形式の個体情報
+     * @param source 通信相手
      */
-    public void setSelf(InetSocketAddress self, String publicString);
+    public void setSelf(InetSocketAddress self, String publicString, InetAddress source);
 
     /**
      * JCE が制限されていることを表示する。
@@ -49,8 +51,9 @@ public interface Gui extends AutoCloseable {
     /**
      * ポートが閉じているかもしれないことを表示する。
      * @param port 問題のポート番号
+     * @param source 通信相手
      */
-    public void displayClosePortWarning(int port);
+    public void displayClosePortWarning(int port, InetAddress source);
 
     /**
      * より新しい個体がいることを表示する。

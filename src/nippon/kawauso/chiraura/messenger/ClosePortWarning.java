@@ -3,6 +3,8 @@
  */
 package nippon.kawauso.chiraura.messenger;
 
+import java.net.InetAddress;
+
 import nippon.kawauso.chiraura.lib.connection.PortFunctions;
 
 /**
@@ -12,12 +14,16 @@ import nippon.kawauso.chiraura.lib.connection.PortFunctions;
 public final class ClosePortWarning implements MessengerReport {
 
     private final int port;
+    private final InetAddress destination;
 
-    ClosePortWarning(final int port) {
+    ClosePortWarning(final int port, final InetAddress destination) {
         if (!PortFunctions.isValid(port)) {
             throw new IllegalArgumentException("Invalid port ( " + port + " ).");
+        } else if (destination == null) {
+            throw new IllegalArgumentException("Null destination.");
         }
         this.port = port;
+        this.destination = destination;
     }
 
     /**
@@ -26,6 +32,14 @@ public final class ClosePortWarning implements MessengerReport {
      */
     public int getPort() {
         return this.port;
+    }
+
+    /**
+     * 通信先を返す。
+     * @return 通信先
+     */
+    public InetAddress getDestination() {
+        return this.destination;
     }
 
     @Override

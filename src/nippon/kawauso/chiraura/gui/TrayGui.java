@@ -22,6 +22,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.concurrent.BlockingQueue;
@@ -71,6 +72,19 @@ public final class TrayGui implements Gui {
     private boolean serverError;
     private int closePortWarning;
     private Pair<Long, Long> versionGapWarning;
+
+    /*
+     * 以下の self 何ちゃらと closePortWarning 何ちゃらはポート警告を抑制するため。
+     * self{Date,Source} には現在の self が報告された時刻、相手個体が入る。
+     * closePortWarning{Buffer,Date,Source} には最新のポート警告とその時刻、相手個体が入る。
+     * self が報告されることなく 2 回連続で同じポート警告が違う個体から来たら、ポート警告を表示する。
+     * ポート警告が来ることなく 2 回連続で同じ self が違う個体から報告されたら、ポート警告を解除する。
+     */
+    private long selfDate;
+    private InetAddress selfSource;
+    private int closePortWarningBuffer;
+    private InetAddress closePortWarningSource;
+    private long closePortWarningDate;
 
     private String warnings;
 
@@ -125,6 +139,12 @@ public final class TrayGui implements Gui {
         this.serverError = false;
         this.closePortWarning = -1;
         this.versionGapWarning = null;
+
+        this.selfDate = 0;
+        this.selfSource = null;
+        this.closePortWarningBuffer = -1;
+        this.closePortWarningDate = 0;
+        this.closePortWarningSource = null;
 
         this.warnings = "";
 
@@ -370,15 +390,15 @@ public final class TrayGui implements Gui {
         final StringBuilder buff = new StringBuilder();
 
         if (this.jceError) {
-            buff.append("JCEの制限が解除されていないようです").append(", ").append(System.lineSeparator());
+            buff.append("JCEの制限が解除されていないようです").append(separator);
         }
 
         if (this.serverError) {
-            buff.append("サーバーを起動できません").append(", ").append(System.lineSeparator());
+            buff.append("サーバーを起動できません").append(separator);
         }
 
         if (this.closePortWarning >= 0) {
-            buff.append("ポート").append(this.closePortWarning).append("が開いていないかもしれません").append(", ").append(System.lineSeparator());
+            buff.append("ポート").append(this.closePortWarning).append("が開いていないかもしれません").append(separator);
         }
 
         if (this.versionGapWarning != null) {
@@ -392,7 +412,7 @@ public final class TrayGui implements Gui {
             } else {
                 buff.append(this.versionGapWarning.getSecond()).append(" 歩");
             }
-            buff.append("だけ新しい個体がいるようです, ").append(System.lineSeparator());
+            buff.append("だけ新しい個体がいるようです").append(separator);
         }
 
         return buff.toString();
@@ -427,14 +447,31 @@ public final class TrayGui implements Gui {
     }
 
     @Override
-    public synchronized void setSelf(final InetSocketAddress peer, final String publicString) {
+    public synchronized void setSelf(final InetSocketAddress self, final String publicString, final InetAddress source) {
         if (this.tray == null) {
             return;
-        } else if (this.self == null || !peer.equals(this.self.getFirst())) {
+        }
+
+        // ポート警告が来ることなく 2 回連続で同じ self が違う個体から報告されたら、ポート警告を解除する。
+        if (!source.equals(this.selfSource)) {
+            if (this.closePortWarningDate < this.selfDate && self.equals(this.self.getFirst())) {
+                this.closePortWarning = -1;
+                this.closePortWarningBuffer = -1;
+                updateWarnings();
+            }
+            this.selfDate = System.currentTimeMillis();
+            this.selfSource = source;
+        } else if (!self.equals(this.self.getFirst())) {
+            // 同じ個体からだけど報告内容が違う。
+            this.selfDate = System.currentTimeMillis();
+            this.selfSource = source;
+        }
+
+        if (this.self == null || !self.equals(this.self.getFirst())) {
             if (this.boot < 0) {
                 this.boot = System.currentTimeMillis();
             }
-            this.self = new Pair<>(peer, publicString);
+            this.self = new Pair<>(self, publicString);
         }
     }
 
@@ -461,13 +498,29 @@ public final class TrayGui implements Gui {
     }
 
     @Override
-    public synchronized void displayClosePortWarning(final int port) {
-        if (this.tray == null || port == this.closePortWarning) {
+    public synchronized void displayClosePortWarning(final int port, final InetAddress source) {
+        if (this.tray == null) {
             return;
-        } else {
-            this.closePortWarning = port;
-            updateWarnings();
-            printWarnings();
+        }
+
+        // self が報告されることなく 2 回連続で同じポート警告が違う個体から来たら、ポート警告を表示する。
+        // まだ self が設定されていない場合も、ポート警告を表示する。
+        if (!source.equals(this.closePortWarningSource)) {
+            if (this.self == null || (this.selfDate < this.closePortWarningDate && port == this.closePortWarningBuffer)) {
+                if (port != this.closePortWarning) {
+                    this.closePortWarning = port;
+                    updateWarnings();
+                    printWarnings();
+                }
+            }
+            this.closePortWarningBuffer = port;
+            this.closePortWarningDate = System.currentTimeMillis();
+            this.closePortWarningSource = source;
+        } else if (port == this.closePortWarningBuffer) {
+            // 同じ個体だけど警告内容が違う。
+            this.closePortWarningBuffer = port;
+            this.closePortWarningDate = System.currentTimeMillis();
+            this.closePortWarningSource = source;
         }
     }
 

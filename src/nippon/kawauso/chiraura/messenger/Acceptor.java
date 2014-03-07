@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ConnectException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
@@ -278,7 +279,7 @@ final class Acceptor implements Callable<Void> {
             StartingProtocol.sendSecondReply(this.transceiver, output, communicationKey, this.id, watchword, keyPair.getPublic(), this.version, destination);
 
             // 準備が終わったので報告。
-            updateSelf(declaredSelf);
+            updateSelf(declaredSelf, this.acceptedConnection.getSocket().getInetAddress());
             ConcurrentFunctions.completePut(new ConnectReport(destinationId, destination, connectionType), this.messengerReportSink);
 
             // 無通信での接続保持期間を設定。
@@ -344,13 +345,13 @@ final class Acceptor implements Callable<Void> {
         this.acceptedConnection.close();
     }
 
-    private void updateSelf(final InetSocketAddress declaredSelf) {
+    private void updateSelf(final InetSocketAddress declaredSelf, final InetAddress destination) {
         // 外聞の更新。
         final InetSocketAddress oldSelf = this.self.get();
         final InetSocketAddress newSelf = InetAddressFunctions.selectBetter(oldSelf, declaredSelf);
         if (!newSelf.equals(oldSelf)) {
             this.self.set(newSelf);
-            ConcurrentFunctions.completePut(new SelfReport(newSelf), this.messengerReportSink);
+            ConcurrentFunctions.completePut(new SelfReport(newSelf, destination), this.messengerReportSink);
         }
     }
 

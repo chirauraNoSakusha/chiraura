@@ -8,6 +8,7 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketTimeoutException;
 import java.security.Key;
@@ -171,14 +172,15 @@ final class Contactor implements Callable<Void> {
         }
     }
 
-    private void updateSelf(final InetSocketAddress declaredSelf) {
+    private void updateSelf(final InetSocketAddress declaredSelf, final InetAddress destination) {
         // 外聞の更新。
         final InetSocketAddress oldSelf = this.self.get();
         final InetSocketAddress newSelf = InetAddressFunctions.selectBetter(oldSelf, declaredSelf);
         if (!newSelf.equals(oldSelf)) {
             this.self.set(newSelf);
-            ConcurrentFunctions.completePut(new SelfReport(newSelf), this.messengerReportSink);
         }
+        // Contactor で発生するポート警告を打ち消すために、Contactor では毎回報告する。
+        ConcurrentFunctions.completePut(new SelfReport(newSelf, destination), this.messengerReportSink);
     }
 
     private void subCall() throws IOException, MyRuleException {
@@ -241,14 +243,15 @@ final class Contactor implements Callable<Void> {
             received = StartingProtocol.receiveSecondReply(this.transceiver, input, communicationKey);
         } catch (final SocketTimeoutException e) {
             // たぶんポート検査で弾かれた。
-            ConcurrentFunctions.completePut(new ClosePortWarning(this.port), this.messengerReportSink);
+            LOG.log(Level.FINEST, "反応が無いのでポートが開いてないのかなと疑ってみます。");
+            ConcurrentFunctions.completePut(new ClosePortWarning(this.port, this.contactingConnection.getSocket().getInetAddress()), this.messengerReportSink);
             errorAction();
             return;
         }
 
         if (received instanceof PortErrorMessage) {
             // ポート検査で弾かれた。
-            ConcurrentFunctions.completePut(new ClosePortWarning(this.port), this.messengerReportSink);
+            ConcurrentFunctions.completePut(new ClosePortWarning(this.port, this.contactingConnection.getSocket().getInetAddress()), this.messengerReportSink);
             errorAction();
             return;
         }
@@ -281,7 +284,7 @@ final class Contactor implements Callable<Void> {
         }
 
         // 渡りをつけたので報告。
-        updateSelf(declaredSelf);
+        updateSelf(declaredSelf, this.contactingConnection.getDestination().getAddress());
         ConcurrentFunctions.completePut(new ConnectReport(destinationId, destination, this.contactingConnection.getType()), this.messengerReportSink);
 
         // 受信の時間制限を設定。

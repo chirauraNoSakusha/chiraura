@@ -4,6 +4,7 @@
 package nippon.kawauso.chiraura.a;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.concurrent.BlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -41,24 +42,26 @@ final class SelfWriter extends Reporter<Void> {
     @Override
     protected Void subCall() throws InterruptedException {
         Environment.Self cur = this.environment.loadSelf();
+        InetAddress source = null;
 
         while (!Thread.currentThread().isInterrupted()) {
             final SelfReport report = this.selfReportSource.take();
 
-            if (cur == null || !report.get().equals(cur.get())) {
+            if (cur == null || !report.getSelf().equals(cur.get())) {
                 if (cur == null) {
-                    LOG.log(Level.FINER, "自分の個体情報が {0} に決定しました。", report.get());
+                    LOG.log(Level.FINER, "自分の個体情報が {0} に決定しました。", report.getSelf());
                 } else {
-                    LOG.log(Level.WARNING, "自分の個体情報が {0} から {1} に変わりました。", new Object[] { cur.get(), report.get() });
+                    LOG.log(Level.WARNING, "自分の個体情報が {0} から {1} に変わりました。", new Object[] { cur.get(), report.getSelf() });
                 }
                 try {
-                    cur = this.environment.storeSelf(report.get());
+                    cur = this.environment.storeSelf(report.getSelf());
+                    source = report.getDestination();
                 } catch (final IOException e) {
                     LOG.log(Level.WARNING, "公開用個体情報の書き出しに失敗しました", e);
                 }
             }
             if (cur != null && this.gui != null) {
-                this.gui.setSelf(cur.get(), cur.getPublicForm());
+                this.gui.setSelf(cur.get(), cur.getPublicForm(), source);
             }
         }
 

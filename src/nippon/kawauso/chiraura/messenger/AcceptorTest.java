@@ -187,7 +187,7 @@ public final class AcceptorTest {
 
         // 報告の確認。
         final SelfReport selfReport = (SelfReport) this.subjectMessengerReportQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);
-        Assert.assertEquals(this.testerSocket.getRemoteSocketAddress(), selfReport.get());
+        Assert.assertEquals(this.testerSocket.getRemoteSocketAddress(), selfReport.getSelf());
         final ConnectReport connectReport = (ConnectReport) this.subjectMessengerReportQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);
         Assert.assertEquals(testerId.getPublic(), connectReport.getDestinationId());
         Assert.assertEquals(testerPort, connectReport.getDestination().getPort());

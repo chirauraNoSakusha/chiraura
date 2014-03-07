@@ -87,13 +87,13 @@ public final class ThreadMessengerTest {
         Assert.assertEquals(connectionType1_1, recvMail2_1.getConnectionType());
 
         final SelfReport selfReport1 = (SelfReport) messenger1.takeReport();
-        Assert.assertEquals(port1, selfReport1.get().getPort());
+        Assert.assertEquals(port1, selfReport1.getSelf().getPort());
         final ConnectReport connectReport1_1 = (ConnectReport) messenger1.takeReport();
         Assert.assertEquals(id2.getPublic(), connectReport1_1.getDestinationId());
         Assert.assertEquals(port2, connectReport1_1.getDestination().getPort());
 
         final SelfReport selfReport2 = (SelfReport) messenger2.takeReport();
-        Assert.assertEquals(port2, selfReport2.get().getPort());
+        Assert.assertEquals(port2, selfReport2.getSelf().getPort());
         final ConnectReport connectReport2_1 = (ConnectReport) messenger2.takeReport();
         Assert.assertEquals(id1.getPublic(), connectReport2_1.getDestinationId());
         Assert.assertEquals(port1, connectReport2_1.getDestination().getPort());
@@ -115,6 +115,8 @@ public final class ThreadMessengerTest {
         Assert.assertEquals(id2.getPublic(), connectReport1_2.getDestinationId());
         Assert.assertEquals(port2, connectReport1_2.getDestination().getPort());
 
+        final SelfReport selfReport2_2 = (SelfReport) messenger2.takeReport();
+        Assert.assertEquals(port2, selfReport2_2.getSelf().getPort());
         final ConnectReport connectReport2_2 = (ConnectReport) messenger2.takeReport();
         Assert.assertEquals(id1.getPublic(), connectReport2_2.getDestinationId());
         Assert.assertEquals(port1, connectReport2_2.getDestination().getPort());

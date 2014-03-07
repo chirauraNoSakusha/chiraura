@@ -180,7 +180,7 @@ public final class ContactorMasterTest {
 
         // 報告の確認。
         final SelfReport selfReport = (SelfReport) this.subjectMessengerReportQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);
-        Assert.assertEquals(subject, selfReport.get());
+        Assert.assertEquals(subject, selfReport.getSelf());
         final ConnectReport connectReport = (ConnectReport) this.subjectMessengerReportQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);
         Assert.assertEquals(testerId.getPublic(), connectReport.getDestinationId());
         Assert.assertEquals(testerPort, connectReport.getDestination().getPort());

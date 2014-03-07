@@ -3,6 +3,7 @@
  */
 package nippon.kawauso.chiraura.closet.p2p;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 import nippon.kawauso.chiraura.closet.ClosetReport;
@@ -13,20 +14,30 @@ import nippon.kawauso.chiraura.closet.ClosetReport;
 public final class SelfReport implements ClosetReport {
 
     private final InetSocketAddress self;
+    private final InetAddress destination;
 
     SelfReport(final nippon.kawauso.chiraura.messenger.SelfReport base) {
         if (base == null) {
             throw new IllegalArgumentException("Null base.");
         }
-        this.self = base.get();
+        this.self = base.getSelf();
+        this.destination = base.getDestination();
     }
 
     /**
      * 自分の IP アドレスを返す。
      * @return 自分の IP アドレス
      */
-    public InetSocketAddress get() {
+    public InetSocketAddress getSelf() {
         return this.self;
+    }
+
+    /**
+     * 通信先を返す。
+     * @return 通信先
+     */
+    public InetAddress getDestination() {
+        return this.destination;
     }
 
     @Override
