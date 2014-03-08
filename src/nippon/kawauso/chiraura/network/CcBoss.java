@@ -79,7 +79,8 @@ final class CcBoss extends Chief {
         }
 
         if (done) {
-            LOG.log(Level.WARNING, report.getSource().getName() + " を再起動しました。", report.getCause());
+            LOG.log(Level.WARNING, "異常が発生しました", report.getCause());
+            LOG.log(Level.INFO, "{0} を再起動しました。", report.getSource().getName());
         } else {
             LOG.log(Level.WARNING, "知らない報告 {0} が来ました。", report);
         }

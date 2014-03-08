@@ -195,7 +195,8 @@ final class Boss extends Chief {
             this.executor.submit(server);
             this.serverSocket = server.getServerSocket();
         } catch (final IOException e) {
-            LOG.log(Level.SEVERE, "サーバを作成できませんでした", e);
+            LOG.log(Level.WARNING, "異常が発生しました", e);
+            LOG.log(Level.SEVERE, "サーバを作成できませんでした。");
             ConcurrentFunctions.completePut(new ServerError(this.port, e), this.messengerReportSink);
         }
         this.executor.submit(newAcceptorMaster());
@@ -214,7 +215,8 @@ final class Boss extends Chief {
                 this.serverSocket = null;
             }
             if (report.getCause() instanceof BindException) {
-                LOG.log(Level.SEVERE, "接続の待機を始められませんでした", report.getCause());
+                LOG.log(Level.WARNING, "異常が発生しました", report.getCause());
+                LOG.log(Level.SEVERE, "接続の待機を始められませんでした。");
                 ConcurrentFunctions.completePut(new ServerError(this.port, report.getCause()), this.messengerReportSink);
                 return;
             } else {
@@ -223,7 +225,8 @@ final class Boss extends Chief {
                     this.executor.submit(server);
                     this.serverSocket = server.getServerSocket();
                 } catch (final IOException e) {
-                    LOG.log(Level.SEVERE, "サーバを再作成できませんでした", e);
+                    LOG.log(Level.WARNING, "異常が発生しました", report.getCause());
+                    LOG.log(Level.SEVERE, "サーバを再作成できませんでした。");
                     ConcurrentFunctions.completePut(new ServerError(this.port, e), this.messengerReportSink);
                     return;
                 }
@@ -237,7 +240,8 @@ final class Boss extends Chief {
         }
 
         if (done) {
-            LOG.log(Level.WARNING, report.getSource().getName() + " を再起動しました", report.getCause());
+            LOG.log(Level.WARNING, "異常が発生しました", report.getCause());
+            LOG.log(Level.WARNING, report.getSource().getName() + " を再起動しました。");
         } else {
             LOG.log(Level.WARNING, "知らない奴から報告 {0} が来ました。", report);
         }

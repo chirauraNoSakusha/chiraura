@@ -53,21 +53,19 @@ final class BackupMessageDriver {
                 LOG.log(Level.FINEST, "{0} に依頼された {1} を拒否します。", new Object[] { source, message });
                 reply.add(BackupReply.newRejected());
             } else {
-                StorageWrapper.Result<?> result = null;
                 try {
-                    // System.out.println("Aho " + message.getChunk());
-                    result = this.storage.forceUpdate(message.getChunk());
+                    final StorageWrapper.Result<?> result = this.storage.forceUpdate(message.getChunk());
+                    if (result.getChunk().equals(message.getChunk())) {
+                        LOG.log(Level.FINEST, "{0} に依頼された {1} が成功しました。", new Object[] { source, message });
+                        reply.add(new BackupReply());
+                    } else {
+                        LOG.log(Level.FINEST, "{0} に依頼された {1} は不完全です。", new Object[] { source, message });
+                        reply.add(BackupReply.newFailure(this.chunkRegistry, result.getChunk()));
+                    }
                 } catch (final IOException e) {
-                    LOG.log(Level.WARNING, message.getChunk().getId() + " の書き込み中に異常が発生しました。", e);
-                }
-                if (result == null) {
+                    LOG.log(Level.WARNING, "異常が発生しました", e);
+                    LOG.log(Level.INFO, "{0} に依頼された {1} を諦めます。", new Object[] { source, message });
                     reply.add(BackupReply.newGiveUp());
-                } else if (result.getChunk().equals(message.getChunk())) {
-                    LOG.log(Level.FINEST, "{0} に依頼された {1} が成功しました。", new Object[] { source, message });
-                    reply.add(new BackupReply());
-                } else {
-                    LOG.log(Level.FINEST, "{0} に依頼された {1} は不完全です。", new Object[] { source, message });
-                    reply.add(BackupReply.newFailure(this.chunkRegistry, result.getChunk()));
                 }
             }
         } else {
@@ -76,20 +74,22 @@ final class BackupMessageDriver {
                 LOG.log(Level.FINEST, "{0} に依頼された {1} を拒否します。", new Object[] { source, message });
                 reply.add(BackupReply.newRejected());
             } else {
-                StorageWrapper.Result<T> result = null;
                 try {
-                    result = this.storage.patch(message.getId(), message.getDiffs());
+                    final StorageWrapper.Result<T> result = this.storage.patch(message.getId(), message.getDiffs());
+                    if (result.isNotFound()) {
+                        LOG.log(Level.INFO, "{0} に依頼された {1} の対象はありませんでした。", new Object[] { source, message });
+                        reply.add(BackupReply.newGiveUp());
+                    } else if (result.getChunk().getHashValue().equals(message.getHashValue())) {
+                        LOG.log(Level.FINEST, "{0} に依頼された {1} が成功しました。", new Object[] { source, message });
+                        reply.add(new BackupReply());
+                    } else {
+                        LOG.log(Level.FINEST, "{0} に依頼された {1} は不完全です。", new Object[] { source, message });
+                        reply.add(BackupReply.newFailure(this.chunkRegistry, result.getChunk()));
+                    }
                 } catch (final IOException e) {
-                    LOG.log(Level.WARNING, message.getId() + " の書き込み中に異常が発生しました。", e);
-                }
-                if (result == null || result.isNotFound()) {
+                    LOG.log(Level.WARNING, "異常が発生しました", e);
+                    LOG.log(Level.INFO, "{0} に依頼された {1} を諦めます。", new Object[] { source, message });
                     reply.add(BackupReply.newGiveUp());
-                } else if (result.getChunk().getHashValue().equals(message.getHashValue())) {
-                    LOG.log(Level.FINEST, "{0} に依頼された {1} が成功しました。", new Object[] { source, message });
-                    reply.add(new BackupReply());
-                } else {
-                    LOG.log(Level.FINEST, "{0} に依頼された {1} は不完全です。", new Object[] { source, message });
-                    reply.add(BackupReply.newFailure(this.chunkRegistry, result.getChunk()));
                 }
             }
         }

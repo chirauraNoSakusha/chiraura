@@ -60,10 +60,11 @@ final class IdIo {
             return fromStream(stream);
         } catch (final MyRuleException | IOException e) {
             final File backup = new File(input.getParent(), input.getName() + "." + LoggingFunctions.getShortDate(System.currentTimeMillis()) + ".error");
+            LOG.log(Level.WARNING, "異常が発生しました", e);
             if (!input.renameTo(backup)) {
-                LOG.log(Level.WARNING, "壊れた " + input.getPath() + " を " + backup.getPath() + " として保存しました", e);
+                LOG.log(Level.INFO, "壊れた {0} を {1} として保存しました。", new Object[] { input.getPath(), backup.getPath() });
             } else {
-                LOG.log(Level.WARNING, "壊れた " + input.getPath() + " を " + backup.getPath() + " として保存できませんでした", e);
+                LOG.log(Level.INFO, "壊れた {0} を {1} として保存するこもできませんでした。", new Object[] { input.getPath(), backup.getPath() });
             }
             return null;
         }

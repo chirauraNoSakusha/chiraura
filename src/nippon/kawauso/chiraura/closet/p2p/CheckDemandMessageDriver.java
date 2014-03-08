@@ -54,19 +54,15 @@ final class CheckDemandMessageDriver {
             reply.add(CheckDemandReply.newRejected());
         } else {
             // データ片の列挙。
-            List<DemandEntry> entries = null;
             try {
-                entries = DemandEntry.getDemandedEntries(this.storage, message.getStartAddress(), message.getEndAddress(), this.entryLimit,
-                        message.getCandidates(), this.idRegistry);
-            } catch (final IOException e) {
-                LOG.log(Level.WARNING, source + " に依頼された " + message + " への応答中に異常が発生しました。", e);
-            }
-
-            if (entries == null) {
-                reply.add(CheckDemandReply.newGiveUp());
-            } else {
+                final List<DemandEntry> entries = DemandEntry.getDemandedEntries(this.storage, message.getStartAddress(), message.getEndAddress(),
+                        this.entryLimit, message.getCandidates(), this.idRegistry);
                 LOG.log(Level.FINEST, "{0} に依頼された {1} への返答に {2} 個発注しました。", new Object[] { source, message, entries.size() });
                 reply.add(new CheckDemandReply(entries));
+            } catch (final IOException e) {
+                LOG.log(Level.WARNING, "異常が発生しました。", e);
+                LOG.log(Level.INFO, "{0} に依頼された {1} を諦めます。", new Object[] { source, message });
+                reply.add(CheckDemandReply.newGiveUp());
             }
         }
         reply.add(new SessionReply(session));

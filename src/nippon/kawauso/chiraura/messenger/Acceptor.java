@@ -146,7 +146,8 @@ final class Acceptor implements Callable<Void> {
         } catch (final Exception e) {
             if (!Thread.currentThread().isInterrupted() && !this.acceptedConnection.isClosed()) {
                 // 別プロセスが接続を閉じて終了を報せてくれたわけでもない。
-                LOG.log(Level.FINEST, "{0}: 異常発生: {1}", new Object[] { this.acceptedConnection, e.toString() });
+                // 通信異常はさして珍しいものではない。
+                LOG.log(Level.FINER, (new StringBuilder()).append(this.acceptedConnection).append(": 異常が発生しました").toString(), e);
                 this.acceptedConnection.close();
                 ConcurrentFunctions.completePut(new AcceptanceError(this.acceptedConnection.getDestination(), e), this.messengerReportSink);
             }
@@ -314,7 +315,8 @@ final class Acceptor implements Callable<Void> {
                 } else if (e instanceof ConnectException) {
                     LOG.log(Level.FINEST, "{0}: {1} への接続が拒否されました。", new Object[] { this.acceptedConnection, destination });
                 } else {
-                    LOG.log(Level.FINEST, this.acceptedConnection + ": " + destination + " への接続が失敗しました", e);
+                    LOG.log(Level.FINER, "異常が発生しました", e);
+                    LOG.log(Level.FINEST, "{0}: {1} への接続が失敗しました", new Object[] { this.acceptedConnection, destination });
                 }
                 return false;
             }

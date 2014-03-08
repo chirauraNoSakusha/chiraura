@@ -583,7 +583,8 @@ public final class P2pCloset implements Closet {
             try {
                 result = getOrUpdateCache(id0, timeout);
             } catch (final IOException e) {
-                LOG.log(Level.WARNING, "異常発生。でも、無視します。", e);
+                LOG.log(Level.WARNING, "異常が発生しました", e);
+                LOG.log(Level.INFO, "異常を無視します。");
                 return null;
             }
             if (result.isGivenUp() || result.isNotFound()) {
@@ -591,7 +592,8 @@ public final class P2pCloset implements Closet {
                     // 古いキャッシュで我慢。
                     return getLocal(id);
                 } catch (final IOException e) {
-                    LOG.log(Level.WARNING, "異常発生。でも、無視します。", e);
+                    LOG.log(Level.WARNING, "異常が発生しました", e);
+                    LOG.log(Level.INFO, "異常を無視します。");
                     return null;
                 }
             } else {
@@ -604,7 +606,8 @@ public final class P2pCloset implements Closet {
             try {
                 result = getCache(id, timeout);
             } catch (final IOException e) {
-                LOG.log(Level.WARNING, "異常発生。でも、無視します。", e);
+                LOG.log(Level.WARNING, "異常が発生しました", e);
+                LOG.log(Level.INFO, "異常を無視します。");
                 return null;
             }
             if (result.isGivenUp()) {
@@ -624,7 +627,8 @@ public final class P2pCloset implements Closet {
         try {
             return getLocal(id);
         } catch (final IOException e) {
-            LOG.log(Level.WARNING, "異常発生。でも、無視します。", e);
+            LOG.log(Level.WARNING, "異常が発生しました", e);
+            LOG.log(Level.INFO, "異常を無視します。");
             return null;
         }
     }
@@ -635,7 +639,8 @@ public final class P2pCloset implements Closet {
         try {
             result = addCache(chunk, timeout);
         } catch (final IOException e) {
-            LOG.log(Level.WARNING, "異常発生。でも、無視します。", e);
+            LOG.log(Level.WARNING, "異常が発生しました", e);
+            LOG.log(Level.INFO, "異常を無視します。");
             return false;
         }
         if (result.isGivenUp()) {
@@ -708,7 +713,8 @@ public final class P2pCloset implements Closet {
         try {
             result = patchAndGetOrUpdateCache(id, diff, timeout);
         } catch (final IOException e) {
-            LOG.log(Level.WARNING, "異常発生。でも、無視します。", e);
+            LOG.log(Level.WARNING, "異常が発生しました", e);
+            LOG.log(Level.INFO, "異常を無視します。");
             return PatchResult.newGiveUp();
         }
         if (result.isGivenUp()) {
@@ -761,7 +767,8 @@ public final class P2pCloset implements Closet {
         try {
             result = patchOrAddAndGetCache(chunk, timeout);
         } catch (final IOException e) {
-            LOG.log(Level.WARNING, "異常発生。でも、無視します。", e);
+            LOG.log(Level.WARNING, "異常が発生しました", e);
+            LOG.log(Level.INFO, "異常を無視します。");
             return PatchOrAddResult.newGiveUp();
         }
         if (result.isGivenUp()) {

@@ -145,7 +145,8 @@ final class Contactor implements Callable<Void> {
         } catch (final Exception e) {
             if (!Thread.currentThread().isInterrupted() && !this.contactingConnection.isClosed()) {
                 // 別プロセスが接続を閉じて終了を報せてくれたわけでもない。
-                LOG.log(Level.FINEST, "{0}: 異常発生: {1}", new Object[] { this.contactingConnection, e.toString() });
+                // 通信異常はさして珍しいものではない。
+                LOG.log(Level.FINER, (new StringBuilder()).append(this.contactingConnection).append(": 異常が発生しました").toString(), e);
                 ConcurrentFunctions.completePut(new ContactError(this.contactingConnection.getDestination(), e), this.messengerReportSink);
                 errorAction();
             }

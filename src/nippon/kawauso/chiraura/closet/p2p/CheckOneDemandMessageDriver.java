@@ -59,7 +59,8 @@ final class CheckOneDemandMessageDriver {
                     reply.add(new CheckOneDemandReply(demand));
                 }
             } catch (final IOException e) {
-                LOG.log(Level.WARNING, source + " に依頼された " + message + " への応答中に異常が発生しました。", e);
+                LOG.log(Level.WARNING, "異常が発生しました。", e);
+                LOG.log(Level.INFO, "{0} に依頼された {1} を諦めます。", new Object[] { source, message });
                 reply.add(CheckOneDemandReply.newGiveUp());
             }
         }

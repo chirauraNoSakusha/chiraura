@@ -73,10 +73,11 @@ public final class StandAloneCloset implements Closet {
         try {
             return this.storage.read(id);
         } catch (final MyRuleException e) {
-            LOG.log(Level.WARNING, id + "が壊れています", e);
+            LOG.log(Level.WARNING, "異常が発生しました", e);
+            LOG.log(Level.INFO, "{0} は壊れています。", id);
             return null;
         } catch (final IOException e) {
-            LOG.log(Level.WARNING, "異常発生", e);
+            LOG.log(Level.WARNING, "異常が発生しました", e);
             return null;
         }
     }
@@ -86,10 +87,11 @@ public final class StandAloneCloset implements Closet {
         try {
             return this.storage.read(id);
         } catch (final MyRuleException e) {
-            LOG.log(Level.WARNING, id + "が壊れています", e);
+            LOG.log(Level.WARNING, "異常が発生しました", e);
+            LOG.log(Level.INFO, "{0} は壊れています。", id);
             return null;
         } catch (final IOException e) {
-            LOG.log(Level.WARNING, "異常発生", e);
+            LOG.log(Level.WARNING, "異常が発生しました", e);
             return null;
         }
     }
@@ -104,13 +106,13 @@ public final class StandAloneCloset implements Closet {
                 try {
                     this.storage.write(chunk);
                 } catch (final IOException e) {
-                    LOG.log(Level.WARNING, "異常発生", e);
+                    LOG.log(Level.WARNING, "異常が発生しました", e);
                     return false;
                 }
                 return true;
             }
         } catch (final IOException e) { // contains で
-            LOG.log(Level.WARNING, "異常発生", e);
+            LOG.log(Level.WARNING, "異常が発生しました", e);
             return false;
         } finally {
             this.storage.unlock(chunk.getId());
@@ -193,10 +195,11 @@ public final class StandAloneCloset implements Closet {
                 }
             }
         } catch (final MyRuleException e) {
-            LOG.log(Level.WARNING, id + " が壊れています", e);
+            LOG.log(Level.WARNING, "異常が発生しました", e);
+            LOG.log(Level.INFO, "{0} は壊れています。", id);
             return PatchResult.newGiveUp();
         } catch (final IOException e) {
-            LOG.log(Level.WARNING, "異常発生", e);
+            LOG.log(Level.WARNING, "異常が発生しました", e);
             return PatchResult.newGiveUp();
         } finally {
             this.storage.unlock(id);
@@ -262,6 +265,8 @@ public final class StandAloneCloset implements Closet {
                 }
             }
         } catch (final MyRuleException e) {
+            LOG.log(Level.WARNING, "異常が発生しました", e);
+            LOG.log(Level.INFO, "{0} を上書きします。", chunk.getId());
             try {
                 if (this.storage.write(chunk)) {
                     return new PatchOrAddResult<>(chunk);
@@ -269,11 +274,11 @@ public final class StandAloneCloset implements Closet {
                     return PatchOrAddResult.newGiveUp();
                 }
             } catch (final IOException e2) {
-                LOG.log(Level.WARNING, "異常発生", e2);
+                LOG.log(Level.WARNING, "異常が発生しました", e2);
                 return PatchOrAddResult.newGiveUp();
             }
         } catch (final IOException e) {
-            LOG.log(Level.WARNING, "異常発生", e);
+            LOG.log(Level.WARNING, "異常が発生しました", e);
             return PatchOrAddResult.newGiveUp();
         } finally {
             this.storage.unlock(chunk.getId());

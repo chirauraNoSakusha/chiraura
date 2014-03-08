@@ -176,7 +176,8 @@ final class WriteCachingStorage implements Storage {
             try {
                 old = this.base.read(chunk.getId());
             } catch (final MyRuleException e) {
-                LOG.log(Level.WARNING, "保存されていた " + chunk.getId() + " が壊れていました", e);
+                LOG.log(Level.WARNING, "異常が発生しました", e);
+                LOG.log(Level.INFO, "保存されていた {0} は壊れていました。", chunk.getId());
                 /*
                  * 次からは chunk が使われるので放置で良い。
                  */

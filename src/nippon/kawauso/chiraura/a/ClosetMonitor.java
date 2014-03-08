@@ -49,7 +49,8 @@ final class ClosetMonitor extends Reporter<Void> {
             final ClosetReport report = this.closet.takeError();
             boolean done = true;
             if (report instanceof ServerError) {
-                LOG.log(Level.SEVERE, "サーバが起動できません", ((ServerError) report).getError());
+                LOG.log(Level.WARNING, "異常が発生しました", ((ServerError) report).getError());
+                LOG.log(Level.SEVERE, "サーバが起動できません。");
                 if (this.gui != null) {
                     this.gui.displayServerError();
                 }

@@ -59,7 +59,8 @@ final class RecoveryMessageDriver {
             try {
                 chunk = this.storage.read(message.getId());
             } catch (final IOException e) {
-                LOG.log(Level.WARNING, message.getId() + " の読み込み中に異常が発生しました。", e);
+                LOG.log(Level.WARNING, "異常が発生しました", e);
+                LOG.log(Level.INFO, "{0} を読み込めませんでした。", message.getId());
             }
 
             if (chunk != null) {

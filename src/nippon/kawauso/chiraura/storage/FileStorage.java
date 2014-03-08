@@ -313,7 +313,8 @@ final class FileStorage implements Storage {
                 }
                 indices.put(index.get(0).getId(), index.get(0));
             } catch (final MyRuleException | FileNotFoundException e) {
-                LOG.log(Level.WARNING, file.getPath() + " はおかしいので無視します。", e);
+                LOG.log(Level.WARNING, "異常が発生しました", e);
+                LOG.log(Level.INFO, "{0} を無視します。", file.getPath());
             }
         }
         return indices;
@@ -424,7 +425,8 @@ final class FileStorage implements Storage {
         try {
             old = getIndex(chunk.getId());
         } catch (final MyRuleException e) {
-            LOG.log(Level.WARNING, "保存されていた " + chunk.getId() + " が壊れていました", e);
+            LOG.log(Level.WARNING, "異常が発生しました", e);
+            LOG.log(Level.INFO, "保存されていた {0} は壊れていました。", chunk.getId());
         }
         if (index.equals(old)) {
             // TODO 本当に同じとみなして良いか？一応ハッシュ値も比べてる。

@@ -102,8 +102,9 @@ final class StorageWrapper {
         try {
             return this.base.getIndex(id);
         } catch (final MyRuleException e) {
+            LOG.log(Level.WARNING, "異常が発生しました", e);
             this.base.delete(id);
-            LOG.log(Level.WARNING, id + " が壊れていたので削除しました。", e);
+            LOG.log(Level.INFO, "壊れていた {0} を削除しました。", id);
             ConcurrentFunctions.completePut(new SimpleRecoveryOperation(id), this.operationSink);
             // TODO 管理者なら取り寄せ。
             return null;
@@ -147,8 +148,9 @@ final class StorageWrapper {
         try {
             return this.base.read(id);
         } catch (final MyRuleException e) {
+            LOG.log(Level.WARNING, "異常が発生しました", e);
             this.base.delete(id);
-            LOG.log(Level.WARNING, id + " が壊れていたので削除しました。", e);
+            LOG.log(Level.INFO, "壊れていた {0} を削除しました。", id);
             ConcurrentFunctions.completePut(new SimpleRecoveryOperation(id), this.operationSink);
             return null;
         } finally {
@@ -454,8 +456,9 @@ final class StorageWrapper {
             try {
                 before = this.base.read(id);
             } catch (final MyRuleException e) {
+                LOG.log(Level.WARNING, "異常が発生しました", e);
                 this.base.delete(id);
-                LOG.log(Level.WARNING, id + " が壊れていたので削除しました。", e);
+                LOG.log(Level.INFO, "壊れていた {0} を削除しました。", id);
                 ConcurrentFunctions.completePut(new SimpleRecoveryOperation(id), this.operationSink);
                 return Result.newNotFound();
             }
@@ -498,8 +501,9 @@ final class StorageWrapper {
             try {
                 before = this.base.read(id);
             } catch (final MyRuleException e) {
+                LOG.log(Level.WARNING, "異常が発生しました", e);
                 this.base.delete(id);
-                LOG.log(Level.WARNING, id + " が壊れていたので削除しました。", e);
+                LOG.log(Level.INFO, "壊れていた {0} を削除しました。", id);
                 ConcurrentFunctions.completePut(new SimpleRecoveryOperation(id), this.operationSink);
                 return Result.newNotFound();
             }
@@ -621,8 +625,9 @@ final class StorageWrapper {
             try {
                 chunk = this.base.read(id);
             } catch (final MyRuleException e) {
+                LOG.log(Level.WARNING, "異常が発生しました", e);
                 this.base.delete(id);
-                LOG.log(Level.WARNING, id + " が壊れていたので削除しました。", e);
+                LOG.log(Level.INFO, "壊れていた {0} を削除しました。", id);
                 ConcurrentFunctions.completePut(new SimpleRecoveryOperation(id), this.operationSink);
                 return CacheResult.newNoInfo();
             }
@@ -659,8 +664,9 @@ final class StorageWrapper {
                 try {
                     cur = this.base.read(id);
                 } catch (final MyRuleException e) {
+                    LOG.log(Level.WARNING, "異常が発生しました", e);
                     this.base.delete(chunk.getId());
-                    LOG.log(Level.WARNING, chunk.getId() + " が壊れていたので削除しました。", e);
+                    LOG.log(Level.INFO, "壊れていた {0} を削除しました。", chunk.getId());
                     ConcurrentFunctions.completePut(new SimpleRecoveryOperation(id), this.operationSink);
                 }
                 if (cur != null) {
@@ -702,8 +708,9 @@ final class StorageWrapper {
                     try {
                         cur = this.base.read(id);
                     } catch (final MyRuleException e) {
+                        LOG.log(Level.WARNING, "異常が発生しました", e);
                         this.base.delete(id);
-                        LOG.log(Level.WARNING, id + " が壊れていたので削除しました。", e);
+                        LOG.log(Level.INFO, "壊れていた {0} を削除しました。", id);
                         ConcurrentFunctions.completePut(new SimpleRecoveryOperation(id), this.operationSink);
                     }
                     if (cur != null) {
@@ -756,8 +763,9 @@ final class StorageWrapper {
             try {
                 before = this.base.read(id);
             } catch (final MyRuleException e) {
+                LOG.log(Level.WARNING, "異常が発生しました", e);
                 this.base.delete(id);
-                LOG.log(Level.WARNING, id + " が壊れていたので削除しました。", e);
+                LOG.log(Level.INFO, "壊れていた {0} を削除しました。", id);
                 ConcurrentFunctions.completePut(new SimpleRecoveryOperation(id), this.operationSink);
                 return CacheResult.newNoInfo();
             }

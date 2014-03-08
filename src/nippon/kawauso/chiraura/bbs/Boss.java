@@ -86,7 +86,8 @@ final class Boss extends Chief {
             this.executor.submit(server);
             this.serverSocket = server.getServerSocket();
         } catch (final IOException e) {
-            LOG.log(Level.SEVERE, "サーバを作成できませんでした", e);
+            LOG.log(Level.WARNING, "異常が発生しました", e);
+            LOG.log(Level.SEVERE, "サーバを作成できませんでした。");
         }
     }
 
@@ -102,14 +103,16 @@ final class Boss extends Chief {
                 this.serverSocket = null;
             }
             if (report.getCause() instanceof BindException) {
-                LOG.log(Level.SEVERE, "接続の待機を始められませんでした", report.getCause());
+                LOG.log(Level.WARNING, "異常が発生しました", report.getCause());
+                LOG.log(Level.SEVERE, "接続の待機を始められませんでした。");
             } else {
                 try {
                     final Server server = newServer();
                     this.executor.submit(server);
                     this.serverSocket = server.getServerSocket();
                 } catch (final IOException e) {
-                    LOG.log(Level.SEVERE, "サーバを再作成できませんでした", e);
+                    LOG.log(Level.WARNING, "異常が発生しました", report.getCause());
+                    LOG.log(Level.SEVERE, "サーバを再作成できませんでした。");
                 }
             }
         } else {
@@ -117,7 +120,8 @@ final class Boss extends Chief {
         }
 
         if (done) {
-            LOG.log(Level.WARNING, report.getSource().getName() + " を再起動しました", report.getCause());
+            LOG.log(Level.WARNING, "異常が発生しました", report.getCause());
+            LOG.log(Level.INFO, "{0} を再起動しました。", report.getSource().getName());
         } else {
             LOG.log(Level.WARNING, "知らない奴から報告 ( {0} ) が来ました。", report);
         }

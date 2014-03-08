@@ -64,7 +64,7 @@ final class Communicator implements Callable<Void> {
         } catch (final Exception e) {
             if (!Thread.currentThread().isInterrupted() && !this.connection.isClosed()) {
                 // 別プロセスが接続を閉じて終了を報せてくれたわけでもない。
-                LOG.log(Level.WARNING, "異常発生", e);
+                LOG.log(Level.WARNING, "異常が発生しました", e);
             }
         } finally {
             // 登録の削除。
@@ -103,7 +103,7 @@ final class Communicator implements Callable<Void> {
                 // レスポンスの準備。
                 response = this.responseMaker.make(request, this.timeout);
             } catch (final Exception e) {
-                LOG.log(Level.WARNING, "異常発生", e);
+                LOG.log(Level.WARNING, "異常が発生しました", e);
                 response = new InternalServerErrorResponse("ごめんなさい。");
             }
 

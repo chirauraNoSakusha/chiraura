@@ -61,7 +61,8 @@ final class SelfWriter extends Reporter<Void> {
                     cur = this.environment.storeSelf(report.getSelf());
                     source = report.getDestination();
                 } catch (final IOException e) {
-                    LOG.log(Level.WARNING, "公開用個体情報の書き出しに失敗しました", e);
+                    LOG.log(Level.WARNING, "異常が発生しました", e);
+                    LOG.log(Level.INFO, "公開用個体情報の書き出しに失敗しました。");
                 }
             }
             if (cur != null && this.gui != null) {

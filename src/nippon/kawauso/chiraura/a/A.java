@@ -246,10 +246,12 @@ public final class A implements AutoCloseable {
             try {
                 instance.close();
             } catch (MyRuleException | InterruptedException | IOException e) {
-                LOG.log(Level.SEVERE, "データの保管に失敗したかもしれません。", e);
+                LOG.log(Level.WARNING, "異常が発生しました", e);
+                LOG.log(Level.SEVERE, "データの保管に失敗したかもしれません。");
             }
         } catch (final Throwable e) {
-            LOG.log(Level.SEVERE, "予期せぬ異常が発生しました", e);
+            LOG.log(Level.WARNING, "異常が発生しました", e);
+            LOG.log(Level.SEVERE, "対処不能です。");
         } finally {
             try {
                 if (executor != null && !executor.isTerminated()) {

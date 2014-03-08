@@ -30,15 +30,15 @@ final class CommunicationErrorDriver {
     void execute(final CommunicationError error) {
         if (error.getError() instanceof MyRuleException) {
             if (this.network.removeInvalidPeer(error.getDestination())) {
-                LOG.log(Level.FINER, "不正な個体 " + error.getDestination() + " を除外しました", error.getError());
+                LOG.log(Level.FINER, "不正な個体 {0} を除外しました。", error.getDestination());
             } else {
-                LOG.log(Level.FINEST, "不正な個体 " + error.getDestination() + " を検知しました", error.getError());
+                LOG.log(Level.FINEST, "不正な個体 {0} を検知しました。", error.getDestination());
             }
         } else {
             if (this.network.removePeer(error.getDestination())) {
-                LOG.log(Level.FINER, error.getDestination() + " を通信網から外しました", error.getError());
+                LOG.log(Level.FINER, "{0} を通信網から外しました。", error.getDestination());
             } else {
-                LOG.log(Level.FINEST, error.getDestination() + " の異常を検知しました", error.getError());
+                LOG.log(Level.FINEST, "{0} の異常を検知しました。", error.getDestination());
             }
         }
     }

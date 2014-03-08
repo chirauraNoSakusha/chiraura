@@ -296,7 +296,8 @@ public final class TrayGui implements Gui {
         try {
             this.tray.add(this.icon);
         } catch (final AWTException e) {
-            LOG.log(Level.WARNING, "システムトレイの使用に失敗しました", e);
+            LOG.log(Level.WARNING, "異常が発生しました", e);
+            LOG.log(Level.INFO, "システムトレイの使用に失敗しました。");
             close();
             return;
         }

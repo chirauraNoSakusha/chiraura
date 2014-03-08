@@ -101,7 +101,8 @@ final class Sender implements Callable<Void> {
         } catch (final Exception e) {
             if (!Thread.currentThread().isInterrupted() && !this.connection.isClosed()) {
                 // 別プロセスが接続を閉じて終了を報せてくれたわけでもない。
-                LOG.log(Level.FINEST, "{0}: 異常発生: {1}", new Object[] { this.connection, e.toString() });
+                // 通信異常はさして珍しいものではない。
+                LOG.log(Level.FINER, (new StringBuilder()).append(this.connection).append(": 異常が発生しました").toString(), e);
                 ConcurrentFunctions.completePut(new CommunicationError(this.connection.getDestination(), e), this.messengerReportSink);
             }
         } finally {

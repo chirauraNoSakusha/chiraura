@@ -54,19 +54,15 @@ final class CheckStockMessageDriver {
             reply.add(CheckStockReply.newRejected());
         } else {
             // データ片の列挙。
-            List<StockEntry> entries = null;
             try {
-                entries = StockEntry.getStockedEntries(this.storage, message.getStartAddress(), message.getEndAddress(), this.entryLimit,
-                        message.getExclusives(), this.idRegistry);
-            } catch (final IOException e) {
-                LOG.log(Level.WARNING, source + " に依頼された " + message + " への応答中に異常が発生しました。", e);
-            }
-
-            if (entries == null) {
-                reply.add(CheckStockReply.newGiveUp());
-            } else {
+                final List<StockEntry> entries = StockEntry.getStockedEntries(this.storage, message.getStartAddress(), message.getEndAddress(),
+                        this.entryLimit, message.getExclusives(), this.idRegistry);
                 LOG.log(Level.FINEST, "{0} に依頼された {1} への返答に {3} 個の在庫を報告しました。", new Object[] { source, message, entries.size() });
                 reply.add(new CheckStockReply(entries));
+            } catch (final IOException e) {
+                LOG.log(Level.WARNING, source + "異常が発生しました", e);
+                LOG.log(Level.INFO, "{0} に依頼された {1} を諦めます。", new Object[] { source, message });
+                reply.add(CheckStockReply.newGiveUp());
             }
         }
         reply.add(new SessionReply(session));
