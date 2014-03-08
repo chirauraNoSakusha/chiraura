@@ -52,7 +52,7 @@ final class GetThreadResponseMaker {
             final Integer rangeHead = request.getRangeHead();
             if (rangeHead != null) {
                 if (content.length <= rangeHead) {
-                    return new RangeNotSatisfiableResponse(getTarget(request));
+                    return new RangeNotSatisfiableResponse(getTarget(request), content.length);
                 }
                 return new PartialContentResponse(thread, content, rangeHead);
             } else {
