@@ -77,4 +77,32 @@ public final class BoardChunkConverter {
         }
     }
 
+    /**
+     * SimpleBoardChunk を削除する。
+     * 非並列動作を想定。
+     * @param storage 保管所
+     * @throws InterruptedException 割り込まれた場合
+     * @throws IOException 読み書き異常
+     */
+    public static void remove(final Storage storage) throws IOException, InterruptedException {
+        storage.registerChunk(0L, SimpleBoardChunk.class, SimpleBoardChunk.getParser(), SimpleBoardChunk.Id.class, SimpleBoardChunk.Id.getParser());
+        storage.registerChunk(1L, ThreadChunk.class, ThreadChunk.getParser(), ThreadChunk.Id.class, ThreadChunk.Id.getParser());
+        storage.registerChunk(2L, OrderingBoardChunk.class, OrderingBoardChunk.getParser(), OrderingBoardChunk.Id.class, OrderingBoardChunk.Id.getParser());
+        for (final Chunk.Id<?> id : storage.getIndices(Address.ZERO, Address.MAX).keySet()) {
+            if (!(id instanceof SimpleBoardChunk.Id)) {
+                continue;
+            }
+            final SimpleBoardChunk.Id oldId = (SimpleBoardChunk.Id) id;
+
+            try {
+                if (storage.delete(oldId)) {
+                    LOG.log(Level.WARNING, oldId + " の削除に失敗しましたが、無視します。");
+                }
+            } catch (final IOException e) {
+                LOG.log(Level.WARNING, oldId + " の読み込みに失敗しましたが、無視します。");
+                continue;
+            }
+        }
+    }
+
 }
