@@ -65,8 +65,12 @@ final class ContentConstants {
 
     /**
      * chiraura 記法用。
-     * chiraura:// を http://{ホスト}/ に変換する。
+     * chiraura:// を (chiraura://)ttp://{ホスト}/ に変換する。
      */
     static final Pattern CHIRAURA_NOTATION_LABEL = Pattern.compile("chiraura://");
 
+    /**
+     * 板名の形式。
+     */
+    static final Pattern BOARD_NAME_FORMAT = Pattern.compile("^[\\w%.-]*$");
 }

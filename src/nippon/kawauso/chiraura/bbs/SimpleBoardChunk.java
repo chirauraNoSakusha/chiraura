@@ -43,6 +43,10 @@ final class SimpleBoardChunk extends SkeletalChunk implements BoardChunk {
         Id(final String name) {
             if (name == null) {
                 throw new IllegalArgumentException("Null board name.");
+            } else if (name.isEmpty()) {
+                throw new ContentException("板名がありません。", "1 文字以上にして下さい。");
+            } else if (!ContentConstants.BOARD_NAME_FORMAT.matcher(name).matches()) {
+                throw new ContentException("板名として利用できない文字があります。", "基本は英数字の組み合せでお願いします。");
             } else if (ContentConstants.BOARD_LENGTH_LIMIT < name.length()) {
                 throw new ContentException("板名が長すぎます。", "最大文字数は " + ContentConstants.BOARD_LENGTH_LIMIT + " です。<BR/>今は " + name.length() + " 文字あります。");
             }

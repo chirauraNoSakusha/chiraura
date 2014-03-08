@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -62,6 +63,9 @@ final class FileStorage implements Storage {
     private final TypeRegistry<Chunk> chunkRegistry;
     private final TypeRegistry<Chunk.Id<?>> idRegistry;
 
+    private static final String TRASH = "%%trash%%"; // 有効ディレクトリと混同する可能性が無いように Base64 に使わない文字を含むこと。
+    private final File trash;
+
     FileStorage(final File root, final int fileSizeLimit, final int directoryBitSize) {
         final int maxDirectoryBitSize = (Address.SIZE / 6) * 6;// ディレクトリ名が論理位置以外の影響を受けない長さ。
         if (root == null) {
@@ -80,6 +84,9 @@ final class FileStorage implements Storage {
         this.locks = new LockPool<>();
         this.chunkRegistry = TypeRegistries.newRegistry();
         this.idRegistry = TypeRegistries.newRegistry();
+
+        this.trash = new File(root, TRASH);
+        loadDirectory(this.trash);
     }
 
     private static void loadDirectory(final File directory) {
@@ -314,7 +321,11 @@ final class FileStorage implements Storage {
                 indices.put(index.get(0).getId(), index.get(0));
             } catch (final MyRuleException | FileNotFoundException e) {
                 LOG.log(Level.WARNING, "異常が発生しました", e);
-                LOG.log(Level.INFO, "{0} を無視します。", file.getPath());
+                if (moveToTrash(file)) {
+                    LOG.log(Level.INFO, "{0} を除外しました。", file.getPath());
+                } else {
+                    LOG.log(Level.INFO, "{0} を無視します。", file.getPath());
+                }
             }
         }
         return indices;
@@ -426,7 +437,11 @@ final class FileStorage implements Storage {
             old = getIndex(chunk.getId());
         } catch (final MyRuleException e) {
             LOG.log(Level.WARNING, "異常が発生しました", e);
-            LOG.log(Level.INFO, "保存されていた {0} は壊れていました。", chunk.getId());
+            if (moveToTrash(file)) {
+                LOG.log(Level.INFO, "保存されていた {0} を除外しました。", chunk.getId());
+            } else {
+                LOG.log(Level.INFO, "保存されていた {0} を無視します。", chunk.getId());
+            }
         }
         if (index.equals(old)) {
             // TODO 本当に同じとみなして良いか？一応ハッシュ値も比べてる。
@@ -499,6 +514,34 @@ final class FileStorage implements Storage {
             }
         } finally {
             this.locks.unlock(id);
+        }
+    }
+
+    private boolean moveToTrash(final File file) {
+        try {
+            final File dest;
+            if (this.directoryBitSize > 0) {
+                final File dir = file.getParentFile();
+                final File destDir = new File(this.trash, dir.getName());
+                if (!destDir.exists()) {
+                    if (!destDir.mkdir()) {
+                        LOG.log(Level.WARNING, "{0} を作成できませんでした。", destDir.getPath());
+                        return false;
+                    } else {
+                        LOG.log(Level.FINEST, "{0} を作成しました。", destDir.getPath());
+                    }
+                }
+
+                dest = new File(destDir, file.getName());
+            } else {
+                dest = new File(this.trash, file.getName());
+            }
+
+            Files.move(file.toPath(), dest.toPath());
+            return true;
+        } catch (final Exception e) {
+            LOG.log(Level.WARNING, "{0} を除外できませんでした。", file.getPath());
+            return false;
         }
     }
 
