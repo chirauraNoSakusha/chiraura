@@ -1,7 +1,7 @@
 /**
  * 
  */
-package nippon.kawauso.chiraura.bbs;
+package nippon.kawauso.chiraura.lib.http;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -15,7 +15,7 @@ import nippon.kawauso.chiraura.lib.exception.MyRuleException;
  * テキスト読み込みとバイト列読み込みを両備した InputStream もどき。
  * @author chirauraNoSakusha
  */
-final class InputStreamWrapper implements AutoCloseable {
+public final class InputStreamWrapper implements AutoCloseable {
 
     private final InputStream base;
     private final Charset charset;
@@ -25,7 +25,14 @@ final class InputStreamWrapper implements AutoCloseable {
     // base から読み込み buff に格納されているバイトサイズ。
     private int readSize;
 
-    InputStreamWrapper(final InputStream base, final Charset charset, final String separator, final int lineSize) {
+    /**
+     * InputStream もどきを作成する。
+     * @param base 元にする入力
+     * @param charset 文字コード
+     * @param separator 改行
+     * @param lineSize 1 行の許容バイトサイズ
+     */
+    public InputStreamWrapper(final InputStream base, final Charset charset, final String separator, final int lineSize) {
         if (base == null) {
             throw new IllegalArgumentException("Null base.");
         } else if (charset == null) {
@@ -43,7 +50,13 @@ final class InputStreamWrapper implements AutoCloseable {
         this.readSize = 0;
     }
 
-    void completeRead(final byte[] output) throws IOException, MyRuleException {
+    /**
+     * 指定したバイト数だけ全部読む。
+     * @param output 読んだデータを格納するところ
+     * @throws IOException 読み込み異常
+     * @throws MyRuleException 読み込めるデータが足りなかった場合
+     */
+    public void completeRead(final byte[] output) throws IOException, MyRuleException {
         if (output.length <= this.readSize) {
             // 全部読み込み済み。
 
@@ -69,7 +82,13 @@ final class InputStreamWrapper implements AutoCloseable {
         }
     }
 
-    String readLine() throws IOException, MyRuleException {
+    /**
+     * 1 行読む。
+     * @return 1 行
+     * @throws IOException 読み込み異常
+     * @throws MyRuleException 1 行が許容サイズを超えた場合
+     */
+    public String readLine() throws IOException, MyRuleException {
         int tail = 0;
         while (true) {
             final int index = BytesFunctions.indexOf(this.buff, this.separator, tail, this.readSize);
@@ -109,6 +128,7 @@ final class InputStreamWrapper implements AutoCloseable {
         this.base.close();
     }
 
+    @SuppressWarnings("javadoc")
     public static void main(final String[] args) throws IOException, MyRuleException {
         final String content = "POST /test/bbs.cgi HTTP/1.0\r\n"
                 + "COOKIE:\r\n"

@@ -16,6 +16,8 @@ import java.util.regex.Pattern;
 
 import nippon.kawauso.chiraura.lib.container.Pair;
 import nippon.kawauso.chiraura.lib.exception.MyRuleException;
+import nippon.kawauso.chiraura.lib.http.Http;
+import nippon.kawauso.chiraura.lib.http.InputStreamWrapper;
 
 /**
  * @author chirauraNoSakusha

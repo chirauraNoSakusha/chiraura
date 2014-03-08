@@ -17,6 +17,7 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import nippon.kawauso.chiraura.Global;
+import nippon.kawauso.chiraura.lib.http.Http;
 import nippon.kawauso.chiraura.lib.logging.LoggingFunctions;
 
 /**

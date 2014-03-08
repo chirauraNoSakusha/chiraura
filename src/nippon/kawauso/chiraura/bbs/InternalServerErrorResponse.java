@@ -6,6 +6,8 @@ package nippon.kawauso.chiraura.bbs;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
+import nippon.kawauso.chiraura.lib.http.Http;
+
 /**
  * 何かエラー。
  * @author chirauraNoSakusha

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package nippon.kawauso.chiraura.bbs;
+package nippon.kawauso.chiraura.lib.http;
 
 import java.net.ProtocolException;
 import java.nio.charset.Charset;
@@ -20,14 +20,25 @@ import nippon.kawauso.chiraura.lib.container.Pair;
  * HTTP 関係。
  * @author chirauraNoSakusha
  */
-final class Http {
+public final class Http {
 
-    static final String SEPARATOR = "\r\n";
-    static final Charset HEADER_CHARSET = Charset.forName("US-ASCII");
+    /**
+     * 改行。
+     */
+    public static final String SEPARATOR = "\r\n";
 
-    static final int DEFAULT_PORT = 80;
+    /**
+     * 文字コード。
+     */
+    public static final Charset HEADER_CHARSET = Charset.forName("US-ASCII");
 
-    static enum Method {
+    /**
+     * 標準ポート。
+     */
+    public static final int DEFAULT_PORT = 80;
+
+    @SuppressWarnings("javadoc")
+    public static enum Method {
         GET,
         HEAD,
         POST,
@@ -38,7 +49,8 @@ final class Http {
         TRACE,
     }
 
-    static enum Field {
+    @SuppressWarnings("javadoc")
+    public static enum Field {
         ACCEPT,
         ACCEPT_CHARSET,
         ACCEPT_ENCODING,
@@ -99,11 +111,11 @@ final class Http {
             return valueOf(networkString.trim().toUpperCase().replaceAll("-", "_"));
         }
 
-        String toNetworkString() {
+        public String toNetworkString() {
             return this.name().replaceAll("_", "-");
         }
 
-        static Pair<Field, String> decode(final String line) throws ProtocolException {
+        public static Pair<Field, String> decode(final String line) throws ProtocolException {
             final int index = line.indexOf(':');
             if (index < 0) {
                 throw new ProtocolException("Invalid field \"" + line + "\".");
@@ -115,7 +127,8 @@ final class Http {
 
     }
 
-    static enum Status {
+    @SuppressWarnings("javadoc")
+    public static enum Status {
         /*
          * 使う分だけ定義すれば十分。
          */
@@ -143,7 +156,7 @@ final class Http {
             }
         }
 
-        static Status forNumber(final int number) {
+        public static Status forNumber(final int number) {
             return numberToStatus.get(number);
         }
 
@@ -153,7 +166,7 @@ final class Http {
             this.number = number;
         }
 
-        int getNumber() {
+        public int getNumber() {
             return this.number;
         }
 
@@ -167,7 +180,8 @@ final class Http {
 
     }
 
-    static enum ContentType {
+    @SuppressWarnings("javadoc")
+    public static enum ContentType {
         TEXT_PLAIN("text/plain"),
         TEXT_HTML("text/html"),
 
@@ -186,13 +200,23 @@ final class Http {
 
     }
 
-    static String formatDate(final long date) {
+    /**
+     * HTTP 形式の日付にする。
+     * @param date 日時
+     * @return HTTP 形式の日付
+     */
+    public static String formatDate(final long date) {
         final DateFormat formatter = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
         formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
         return formatter.format(new Date(date));
     }
 
-    static long decodeDate(final String dateString) {
+    /**
+     * HTTP 形式の日付から日時を取得する。
+     * @param dateString HTTP 形式の日付
+     * @return 日時
+     */
+    public static long decodeDate(final String dateString) {
         final DateFormat formatter = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
         try {
             return formatter.parse(dateString).getTime();
@@ -201,6 +225,7 @@ final class Http {
         }
     }
 
+    @SuppressWarnings("javadoc")
     public static void main(final String[] args) {
         final long date = System.currentTimeMillis();
         final long date2 = decodeDate(formatDate(date));

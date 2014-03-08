@@ -8,6 +8,8 @@ import java.io.OutputStream;
 import java.util.EnumMap;
 import java.util.Map;
 
+import nippon.kawauso.chiraura.lib.http.Http;
+
 /**
  * HTTP レスポンス。
  * フィールドのうち、SERVER, DATE, CONTENT_LENGTH は必要に応じて勝手につくる。

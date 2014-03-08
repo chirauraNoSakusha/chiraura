@@ -23,6 +23,8 @@ import java.util.regex.Pattern;
 import nippon.kawauso.chiraura.lib.StreamFunctions;
 import nippon.kawauso.chiraura.lib.StringFunctions;
 import nippon.kawauso.chiraura.lib.exception.MyRuleException;
+import nippon.kawauso.chiraura.lib.http.Http;
+import nippon.kawauso.chiraura.lib.http.InputStreamWrapper;
 
 /**
  * 手抜き 2ch クライアント。

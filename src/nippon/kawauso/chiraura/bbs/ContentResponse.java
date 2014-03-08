@@ -6,6 +6,8 @@ package nippon.kawauso.chiraura.bbs;
 import java.util.EnumMap;
 import java.util.Map;
 
+import nippon.kawauso.chiraura.lib.http.Http;
+
 /**
  * あったよー。
  * @author chirauraNoSakusha

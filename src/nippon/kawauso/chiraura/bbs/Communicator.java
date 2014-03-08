@@ -13,6 +13,8 @@ import java.util.logging.Logger;
 
 import nippon.kawauso.chiraura.lib.connection.TrafficLimiter;
 import nippon.kawauso.chiraura.lib.exception.MyRuleException;
+import nippon.kawauso.chiraura.lib.http.Http;
+import nippon.kawauso.chiraura.lib.http.InputStreamWrapper;
 
 /**
  * 応対係。

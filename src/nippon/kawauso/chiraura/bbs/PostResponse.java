@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.util.EnumMap;
 import java.util.Map;
 
+import nippon.kawauso.chiraura.lib.http.Http;
+
 /**
  * @author chirauraNoSakusha
  */

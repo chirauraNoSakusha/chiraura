@@ -1,7 +1,7 @@
 /**
  * 
  */
-package nippon.kawauso.chiraura.bbs;
+package nippon.kawauso.chiraura.lib.http;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

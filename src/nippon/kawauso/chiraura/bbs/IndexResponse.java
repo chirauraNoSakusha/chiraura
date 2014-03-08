@@ -6,6 +6,8 @@ package nippon.kawauso.chiraura.bbs;
 import java.util.EnumMap;
 import java.util.Map;
 
+import nippon.kawauso.chiraura.lib.http.Http;
+
 /**
  * 板直下 HTML の TITLE タグで板名を取得する 2ch ブラウザに対応するためだけにある。
  * @author chirauraNoSakusha

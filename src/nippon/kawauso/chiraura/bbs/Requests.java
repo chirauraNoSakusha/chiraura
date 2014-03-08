@@ -12,8 +12,10 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import nippon.kawauso.chiraura.bbs.Http.Field;
 import nippon.kawauso.chiraura.lib.exception.MyRuleException;
+import nippon.kawauso.chiraura.lib.http.Http;
+import nippon.kawauso.chiraura.lib.http.InputStreamWrapper;
+import nippon.kawauso.chiraura.lib.http.Http.Field;
 
 /**
  * 2chブラウザからのリクエストを分類する。

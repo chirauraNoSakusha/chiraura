@@ -13,6 +13,7 @@ import java.util.logging.Logger;
 import nippon.kawauso.chiraura.lib.StringFunctions;
 import nippon.kawauso.chiraura.lib.container.Pair;
 import nippon.kawauso.chiraura.lib.exception.MyRuleException;
+import nippon.kawauso.chiraura.lib.http.Http;
 
 /**
  * 書き込みとかスレッド作成関係。

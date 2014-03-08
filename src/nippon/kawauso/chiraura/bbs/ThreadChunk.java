@@ -24,6 +24,7 @@ import nippon.kawauso.chiraura.lib.converter.BytesConversion;
 import nippon.kawauso.chiraura.lib.converter.BytesConvertible;
 import nippon.kawauso.chiraura.lib.converter.NumberBytesConversion;
 import nippon.kawauso.chiraura.lib.exception.MyRuleException;
+import nippon.kawauso.chiraura.lib.http.Http;
 import nippon.kawauso.chiraura.lib.logging.LoggingFunctions;
 import nippon.kawauso.chiraura.storage.Chunk;
 import nippon.kawauso.chiraura.storage.SkeletalChunk;

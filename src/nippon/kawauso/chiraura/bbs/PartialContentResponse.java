@@ -7,6 +7,8 @@ import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.Map;
 
+import nippon.kawauso.chiraura.lib.http.Http;
+
 /**
  * その部分あったよー。
  * @author chirauraNoSakusha
