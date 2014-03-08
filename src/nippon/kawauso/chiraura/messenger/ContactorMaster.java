@@ -43,7 +43,7 @@ final class ContactorMaster extends Reporter<Void> {
     private final int sendBufferSize;
     private final long connectionTimeout;
     private final long operationTimeout;
-    private final Transceiver transceiver;
+    private final TransceiverShare transceiver;
 
     private final long version;
     private final long versionGapThreshold;
@@ -57,9 +57,9 @@ final class ContactorMaster extends Reporter<Void> {
             final AtomicInteger serialGenerator, final ExecutorService executor, final BlockingQueue<ReceivedMail> receivedMailSink,
             final SendQueuePool sendQueuePool, final TrafficLimiter limiter, final BlockingQueue<MessengerReport> messengerReportSink,
             final ConnectionPool<ContactingConnection> contactingConnectionPool, final ConnectionPool<Connection> connectionPool,
-            final int receiveBufferSize, final int sendBufferSize, final long connectionTimeout, final long operationTimeout, final Transceiver transceiver,
-            final long version, final long versionGapThreshold, final int port, final KeyPair id, final PublicKeyManager keyManager, final long keyLifetime,
-            final AtomicReference<InetSocketAddress> self) {
+            final int receiveBufferSize, final int sendBufferSize, final long connectionTimeout, final long operationTimeout,
+            final TransceiverShare transceiver, final long version, final long versionGapThreshold, final int port, final KeyPair id,
+            final PublicKeyManager keyManager, final long keyLifetime, final AtomicReference<InetSocketAddress> self) {
         super(reportSink);
 
         if (connectRequestSource == null) {

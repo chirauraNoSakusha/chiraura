@@ -65,7 +65,7 @@ final class Boss extends Chief {
 
     private final BlockingQueue<Socket> acceptedSocketQueue;
 
-    private final Transceiver transceiver;
+    private final TransceiverShare transceiver;
 
     private final TrafficLimiter limiter;
 
@@ -159,7 +159,7 @@ final class Boss extends Chief {
 
         this.connectionSerialGenerator = new AtomicInteger();
         this.acceptedSocketQueue = new LinkedBlockingQueue<>();
-        this.transceiver = new Transceiver(messageSizeLimit, registry);
+        this.transceiver = new TransceiverShare(messageSizeLimit, registry);
         if (portIgnore) {
             this.limiter = new PortIgnoringConstantTrafficLimiter(trafficDuration, trafficSizeLimit, trafficCountLimit, trafficPenalty);
         } else {

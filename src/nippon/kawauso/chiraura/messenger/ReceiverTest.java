@@ -5,6 +5,8 @@ package nippon.kawauso.chiraura.messenger;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -41,10 +43,10 @@ import org.junit.Test;
  */
 public final class ReceiverTest {
 
-    private static final Transceiver transceiver;
+    private static final TransceiverShare transceiverShare;
     static {
         final TypeRegistry<Message> registry = TypeRegistries.newRegistry();
-        transceiver = new Transceiver(Integer.MAX_VALUE, RegistryInitializer.init(registry));
+        transceiverShare = new TransceiverShare(Integer.MAX_VALUE, RegistryInitializer.init(registry));
     }
     private static final long duration = Duration.SECOND / 2;
     private static final long sizeLimit = 10_000_000L;
@@ -126,14 +128,16 @@ public final class ReceiverTest {
      */
     @Test
     public void testSample() throws Exception {
-        final Receiver instance = new Receiver(this.subjectReceivedMailQueue, this.subjectMessengerReportQueue, this.limiter, timeout, transceiver,
-                this.subjectConnection, this.subjectInput, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
+        final Transceiver subjectTransceiver = new Transceiver(transceiverShare, this.subjectInput, new ByteArrayOutputStream());
+        final Transceiver testerTransceiver = new Transceiver(transceiverShare, new ByteArrayInputStream(new byte[0]), this.testerOutput);
+        final Receiver instance = new Receiver(this.subjectReceivedMailQueue, this.subjectMessengerReportQueue, this.limiter, timeout, subjectTransceiver,
+                this.subjectConnection, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
         this.executor.submit(instance);
 
         // 一回目。
         final List<Message> sendMail1 = new ArrayList<>(1);
         sendMail1.add(new TestMessage("あほやで"));
-        transceiver.toStream(this.testerOutput, sendMail1, PlainEnvelope.class, commonKey);
+        testerTransceiver.toStream(sendMail1, PlainEnvelope.class, commonKey);
         this.testerOutput.flush();
 
         final ReceivedMail recvMail1 = this.subjectReceivedMailQueue.take();
@@ -144,7 +148,7 @@ public final class ReceiverTest {
         // 二回目。
         final List<Message> sendMail2 = new ArrayList<>(1);
         sendMail2.add(new TestMessage(129876));
-        transceiver.toStream(this.testerOutput, sendMail2, EncryptedEnvelope.class, commonKey);
+        testerTransceiver.toStream(sendMail2, EncryptedEnvelope.class, commonKey);
         this.testerOutput.flush();
 
         final ReceivedMail recvMail2 = this.subjectReceivedMailQueue.take();
@@ -159,8 +163,10 @@ public final class ReceiverTest {
      */
     @Test
     public void testKeyUpdate() throws Exception {
-        final Receiver instance = new Receiver(this.subjectReceivedMailQueue, this.subjectMessengerReportQueue, this.limiter, timeout, transceiver,
-                this.subjectConnection, this.subjectInput, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
+        final Transceiver subjectTransceiver = new Transceiver(transceiverShare, this.subjectInput, new ByteArrayOutputStream());
+        final Transceiver testerTransceiver = new Transceiver(transceiverShare, new ByteArrayInputStream(new byte[0]), this.testerOutput);
+        final Receiver instance = new Receiver(this.subjectReceivedMailQueue, this.subjectMessengerReportQueue, this.limiter, timeout, subjectTransceiver,
+                this.subjectConnection, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
         this.executor.submit(instance);
 
         // 一回目。
@@ -168,7 +174,7 @@ public final class ReceiverTest {
         sendMail1.add(new TestMessage("あほやで"));
         final Key newCommonKey = CryptographicKeys.newCommonKey();
         sendMail1.add(KeyUpdateMessage.newInstance(subjectKeyPair.getPublic(), testerKeyPair.getPrivate(), newCommonKey));
-        transceiver.toStream(this.testerOutput, sendMail1, EncryptedEnvelope.class, commonKey);
+        testerTransceiver.toStream(sendMail1, EncryptedEnvelope.class, commonKey);
         this.testerOutput.flush();
 
         final ReceivedMail recvMail1 = this.subjectReceivedMailQueue.take();
@@ -179,7 +185,7 @@ public final class ReceiverTest {
         // 二回目。
         final List<Message> sendMail2 = new ArrayList<>(1);
         sendMail2.add(new TestMessage(129876));
-        transceiver.toStream(this.testerOutput, sendMail2, EncryptedEnvelope.class, newCommonKey);
+        testerTransceiver.toStream(sendMail2, EncryptedEnvelope.class, newCommonKey);
         this.testerOutput.flush();
 
         final ReceivedMail recvMail2 = this.subjectReceivedMailQueue.take();
@@ -199,15 +205,18 @@ public final class ReceiverTest {
         final int errorThreshold = 5;
         final InputStream subjectErrorInput = InputStreamWrapper.getErrorStream(this.subjectInput, errorThreshold);
 
-        final Receiver instance = new Receiver(this.subjectReceivedMailQueue, this.subjectMessengerReportQueue, this.limiter, errorThreshold, transceiver,
-                this.subjectConnection, subjectErrorInput, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
+        final Transceiver subjectTransceiver = new Transceiver(transceiverShare, subjectErrorInput, new ByteArrayOutputStream());
+        final Transceiver testerTransceiver = new Transceiver(transceiverShare, new ByteArrayInputStream(new byte[0]), this.testerOutput);
+
+        final Receiver instance = new Receiver(this.subjectReceivedMailQueue, this.subjectMessengerReportQueue, this.limiter, errorThreshold,
+                subjectTransceiver, this.subjectConnection, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
         final Future<Void> future = this.executor.submit(instance);
 
         for (int i = 0; i < errorThreshold; i++) {
             final List<Message> mail = new ArrayList<>(1);
             mail.add(new TestMessage(129876));
             try {
-                transceiver.toStream(this.testerOutput, mail, EncryptedEnvelope.class, commonKey);
+                testerTransceiver.toStream(mail, EncryptedEnvelope.class, commonKey);
                 this.testerOutput.flush();
             } catch (final IOException e) {
                 break;
@@ -236,8 +245,9 @@ public final class ReceiverTest {
      */
     @Test
     public void testInvalidMail() throws Exception {
-        final Receiver instance = new Receiver(this.subjectReceivedMailQueue, this.subjectMessengerReportQueue, this.limiter, timeout, transceiver,
-                this.subjectConnection, this.subjectInput, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
+        final Transceiver subjectTransceiver = new Transceiver(transceiverShare, this.subjectInput, new ByteArrayOutputStream());
+        final Receiver instance = new Receiver(this.subjectReceivedMailQueue, this.subjectMessengerReportQueue, this.limiter, timeout, subjectTransceiver,
+                this.subjectConnection, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
         final Future<Void> future = this.executor.submit(instance);
 
         this.testerOutput.write(new byte[100]);
@@ -256,10 +266,11 @@ public final class ReceiverTest {
      */
     @Test
     public void testTimeout() throws Exception {
+        final Transceiver subjectTransceiver = new Transceiver(transceiverShare, this.subjectInput, new ByteArrayOutputStream());
         final long shortTimeout = 100L;
         this.subjectSocket.setSoTimeout((int) shortTimeout);
-        final Receiver instance = new Receiver(this.subjectReceivedMailQueue, this.subjectMessengerReportQueue, this.limiter, shortTimeout, transceiver,
-                this.subjectConnection, this.subjectInput, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
+        final Receiver instance = new Receiver(this.subjectReceivedMailQueue, this.subjectMessengerReportQueue, this.limiter, shortTimeout, subjectTransceiver,
+                this.subjectConnection, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
         final Future<Void> future = this.executor.submit(instance);
 
         // 時間切れ待ち。

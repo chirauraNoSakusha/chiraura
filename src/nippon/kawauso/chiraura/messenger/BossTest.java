@@ -45,7 +45,7 @@ public final class BossTest {
         registry = TypeRegistries.newRegistry();
         RegistryInitializer.init(registry);
     }
-    private static final Transceiver transceiver = new Transceiver(messageSizeLimit, registry);
+    private static final TransceiverShare transceiverShare = new TransceiverShare(messageSizeLimit, registry);
 
     /*
      * 検査インスタンス側は a、検査者側は b を頭に付ける。
@@ -145,35 +145,37 @@ public final class BossTest {
             // Acceptor 側の検査。
             final InputStream testerInput = new BufferedInputStream(testerSocket.getInputStream());
             final OutputStream testerOutput = new BufferedOutputStream(testerSocket.getOutputStream());
+            final Transceiver testerTransceiver = new Transceiver(transceiverShare, testerInput, testerOutput);
 
             // 一言目の送信。
-            StartingProtocol.sendFirst(transceiver, testerOutput, testerPublicKeyPair.getPublic());
+            StartingProtocol.sendFirst(testerTransceiver, testerPublicKeyPair.getPublic());
 
             // 一言目への相槌を受信。
-            final FirstReply reply1 = StartingProtocol.receiveFirstReply(transceiver, testerInput, testerPublicKeyPair.getPrivate());
+            final FirstReply reply1 = StartingProtocol.receiveFirstReply(testerTransceiver, testerPublicKeyPair.getPrivate());
             final Key communicationKey = reply1.getKey();
 
             // 二言目の送信。
             final Random random = new Random();
             final byte[] watchword = new byte[CryptographicKeys.PUBLIC_KEY_SIZE / Byte.SIZE / 2];
             random.nextBytes(watchword);
-            StartingProtocol.sendSecond(transceiver, testerOutput, testerId, communicationKey, watchword, version, testerPort, connectionType,
+            StartingProtocol.sendSecond(testerTransceiver, testerId, communicationKey, watchword, version, testerPort, connectionType,
                     (InetSocketAddress) testerSocket.getRemoteSocketAddress());
 
             // ポート検査への応答。
             try (final Socket socket = this.testerServerSocket.accept()) {
                 final InputStream input = new BufferedInputStream(socket.getInputStream());
                 final OutputStream output = new BufferedOutputStream(socket.getOutputStream());
+                final Transceiver testerTransceiver2 = new Transceiver(transceiverShare, input, output);
 
-                final PortCheckMessage portCheck = (PortCheckMessage) StartingProtocol.receiveFirst(transceiver, input);
+                final PortCheckMessage portCheck = (PortCheckMessage) StartingProtocol.receiveFirst(testerTransceiver2);
                 final byte[] keyBytes = CryptographicFunctions.decrypt(testerId.getPrivate(), portCheck.getEncryptedKey());
                 final Key communicationKey2 = CryptographicKeys.getCommonKey(keyBytes);
 
-                StartingProtocol.sendPortCheckReply(transceiver, output, communicationKey2);
+                StartingProtocol.sendPortCheckReply(testerTransceiver2, communicationKey2);
             }
 
             // 二言目への相槌を受信。
-            final SecondReply reply2 = (SecondReply) StartingProtocol.receiveSecondReply(transceiver, testerInput, communicationKey);
+            final SecondReply reply2 = (SecondReply) StartingProtocol.receiveSecondReply(testerTransceiver, communicationKey);
 
             Assert.assertEquals(subjectId.getPublic(), reply2.getId());
             Assert.assertArrayEquals(watchword, CryptographicFunctions.decrypt(reply2.getId(), reply2.getEncryptedWatchword()));
@@ -190,13 +192,13 @@ public final class BossTest {
             this.subjectSendQueuePool.put(connectReport.getDestination(), connectionType, sendMail);
 
             final List<Message> recvMail = new ArrayList<>(1);
-            transceiver.fromStream(testerInput, communicationKey, recvMail);
+            testerTransceiver.fromStream(communicationKey, recvMail);
             Assert.assertEquals(sendMail, recvMail);
 
             // 検査インスタンス側 Receiver の稼動確認。
             sendMail.clear();
             sendMail.add(new TestMessage("あほかね"));
-            transceiver.toStream(testerOutput, sendMail, EncryptedEnvelope.class, communicationKey);
+            testerTransceiver.toStream(sendMail, EncryptedEnvelope.class, communicationKey);
             testerOutput.flush();
 
             final ReceivedMail receivedMail = this.subjectReceivedMailQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);
@@ -218,17 +220,18 @@ public final class BossTest {
             testerSocket.setSoTimeout((int) connectionTimeout);
             final InputStream testerInput = new BufferedInputStream(testerSocket.getInputStream());
             final OutputStream testerOutput = new BufferedOutputStream(testerSocket.getOutputStream());
+            final Transceiver testerTransceiver = new Transceiver(transceiverShare, testerInput, testerOutput);
 
             // 一言目を受信。
-            final FirstMessage message1 = (FirstMessage) StartingProtocol.receiveFirst(transceiver, testerInput);
+            final FirstMessage message1 = (FirstMessage) StartingProtocol.receiveFirst(testerTransceiver);
             final PublicKey subjectPublicKey = message1.getKey();
 
             // 一言目への相槌を送信。
             final Key communicationKey = CryptographicKeys.newCommonKey();
-            StartingProtocol.sendFirstReply(transceiver, testerOutput, subjectPublicKey, communicationKey);
+            StartingProtocol.sendFirstReply(testerTransceiver, subjectPublicKey, communicationKey);
 
             // 二言目を受信。
-            final SecondMessage message2 = StartingProtocol.receiveSecond(transceiver, testerInput, communicationKey);
+            final SecondMessage message2 = StartingProtocol.receiveSecond(testerTransceiver, communicationKey);
             Assert.assertEquals(subjectId.getPublic(), message2.getId());
             Assert.assertArrayEquals(communicationKey.getEncoded(), CryptographicFunctions.decrypt(message2.getId(), message2.getEncryptedKey()));
             final byte[] watchword = message2.getWatchword();
@@ -237,7 +240,7 @@ public final class BossTest {
 
             // 二言目への相槌を送信。
             final InetSocketAddress declaredSubject = (subject != null ? subject : new InetSocketAddress(testerSocket.getInetAddress(), subjectPort));
-            StartingProtocol.sendSecondReply(transceiver, testerOutput, communicationKey, testerId, watchword, testerPublicKeyPair.getPublic(), version,
+            StartingProtocol.sendSecondReply(testerTransceiver, communicationKey, testerId, watchword, testerPublicKeyPair.getPublic(), version,
                     declaredSubject);
 
             // 報告の確認。
@@ -253,13 +256,13 @@ public final class BossTest {
             this.subjectSendQueuePool.put(message2.getPeer(), connectionType, sendMail);
 
             final List<Message> recvMail = new ArrayList<>(1);
-            transceiver.fromStream(testerInput, communicationKey, recvMail);
+            testerTransceiver.fromStream(communicationKey, recvMail);
             Assert.assertEquals(sendMail, recvMail);
 
             // 検査インスタンス側 Receiver の稼動確認。
             sendMail.clear();
             sendMail.add(new TestMessage("あほかね"));
-            transceiver.toStream(testerOutput, sendMail, EncryptedEnvelope.class, communicationKey);
+            testerTransceiver.toStream(sendMail, EncryptedEnvelope.class, communicationKey);
             testerOutput.flush();
 
             final ReceivedMail receivedMail = this.subjectReceivedMailQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);

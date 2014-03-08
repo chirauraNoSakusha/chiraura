@@ -4,7 +4,6 @@
 package nippon.kawauso.chiraura.messenger;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.security.Key;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -35,7 +34,6 @@ final class Sender implements Callable<Void> {
     private final Transceiver transceiver;
 
     private final Connection connection;
-    private final OutputStream output;
 
     // 暗号化周り。
     private final long keyLifetime;
@@ -46,8 +44,8 @@ final class Sender implements Callable<Void> {
     private Key encryptionKey;
 
     Sender(final SendQueuePool mailSource, final BlockingQueue<MessengerReport> messengerReportSink, final ConnectionPool<Connection> connectionPool,
-            final long timeout, final Transceiver transceiver, final Connection connection, final OutputStream output, final long keyLifetime,
-            final PrivateKey myKey, final PublicKey destinationKey, final Key firstEncryptionKey) {
+            final long timeout, final Transceiver transceiver, final Connection connection, final long keyLifetime, final PrivateKey myKey,
+            final PublicKey destinationKey, final Key firstEncryptionKey) {
         if (mailSource == null) {
             throw new IllegalArgumentException("Null mail source.");
         } else if (messengerReportSink == null) {
@@ -60,8 +58,6 @@ final class Sender implements Callable<Void> {
             throw new IllegalArgumentException("Null transceiver.");
         } else if (connection == null) {
             throw new IllegalArgumentException("Null connection.");
-        } else if (output == null) {
-            throw new IllegalArgumentException("Null output.");
         } else if (keyLifetime < 0) {
             throw new IllegalArgumentException("Invalid key lifetime ( " + keyLifetime + " ).");
         } else if (myKey == null) {
@@ -78,7 +74,6 @@ final class Sender implements Callable<Void> {
         this.timeout = timeout;
         this.transceiver = transceiver;
         this.connection = connection;
-        this.output = output;
         this.keyLifetime = keyLifetime;
         this.myKey = myKey;
         this.destinationKey = destinationKey;
@@ -146,14 +141,14 @@ final class Sender implements Callable<Void> {
             // 送信。
             final long date = System.currentTimeMillis();
             if (date < keyUpdateDate + this.keyLifetime) {
-                final int size = this.transceiver.toStream(this.output, mail, GZippedEncryptedEnvelope.class, this.encryptionKey);
+                final int size = this.transceiver.toStream(mail, GZippedEncryptedEnvelope.class, this.encryptionKey);
                 LOG.log(Level.FINER, "{0}: {1} バイト送信。", new Object[] { this.connection, size });
             } else {
                 // 暗号鍵の更新。
                 final Key newEncryptionKey = CryptographicKeys.newCommonKey();
                 mail.add(KeyUpdateMessage.newInstance(this.destinationKey, this.myKey, newEncryptionKey));
 
-                final int size = this.transceiver.toStream(this.output, mail, GZippedEncryptedEnvelope.class, this.encryptionKey);
+                final int size = this.transceiver.toStream(mail, GZippedEncryptedEnvelope.class, this.encryptionKey);
                 LOG.log(Level.FINER, "{0}: {1} バイト送信 ( 鍵更新含む )。", new Object[] { this.connection, size });
 
                 keyUpdateDate = date;
@@ -169,14 +164,14 @@ final class Sender implements Callable<Void> {
                 if (mail == null) {
                     break;
                 }
-                final int size = this.transceiver.toStream(this.output, mail, GZippedEncryptedEnvelope.class, this.encryptionKey);
+                final int size = this.transceiver.toStream(mail, GZippedEncryptedEnvelope.class, this.encryptionKey);
                 LOG.log(Level.FINER, "{0}: ついでに {1} バイト送信。", new Object[] { this.connection, size });
 
                 // 最終動作時刻を更新。
                 this.connection.updateDate();
             }
 
-            this.output.flush();
+            this.transceiver.flush();
 
             // 最終動作時刻を更新。
             this.connection.updateDate();

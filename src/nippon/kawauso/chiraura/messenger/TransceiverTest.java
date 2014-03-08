@@ -3,6 +3,7 @@
  */
 package nippon.kawauso.chiraura.messenger;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,7 +23,7 @@ import nippon.kawauso.chiraura.lib.exception.MyRuleException;
  */
 public final class TransceiverTest extends BytesConvertibleTest<TransceiverElement> {
 
-    private final Transceiver transceiver;
+    private final TransceiverShare transceiverShare;
     private final Key commonKey;
 
     /**
@@ -31,7 +32,7 @@ public final class TransceiverTest extends BytesConvertibleTest<TransceiverEleme
     public TransceiverTest() {
         final TypeRegistry<Message> registry = TypeRegistries.newRegistry();
         RegistryInitializer.init(registry);
-        this.transceiver = new Transceiver(Integer.MAX_VALUE, registry);
+        this.transceiverShare = new TransceiverShare(Integer.MAX_VALUE, registry);
         this.commonKey = CryptographicKeys.newCommonKey();
     }
 
@@ -41,24 +42,24 @@ public final class TransceiverTest extends BytesConvertibleTest<TransceiverEleme
         {
             final List<Message> mail = new ArrayList<>();
             mail.add(new TestMessage("いろはにほへと"));
-            list.add((new TransceiverElement(this.transceiver, mail, PlainEnvelope.class, this.commonKey)));
+            list.add((new TransceiverElement(this.transceiverShare, mail, PlainEnvelope.class, this.commonKey)));
         }
         {
             final List<Message> mail = new ArrayList<>();
             mail.add(new TestMessage(1234));
-            list.add((new TransceiverElement(this.transceiver, mail, EncryptedWithRandomEnvelope.class, this.commonKey)));
+            list.add((new TransceiverElement(this.transceiverShare, mail, EncryptedWithRandomEnvelope.class, this.commonKey)));
         }
         {
             final List<Message> mail = new ArrayList<>();
             mail.add(new TestMessage("ちりぬるを"));
-            list.add((new TransceiverElement(this.transceiver, mail, EncryptedEnvelope.class, this.commonKey)));
+            list.add((new TransceiverElement(this.transceiverShare, mail, EncryptedEnvelope.class, this.commonKey)));
         }
         return list.toArray(new TransceiverElement[0]);
     }
 
     @Override
     protected BytesConvertible.Parser<TransceiverElement> getParser() {
-        return TransceiverElement.getParser(this.transceiver, this.commonKey);
+        return TransceiverElement.getParser(this.transceiverShare, this.commonKey);
     }
 
     @Override
@@ -80,20 +81,20 @@ public final class TransceiverTest extends BytesConvertibleTest<TransceiverEleme
     protected TransceiverElement getInstance(final int seed) {
         final List<Message> mail = new ArrayList<>(1);
         mail.add(new TestMessage(seed / types.size()));
-        return new TransceiverElement(this.transceiver, mail, types.get(seed % types.size()), this.commonKey);
+        return new TransceiverElement(this.transceiverShare, mail, types.get(seed % types.size()), this.commonKey);
     }
 
 }
 
 final class TransceiverElement implements BytesConvertible {
 
-    private final Transceiver transceiver;
+    private final TransceiverShare transceiverShare;
     private final List<Message> mail;
     private final Class<? extends Envelope> type;
     private final Key key;
 
-    TransceiverElement(final Transceiver transceiver, final List<Message> mail, final Class<? extends Envelope> type, final Key key) {
-        this.transceiver = transceiver;
+    TransceiverElement(final TransceiverShare transceiverShare, final List<Message> mail, final Class<? extends Envelope> type, final Key key) {
+        this.transceiverShare = transceiverShare;
         this.mail = mail;
         this.type = type;
         this.key = key;
@@ -103,7 +104,7 @@ final class TransceiverElement implements BytesConvertible {
     public int byteSize() {
         final ByteArrayOutputStream buff = new ByteArrayOutputStream();
         try {
-            this.transceiver.toStream(buff, this.mail, this.type, this.key);
+            new Transceiver(this.transceiverShare, new ByteArrayInputStream(new byte[0]), buff).toStream(this.mail, this.type, this.key);
         } catch (final IOException e) {
             throw new RuntimeException(e);
         }
@@ -112,17 +113,17 @@ final class TransceiverElement implements BytesConvertible {
 
     @Override
     public int toStream(final OutputStream output) throws IOException {
-        return this.transceiver.toStream(output, this.mail, this.type, this.key);
+        return new Transceiver(this.transceiverShare, new ByteArrayInputStream(new byte[0]), output).toStream(this.mail, this.type, this.key);
     }
 
-    static BytesConvertible.Parser<TransceiverElement> getParser(final Transceiver transceiver, final Key key) {
+    static BytesConvertible.Parser<TransceiverElement> getParser(final TransceiverShare transceiverShare, final Key key) {
         return new BytesConvertible.Parser<TransceiverElement>() {
             @Override
             public int fromStream(final InputStream input, final int maxByteSize, final List<? super TransceiverElement> output) throws MyRuleException,
                     IOException {
                 final List<Message> mail = new ArrayList<>();
-                final int size = transceiver.fromStream(input, key, mail);
-                output.add(new TransceiverElement(transceiver, mail, null, key));
+                final int size = new Transceiver(transceiverShare, input, new ByteArrayOutputStream(0)).fromStream(key, mail);
+                output.add(new TransceiverElement(transceiverShare, mail, null, key));
                 return size;
             }
         };

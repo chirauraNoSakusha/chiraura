@@ -45,7 +45,7 @@ final class AcceptorMaster extends Reporter<Void> {
     private final int sendBufferSize;
     private final long connectionTimeout;
     private final long operationTimeout;
-    private final Transceiver transceiver;
+    private final TransceiverShare transceiver;
 
     private final long version;
     private final long versionGapThreshold;
@@ -58,7 +58,7 @@ final class AcceptorMaster extends Reporter<Void> {
             final ExecutorService executor, final boolean portIgnore, final int connectionLimit, final BlockingQueue<ReceivedMail> receivedMailSink,
             final SendQueuePool sendQueuePool, final TrafficLimiter limiter, final BlockingQueue<MessengerReport> messengerReportSink,
             final ConnectionPool<AcceptedConnection> acceptedConnectionPool, final ConnectionPool<Connection> connectionPool, final int sendBufferSize,
-            final long connectionTimeout, final long operationTimeout, final Transceiver transceiver, final long version, final long versionGapThreshold,
+            final long connectionTimeout, final long operationTimeout, final TransceiverShare transceiver, final long version, final long versionGapThreshold,
             final KeyPair id, final PublicKeyManager keyManager, final long keyLifetime, final AtomicReference<InetSocketAddress> self) {
         super(reportSink);
 

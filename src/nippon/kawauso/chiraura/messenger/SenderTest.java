@@ -5,6 +5,8 @@ package nippon.kawauso.chiraura.messenger;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -36,10 +38,10 @@ import org.junit.Test;
  */
 public final class SenderTest {
 
-    private static final Transceiver transceiver;
+    private static final TransceiverShare transceiverShare;
     static {
         final TypeRegistry<Message> registry = TypeRegistries.newRegistry();
-        transceiver = new Transceiver(Integer.MAX_VALUE, RegistryInitializer.init(registry));
+        transceiverShare = new TransceiverShare(Integer.MAX_VALUE, RegistryInitializer.init(registry));
     }
 
     private static final long timeout = 10 * Duration.SECOND;
@@ -119,8 +121,10 @@ public final class SenderTest {
      */
     @Test
     public void testSample() throws Exception {
+        final Transceiver subjectTransceiver = new Transceiver(transceiverShare, new ByteArrayInputStream(new byte[0]), this.subjectOutput);
+        final Transceiver testerTransceiver = new Transceiver(transceiverShare, this.testerInput, new ByteArrayOutputStream());
         final Sender instance = new Sender(this.subjectSendQueuePool, this.subjectMessengerReportQueue, this.subjectConnectionPool, timeout,
-                transceiver, this.subjectConnection, this.subjectOutput, keyLifetime, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
+                subjectTransceiver, this.subjectConnection, keyLifetime, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
         this.executor.submit(instance);
 
         // キューの登録待ち。
@@ -132,7 +136,7 @@ public final class SenderTest {
         this.subjectSendQueuePool.put(tester, connectionType, sendMail1);
 
         final List<Message> recvMail1 = new ArrayList<>(1);
-        transceiver.fromStream(this.testerInput, commonKey, recvMail1);
+        testerTransceiver.fromStream(commonKey, recvMail1);
         Assert.assertEquals(sendMail1, recvMail1);
 
         // 二回目。
@@ -141,7 +145,7 @@ public final class SenderTest {
         this.subjectSendQueuePool.put(tester, connectionType, sendMail2);
 
         final List<Message> recvMail2 = new ArrayList<>(1);
-        transceiver.fromStream(this.testerInput, commonKey, recvMail2);
+        testerTransceiver.fromStream(commonKey, recvMail2);
         Assert.assertEquals(sendMail2, recvMail2);
     }
 
@@ -151,9 +155,11 @@ public final class SenderTest {
      */
     @Test
     public void testKeyUpdate() throws Exception {
+        final Transceiver subjectTransceiver = new Transceiver(transceiverShare, new ByteArrayInputStream(new byte[0]), this.subjectOutput);
+        final Transceiver testerTransceiver = new Transceiver(transceiverShare, this.testerInput, new ByteArrayOutputStream());
         final long shortKeyLifetime = 200L;
         final Sender instance = new Sender(this.subjectSendQueuePool, this.subjectMessengerReportQueue, this.subjectConnectionPool, timeout,
-                transceiver, this.subjectConnection, this.subjectOutput, shortKeyLifetime, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
+                subjectTransceiver, this.subjectConnection, shortKeyLifetime, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
         this.executor.submit(instance);
 
         // 鍵の期限切れ待ち。
@@ -165,7 +171,7 @@ public final class SenderTest {
         this.subjectSendQueuePool.put(tester, connectionType, sendMail1);
 
         final List<Message> recvMail1 = new ArrayList<>(2);
-        transceiver.fromStream(this.testerInput, commonKey, recvMail1);
+        testerTransceiver.fromStream(commonKey, recvMail1);
         Assert.assertEquals(2, recvMail1.size());
         Assert.assertTrue(recvMail1.get(1) instanceof KeyUpdateMessage);
         Assert.assertEquals(sendMail1.get(0), recvMail1.get(0));
@@ -178,7 +184,7 @@ public final class SenderTest {
         this.subjectSendQueuePool.put(tester, connectionType, sendMail2);
 
         final List<Message> recvMail2 = new ArrayList<>(1);
-        transceiver.fromStream(this.testerInput, newCommonKey, recvMail2);
+        testerTransceiver.fromStream(newCommonKey, recvMail2);
         Assert.assertEquals(sendMail2, recvMail2);
     }
 
@@ -188,8 +194,9 @@ public final class SenderTest {
      */
     @Test
     public void testErrorStream() throws Exception {
+        final Transceiver subjectTransceiver = new Transceiver(transceiverShare, new ByteArrayInputStream(new byte[0]), this.subjectOutput);
         final Sender instance = new Sender(this.subjectSendQueuePool, this.subjectMessengerReportQueue, this.subjectConnectionPool, timeout,
-                transceiver, this.subjectConnection, this.subjectOutput, keyLifetime, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
+                subjectTransceiver, this.subjectConnection, keyLifetime, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
         final Future<Void> future = this.executor.submit(instance);
 
         this.testerSocket.close();
@@ -219,8 +226,9 @@ public final class SenderTest {
      */
     @Test
     public void testInvalidMessage() throws Exception {
+        final Transceiver subjectTransceiver = new Transceiver(transceiverShare, new ByteArrayInputStream(new byte[0]), this.subjectOutput);
         final Sender instance = new Sender(this.subjectSendQueuePool, this.subjectMessengerReportQueue, this.subjectConnectionPool, timeout,
-                transceiver, this.subjectConnection, this.subjectOutput, keyLifetime, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
+                subjectTransceiver, this.subjectConnection, keyLifetime, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
         final Future<Void> future = this.executor.submit(instance);
 
         // キューの登録待ち。
@@ -254,9 +262,10 @@ public final class SenderTest {
      */
     @Test
     public void testTimeout() throws Exception {
+        final Transceiver subjectTransceiver = new Transceiver(transceiverShare, new ByteArrayInputStream(new byte[0]), this.subjectOutput);
         final long shortTimeout = 100L;
         final Sender instance = new Sender(this.subjectSendQueuePool, this.subjectMessengerReportQueue, this.subjectConnectionPool, shortTimeout,
-                transceiver, this.subjectConnection, this.subjectOutput, shortTimeout, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
+                subjectTransceiver, this.subjectConnection, shortTimeout, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
         final Future<Void> future = this.executor.submit(instance);
 
         // 時間切れ待ち。

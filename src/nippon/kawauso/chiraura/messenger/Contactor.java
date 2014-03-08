@@ -49,7 +49,7 @@ final class Contactor implements Callable<Void> {
     private final int sendBufferSize;
     private final long connectionTimeout;
     private final long operationTimeout;
-    private final Transceiver transceiver;
+    private final TransceiverShare transceiverShare;
 
     private final ContactingConnection contactingConnection;
 
@@ -70,9 +70,9 @@ final class Contactor implements Callable<Void> {
     private final long keyLifetime;
 
     Contactor(final BlockingQueue<MessengerReport> messengerReportSink, final ConnectionPool<ContactingConnection> contactingConnectionPool,
-            final int receiveBufferSize, final int sendBufferSize, final long connectionTimeout, final long operationTimeout, final Transceiver transceiver,
-            final ContactingConnection contactingConnection, final long version, final long versionGapThreshold, final int port, final KeyPair id,
-            final PublicKeyManager keyManager, final AtomicReference<InetSocketAddress> self, final ExecutorService executor,
+            final int receiveBufferSize, final int sendBufferSize, final long connectionTimeout, final long operationTimeout,
+            final TransceiverShare transceiverShare, final ContactingConnection contactingConnection, final long version, final long versionGapThreshold,
+            final int port, final KeyPair id, final PublicKeyManager keyManager, final AtomicReference<InetSocketAddress> self, final ExecutorService executor,
             final SendQueuePool sendQueuePool, final BlockingQueue<ReceivedMail> receivedMailSink, final TrafficLimiter limiter,
             final ConnectionPool<Connection> connectionPool, final long keyLifetime) {
         if (messengerReportSink == null) {
@@ -83,8 +83,8 @@ final class Contactor implements Callable<Void> {
             throw new IllegalArgumentException("Negative connection timeout ( " + connectionTimeout + " ).");
         } else if (operationTimeout < 0) {
             throw new IllegalArgumentException("Invalid operation timeout ( " + operationTimeout + " ).");
-        } else if (transceiver == null) {
-            throw new IllegalArgumentException("Null transceiver.");
+        } else if (transceiverShare == null) {
+            throw new IllegalArgumentException("Null transceiver share.");
         } else if (contactingConnection == null) {
             throw new IllegalArgumentException("Null connection.");
         } else if (versionGapThreshold < 1) {
@@ -119,7 +119,7 @@ final class Contactor implements Callable<Void> {
         this.connectionTimeout = connectionTimeout;
         this.operationTimeout = operationTimeout;
         this.contactingConnection = contactingConnection;
-        this.transceiver = transceiver;
+        this.transceiverShare = transceiverShare;
 
         this.version = version;
         this.versionGapThreshold = versionGapThreshold;
@@ -217,13 +217,14 @@ final class Contactor implements Callable<Void> {
                 this.contactingConnection.getSocket().getReceiveBufferSize());
         final OutputStream output = new BufferedOutputStream(this.contactingConnection.getSocket().getOutputStream(),
                 this.contactingConnection.getSocket().getSendBufferSize());
+        final Transceiver transceiver = new Transceiver(this.transceiverShare, input, output);
 
         // 一言目の送信。
         final KeyPair keyPair = this.keyManager.getPublicKeyPair();
-        StartingProtocol.sendFirst(this.transceiver, output, keyPair.getPublic());
+        StartingProtocol.sendFirst(transceiver, keyPair.getPublic());
 
         // 一言目への相槌を受信。
-        final FirstReply reply1 = StartingProtocol.receiveFirstReply(this.transceiver, input, keyPair.getPrivate());
+        final FirstReply reply1 = StartingProtocol.receiveFirstReply(transceiver, keyPair.getPrivate());
         final Key communicationKey = reply1.getKey();
 
         // 二言目の送信。
@@ -235,13 +236,13 @@ final class Contactor implements Callable<Void> {
         } else {
             destination = new InetSocketAddress(this.contactingConnection.getSocket().getInetAddress(), this.contactingConnection.getSocket().getPort());
         }
-        StartingProtocol.sendSecond(this.transceiver, output, this.id, communicationKey, watchword, this.version, this.port,
+        StartingProtocol.sendSecond(transceiver, this.id, communicationKey, watchword, this.version, this.port,
                 this.contactingConnection.getType(), destination);
 
         // 二言目への相槌を受信。
         Message received;
         try {
-            received = StartingProtocol.receiveSecondReply(this.transceiver, input, communicationKey);
+            received = StartingProtocol.receiveSecondReply(transceiver, communicationKey);
         } catch (final SocketTimeoutException e) {
             // たぶんポート検査で弾かれた。
             LOG.log(Level.FINEST, "反応が無いのでポートが開いてないのかなと疑ってみます。");
@@ -302,8 +303,8 @@ final class Contactor implements Callable<Void> {
         LOG.log(Level.FINER, "{0}: {1} との種別 {2} での通信を開始します。",
                 new Object[] { this.contactingConnection, this.contactingConnection.getDestination(), Integer.toString(this.contactingConnection.getType()) });
         connection.setSender(this.executor.submit(new Sender(this.sendQueuePool, this.messengerReportSink, this.connectionPool, this.connectionTimeout,
-                this.transceiver, connection, output, this.keyLifetime, keyPair.getPrivate(), destinationPublicKey, communicationKey)));
-        this.executor.submit(new Receiver(this.receivedMailSink, this.messengerReportSink, this.limiter, this.connectionTimeout, this.transceiver, connection,
-                input, keyPair.getPrivate(), destinationPublicKey, communicationKey));
+                transceiver, connection, this.keyLifetime, keyPair.getPrivate(), destinationPublicKey, communicationKey)));
+        this.executor.submit(new Receiver(this.receivedMailSink, this.messengerReportSink, this.limiter, this.connectionTimeout, transceiver, connection,
+                keyPair.getPrivate(), destinationPublicKey, communicationKey));
     }
 }

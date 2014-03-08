@@ -4,8 +4,6 @@
 package nippon.kawauso.chiraura.messenger;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.security.Key;
 import java.security.KeyPair;
@@ -28,17 +26,17 @@ final class StartingProtocol {
     // インスタンス化防止。
     private StartingProtocol() {}
 
-    static void sendFirst(final Transceiver transceiver, final OutputStream output, final PublicKey contactorPublicKey) throws IOException {
+    static void sendFirst(final Transceiver transceiver, final PublicKey contactorPublicKey) throws IOException {
         final List<Message> mail = new ArrayList<>(1);
         mail.add(new FirstMessage(contactorPublicKey));
-        final int size = transceiver.toStream(output, mail, EncryptedWithRandomEnvelope.class, CryptographicKeys.getConstantKey());
-        output.flush();
+        final int size = transceiver.toStream(mail, EncryptedWithRandomEnvelope.class, CryptographicKeys.getConstantKey());
+        transceiver.flush();
         LOG.log(Level.FINEST, "一言目を {0} バイト送信。", size);
     }
 
-    static Message receiveFirst(final Transceiver transceiver, final InputStream input) throws MyRuleException, IOException {
+    static Message receiveFirst(final Transceiver transceiver) throws MyRuleException, IOException {
         final List<Message> mail = new ArrayList<>(1);
-        final int size = transceiver.fromStream(input, CryptographicKeys.getConstantKey(), mail);
+        final int size = transceiver.fromStream(CryptographicKeys.getConstantKey(), mail);
         if (mail.get(0) instanceof FirstMessage) {
             LOG.log(Level.FINEST, "一言目を {0} バイト受信。", size);
         } else if (mail.get(0) instanceof PortCheckMessage) {
@@ -49,19 +47,17 @@ final class StartingProtocol {
         return mail.get(0);
     }
 
-    static void sendFirstReply(final Transceiver transceiver, final OutputStream output, final PublicKey contactorPublicKey, final Key communicationKey)
-            throws IOException {
+    static void sendFirstReply(final Transceiver transceiver, final PublicKey contactorPublicKey, final Key communicationKey) throws IOException {
         final List<Message> mail = new ArrayList<>(1);
         mail.add(new FirstReply(communicationKey));
-        final int size = transceiver.toStream(output, mail, EncryptedEnvelope.class, contactorPublicKey);
-        output.flush();
+        final int size = transceiver.toStream(mail, EncryptedEnvelope.class, contactorPublicKey);
+        transceiver.flush();
         LOG.log(Level.FINEST, "一言目への相槌を {0} バイト送信。", size);
     }
 
-    static FirstReply receiveFirstReply(final Transceiver transceiver, final InputStream input, final PrivateKey contactorPrivateKey) throws MyRuleException,
-            IOException {
+    static FirstReply receiveFirstReply(final Transceiver transceiver, final PrivateKey contactorPrivateKey) throws MyRuleException, IOException {
         final List<Message> mail = new ArrayList<>(1);
-        final int size = transceiver.fromStream(input, contactorPrivateKey, mail);
+        final int size = transceiver.fromStream(contactorPrivateKey, mail);
         LOG.log(Level.FINEST, "一言目への相槌を {0} バイト受信。", size);
         if (mail.get(0) instanceof FirstReply) {
             return (FirstReply) mail.get(0);
@@ -70,19 +66,18 @@ final class StartingProtocol {
         }
     }
 
-    static void sendSecond(final Transceiver transceiver, final OutputStream output, final KeyPair contactorIdPair, final Key communicationKey,
-            final byte[] watchword, final long contactorVersion, final int contactorPort, final int connectionType, final InetSocketAddress acceptor)
-            throws IOException {
+    static void sendSecond(final Transceiver transceiver, final KeyPair contactorIdPair, final Key communicationKey, final byte[] watchword,
+            final long contactorVersion, final int contactorPort, final int connectionType, final InetSocketAddress acceptor) throws IOException {
         final List<Message> mail = new ArrayList<>(1);
         mail.add(new SecondMessage(contactorIdPair, communicationKey, watchword, contactorVersion, contactorPort, connectionType, acceptor));
-        final int size = transceiver.toStream(output, mail, EncryptedEnvelope.class, communicationKey);
-        output.flush();
+        final int size = transceiver.toStream(mail, EncryptedEnvelope.class, communicationKey);
+        transceiver.flush();
         LOG.log(Level.FINEST, "二言目を {0} バイト送信。", size);
     }
 
-    static SecondMessage receiveSecond(final Transceiver transceiver, final InputStream input, final Key communicationKey) throws MyRuleException, IOException {
+    static SecondMessage receiveSecond(final Transceiver transceiver, final Key communicationKey) throws MyRuleException, IOException {
         final List<Message> mail = new ArrayList<>(1);
-        final int size = transceiver.fromStream(input, communicationKey, mail);
+        final int size = transceiver.fromStream(communicationKey, mail);
         LOG.log(Level.FINEST, "二言目を {0} バイト受信。", size);
         if (mail.get(0) instanceof SecondMessage) {
             return (SecondMessage) mail.get(0);
@@ -91,18 +86,18 @@ final class StartingProtocol {
         }
     }
 
-    static void sendSecondReply(final Transceiver transceiver, final OutputStream output, final Key communicationKey, final KeyPair acceptorId,
-            final byte[] watchword, final PublicKey acceptorPublicKey, final long acceptorVersion, final InetSocketAddress contactor) throws IOException {
+    static void sendSecondReply(final Transceiver transceiver, final Key communicationKey, final KeyPair acceptorId, final byte[] watchword,
+            final PublicKey acceptorPublicKey, final long acceptorVersion, final InetSocketAddress contactor) throws IOException {
         final List<Message> mail = new ArrayList<>(1);
         mail.add(new SecondReply(acceptorId, watchword, acceptorPublicKey, acceptorVersion, contactor));
-        final int size = transceiver.toStream(output, mail, EncryptedEnvelope.class, communicationKey);
-        output.flush();
+        final int size = transceiver.toStream(mail, EncryptedEnvelope.class, communicationKey);
+        transceiver.flush();
         LOG.log(Level.FINEST, "二言目への相槌を {0} バイト送信。", size);
     }
 
-    static Message receiveSecondReply(final Transceiver transceiver, final InputStream input, final Key communicationKey) throws MyRuleException, IOException {
+    static Message receiveSecondReply(final Transceiver transceiver, final Key communicationKey) throws MyRuleException, IOException {
         final List<Message> mail = new ArrayList<>(1);
-        final int size = transceiver.fromStream(input, communicationKey, mail);
+        final int size = transceiver.fromStream(communicationKey, mail);
         if (mail.get(0) instanceof SecondReply) {
             LOG.log(Level.FINEST, "二言目への相槌を {0} バイト受信。", size);
         } else if (mail.get(0) instanceof PortErrorMessage) {
@@ -113,29 +108,27 @@ final class StartingProtocol {
         return mail.get(0);
     }
 
-    static void sendPortCheck(final Transceiver transceiver, final OutputStream output, final PublicKey contactorId, final Key communicationKey)
-            throws IOException {
+    static void sendPortCheck(final Transceiver transceiver, final PublicKey contactorId, final Key communicationKey) throws IOException {
         final List<Message> mail = new ArrayList<>(1);
         mail.add(new PortCheckMessage(contactorId, communicationKey));
-        final int size = transceiver.toStream(output, mail, EncryptedWithRandomEnvelope.class, CryptographicKeys.getConstantKey());
-        output.flush();
+        final int size = transceiver.toStream(mail, EncryptedWithRandomEnvelope.class, CryptographicKeys.getConstantKey());
+        transceiver.flush();
         LOG.log(Level.FINEST, "ポート検査を {0} バイト送信。", size);
     }
 
     // receivePortCheck は receiveFirst で。
 
-    static void sendPortCheckReply(final Transceiver transceiver, final OutputStream output, final Key communicationKey) throws IOException {
+    static void sendPortCheckReply(final Transceiver transceiver, final Key communicationKey) throws IOException {
         final List<Message> mail = new ArrayList<>(1);
         mail.add(new PortCheckReply(communicationKey.getEncoded()));
-        final int size = transceiver.toStream(output, mail, EncryptedEnvelope.class, communicationKey);
-        output.flush();
+        final int size = transceiver.toStream(mail, EncryptedEnvelope.class, communicationKey);
+        transceiver.flush();
         LOG.log(Level.FINEST, "ポート検査への応答を {0} バイト送信。", size);
     }
 
-    static PortCheckReply receivePortCheckReply(final Transceiver transceiver, final InputStream input, final Key communicationKey) throws MyRuleException,
-            IOException {
+    static PortCheckReply receivePortCheckReply(final Transceiver transceiver, final Key communicationKey) throws MyRuleException, IOException {
         final List<Message> mail = new ArrayList<>(1);
-        final int size = transceiver.fromStream(input, communicationKey, mail);
+        final int size = transceiver.fromStream(communicationKey, mail);
         LOG.log(Level.FINEST, "ポート検査への応答を {0} バイト受信。", size);
         if (mail.get(0) instanceof PortCheckReply) {
             return (PortCheckReply) mail.get(0);
@@ -144,11 +137,11 @@ final class StartingProtocol {
         }
     }
 
-    static void sendPortError(final Transceiver transceiver, final OutputStream output, final Key communicatioKey) throws IOException {
+    static void sendPortError(final Transceiver transceiver, final Key communicatioKey) throws IOException {
         final List<Message> mail = new ArrayList<>(1);
         mail.add(new PortErrorMessage());
-        final int size = transceiver.toStream(output, mail, EncryptedEnvelope.class, communicatioKey);
-        output.flush();
+        final int size = transceiver.toStream(mail, EncryptedEnvelope.class, communicatioKey);
+        transceiver.flush();
         LOG.log(Level.FINEST, "ポート異常通知を {0} バイト送信。", size);
     }
 

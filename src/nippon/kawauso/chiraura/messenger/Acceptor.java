@@ -50,7 +50,7 @@ final class Acceptor implements Callable<Void> {
     private final int sendBufferSize;
     private final long connectionTimeout;
     private final long operationTimeout;
-    private final Transceiver transceiver;
+    private final TransceiverShare transceiverShare;
 
     private final AcceptedConnection acceptedConnection;
 
@@ -71,7 +71,7 @@ final class Acceptor implements Callable<Void> {
 
     Acceptor(final boolean portIgnore, final int connectionLimit, final BlockingQueue<MessengerReport> messengerReportSink,
             final ConnectionPool<AcceptedConnection> acceptedConnectionPool, final int sendBufferSize, final long connectionTimeout,
-            final long operationTimeout, final Transceiver transceiver, final AcceptedConnection acceptedConnection, final long version,
+            final long operationTimeout, final TransceiverShare transceiverShare, final AcceptedConnection acceptedConnection, final long version,
             final long versionGapThreshold, final KeyPair id, final PublicKeyManager keyManager, final AtomicReference<InetSocketAddress> self,
             final ExecutorService executor, final SendQueuePool sendQueuePool, final BlockingQueue<ReceivedMail> receivedMailSink,
             final TrafficLimiter limiter, final ConnectionPool<Connection> connectionPool, final long keyLifetime) {
@@ -87,8 +87,8 @@ final class Acceptor implements Callable<Void> {
             throw new IllegalArgumentException("Invalid operation timeout ( " + operationTimeout + " ).");
         } else if (acceptedConnection == null) {
             throw new IllegalArgumentException("Null connection.");
-        } else if (transceiver == null) {
-            throw new IllegalArgumentException("Null transceiver.");
+        } else if (transceiverShare == null) {
+            throw new IllegalArgumentException("Null transceiver share.");
         } else if (versionGapThreshold < 1) {
             throw new IllegalArgumentException("Invalid version gap threshold ( " + versionGapThreshold + " ).");
         } else if (id == null) {
@@ -121,7 +121,7 @@ final class Acceptor implements Callable<Void> {
         this.connectionTimeout = connectionTimeout;
         this.operationTimeout = operationTimeout;
         this.acceptedConnection = acceptedConnection;
-        this.transceiver = transceiver;
+        this.transceiverShare = transceiverShare;
 
         this.version = version;
         this.versionGapThreshold = versionGapThreshold;
@@ -207,27 +207,29 @@ final class Acceptor implements Callable<Void> {
         final OutputStream output = new BufferedOutputStream(this.acceptedConnection.getSocket().getOutputStream(),
                 this.acceptedConnection.getSocket().getSendBufferSize());
 
+        final Transceiver transceiver = new Transceiver(this.transceiverShare, input, output);
+
         // 一言目を受信。
-        final Message message1 = StartingProtocol.receiveFirst(this.transceiver, input);
+        final Message message1 = StartingProtocol.receiveFirst(transceiver);
 
         if (message1 instanceof FirstMessage) {
-            acceptSequence((FirstMessage) message1, input, output);
+            acceptSequence((FirstMessage) message1, transceiver);
         } else if (message1 instanceof PortCheckMessage) {
-            portCheckReaction((PortCheckMessage) message1, output);
+            portCheckReaction((PortCheckMessage) message1, transceiver);
         } else {
             throw new MyRuleException("Invalid first message.");
         }
     }
 
-    private void acceptSequence(final FirstMessage message, final InputStream input, final OutputStream output) throws IOException, MyRuleException {
+    private void acceptSequence(final FirstMessage message, final Transceiver transceiver) throws IOException, MyRuleException {
         final PublicKey destinationPublicKey = message.getKey();
 
         // 一言目への相槌を送信。
         final Key communicationKey = CryptographicKeys.newCommonKey();
-        StartingProtocol.sendFirstReply(this.transceiver, output, destinationPublicKey, communicationKey);
+        StartingProtocol.sendFirstReply(transceiver, destinationPublicKey, communicationKey);
 
         // 二言目を受信。
-        final SecondMessage message2 = StartingProtocol.receiveSecond(this.transceiver, input, communicationKey);
+        final SecondMessage message2 = StartingProtocol.receiveSecond(transceiver, communicationKey);
         final PublicKey destinationId = message2.getId();
         final byte[] signedCommunicationKeyBytes = message2.getEncryptedKey();
         final byte[] watchword = message2.getWatchword();
@@ -259,7 +261,7 @@ final class Acceptor implements Callable<Void> {
                 // さよなら (二言目への相槌) を送信。
                 final KeyPair keyPair = this.keyManager.getPublicKeyPair();
                 StartingProtocol
-                        .sendSecondReply(this.transceiver, output, communicationKey, this.id, watchword, keyPair.getPublic(), this.version, destination);
+                        .sendSecondReply(transceiver, communicationKey, this.id, watchword, keyPair.getPublic(), this.version, destination);
 
                 this.acceptedConnection.close();
                 return;
@@ -277,7 +279,7 @@ final class Acceptor implements Callable<Void> {
 
             // 二言目への相槌を送信。
             final KeyPair keyPair = this.keyManager.getPublicKeyPair();
-            StartingProtocol.sendSecondReply(this.transceiver, output, communicationKey, this.id, watchword, keyPair.getPublic(), this.version, destination);
+            StartingProtocol.sendSecondReply(transceiver, communicationKey, this.id, watchword, keyPair.getPublic(), this.version, destination);
 
             // 準備が終わったので報告。
             updateSelf(declaredSelf, this.acceptedConnection.getSocket().getInetAddress());
@@ -292,12 +294,12 @@ final class Acceptor implements Callable<Void> {
             this.connectionPool.add(connection);
             LOG.log(Level.FINER, "{0}: {1} と種別 {2} で通信を開始します。", new Object[] { this.acceptedConnection, destination, Integer.toString(connectionType) });
             connection.setSender(this.executor.submit(new Sender(this.sendQueuePool, this.messengerReportSink, this.connectionPool, this.connectionTimeout,
-                    this.transceiver, connection, output, this.keyLifetime, keyPair.getPrivate(), destinationPublicKey, communicationKey)));
-            this.executor.submit(new Receiver(this.receivedMailSink, this.messengerReportSink, this.limiter, this.connectionTimeout, this.transceiver,
-                    connection, input, keyPair.getPrivate(), destinationPublicKey, communicationKey));
+                    transceiver, connection, this.keyLifetime, keyPair.getPrivate(), destinationPublicKey, communicationKey)));
+            this.executor.submit(new Receiver(this.receivedMailSink, this.messengerReportSink, this.limiter, this.connectionTimeout, transceiver, connection,
+                    keyPair.getPrivate(), destinationPublicKey, communicationKey));
         } else {
             // ポート異常を通知。
-            StartingProtocol.sendPortError(this.transceiver, output, communicationKey);
+            StartingProtocol.sendPortError(transceiver, communicationKey);
 
             this.acceptedConnection.close();
         }
@@ -324,13 +326,14 @@ final class Acceptor implements Callable<Void> {
 
             final InputStream input = new BufferedInputStream(socket.getInputStream());
             final OutputStream output = new BufferedOutputStream(socket.getOutputStream());
+            final Transceiver transceiver = new Transceiver(this.transceiverShare, input, output);
 
             // 検査用の言付けを送信。
             final Key communicationKey = CryptographicKeys.newCommonKey();
-            StartingProtocol.sendPortCheck(this.transceiver, output, destinationId, communicationKey);
+            StartingProtocol.sendPortCheck(transceiver, destinationId, communicationKey);
 
             // 検査用の言付けへの相槌を受信。
-            final PortCheckReply reply = StartingProtocol.receivePortCheckReply(this.transceiver, input, communicationKey);
+            final PortCheckReply reply = StartingProtocol.receivePortCheckReply(transceiver, communicationKey);
             if (reply == null) {
                 return false;
             }
@@ -339,10 +342,10 @@ final class Acceptor implements Callable<Void> {
         }
     }
 
-    private void portCheckReaction(final PortCheckMessage message, final OutputStream output) throws IOException {
+    private void portCheckReaction(final PortCheckMessage message, final Transceiver transceiver) throws IOException {
         // 検査用の言付けへの相槌を送信。
         final Key communicationKey = CryptographicKeys.getCommonKey(CryptographicFunctions.decrypt(this.id.getPrivate(), message.getEncryptedKey()));
-        StartingProtocol.sendPortCheckReply(this.transceiver, output, communicationKey);
+        StartingProtocol.sendPortCheckReply(transceiver, communicationKey);
 
         this.acceptedConnection.close();
     }

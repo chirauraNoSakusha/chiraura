@@ -40,10 +40,10 @@ import org.junit.Test;
  */
 public final class AcceptorMasterTest {
 
-    private static final Transceiver transceiver;
+    private static final TransceiverShare transceiverShare;
     static {
         final TypeRegistry<Message> registry = TypeRegistries.newRegistry();
-        transceiver = new Transceiver(Integer.MAX_VALUE, RegistryInitializer.init(registry));
+        transceiverShare = new TransceiverShare(Integer.MAX_VALUE, RegistryInitializer.init(registry));
     }
     private static final boolean portIgnore = false;
     private static final int connectionLimit = 5;
@@ -156,39 +156,42 @@ public final class AcceptorMasterTest {
         final AcceptorMaster instance = new AcceptorMaster(this.subjectReportQueue, this.subjectAcceptedSocketQueue, this.subjectSerialGenerator,
                 this.executor, portIgnore, connectionLimit, this.subjectReceivedMailQueue, this.subjectSendQueuePool, this.limiter,
                 this.subjectMessengerReportQueue, this.subjectAcceptedConnectionPool, this.subjectConnectionPool, sendBufferSize, connectionTimeout,
-                operationTimeout, transceiver, version, versionGapThreshold, subjectId, this.subjectKeyManager, keyLifetime, this.subjectSelf);
+                operationTimeout, transceiverShare, version, versionGapThreshold, subjectId, this.subjectKeyManager, keyLifetime, this.subjectSelf);
         this.executor.submit(instance);
 
         this.subjectAcceptedSocketQueue.put(this.subjectSocket);
 
+        final Transceiver testerTransceiver = new Transceiver(transceiverShare, this.testerInput, this.testerOutput);
+
         // 一言目の送信。
-        StartingProtocol.sendFirst(transceiver, this.testerOutput, testerPublicKeyPair.getPublic());
+        StartingProtocol.sendFirst(testerTransceiver, testerPublicKeyPair.getPublic());
 
         // 一言目への相槌を受信。
-        final FirstReply reply1 = StartingProtocol.receiveFirstReply(transceiver, this.testerInput, testerPublicKeyPair.getPrivate());
+        final FirstReply reply1 = StartingProtocol.receiveFirstReply(testerTransceiver, testerPublicKeyPair.getPrivate());
         final Key communicationKey = reply1.getKey();
 
         // 二言目の送信。
         final Random random = new Random();
         final byte[] watchword = new byte[CryptographicKeys.PUBLIC_KEY_SIZE / Byte.SIZE / 2];
         random.nextBytes(watchword);
-        StartingProtocol.sendSecond(transceiver, this.testerOutput, testerId, communicationKey, watchword, version, testerPort, connectionType,
+        StartingProtocol.sendSecond(testerTransceiver, testerId, communicationKey, watchword, version, testerPort, connectionType,
                 (InetSocketAddress) this.testerSocket.getRemoteSocketAddress());
 
         // ポート検査への応答。
         try (final Socket socket = this.testerServerSocket.accept()) {
             final InputStream input = new BufferedInputStream(socket.getInputStream());
             final OutputStream output = new BufferedOutputStream(socket.getOutputStream());
+            final Transceiver testerTransceiver2 = new Transceiver(transceiverShare, input, output);
 
-            final PortCheckMessage portCheck = (PortCheckMessage) StartingProtocol.receiveFirst(transceiver, input);
+            final PortCheckMessage portCheck = (PortCheckMessage) StartingProtocol.receiveFirst(testerTransceiver2);
             final byte[] keyBytes = CryptographicFunctions.decrypt(testerId.getPrivate(), portCheck.getEncryptedKey());
             final Key communicationKey2 = CryptographicKeys.getCommonKey(keyBytes);
 
-            StartingProtocol.sendPortCheckReply(transceiver, output, communicationKey2);
+            StartingProtocol.sendPortCheckReply(testerTransceiver2, communicationKey2);
         }
 
         // 二言目への相槌を受信。
-        final SecondReply reply2 = (SecondReply) StartingProtocol.receiveSecondReply(transceiver, this.testerInput, communicationKey);
+        final SecondReply reply2 = (SecondReply) StartingProtocol.receiveSecondReply(testerTransceiver, communicationKey);
 
         Assert.assertEquals(subjectId.getPublic(), reply2.getId());
         Assert.assertArrayEquals(watchword, CryptographicFunctions.decrypt(reply2.getId(), reply2.getEncryptedWatchword()));
@@ -206,13 +209,13 @@ public final class AcceptorMasterTest {
         this.subjectSendQueuePool.put(connectReport.getDestination(), connectionType, sendMail);
 
         final List<Message> recvMail = new ArrayList<>(1);
-        transceiver.fromStream(this.testerInput, communicationKey, recvMail);
+        testerTransceiver.fromStream(communicationKey, recvMail);
         Assert.assertEquals(sendMail, recvMail);
 
         // 検査インスタンス側 Receiver の稼動確認。
         sendMail.clear();
         sendMail.add(new TestMessage("あほかね"));
-        transceiver.toStream(this.testerOutput, sendMail, EncryptedEnvelope.class, communicationKey);
+        testerTransceiver.toStream(sendMail, EncryptedEnvelope.class, communicationKey);
         this.testerOutput.flush();
 
         final ReceivedMail receivedMail = this.subjectReceivedMailQueue.poll(Duration.SECOND, TimeUnit.MILLISECONDS);

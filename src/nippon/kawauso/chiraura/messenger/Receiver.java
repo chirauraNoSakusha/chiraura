@@ -4,7 +4,6 @@
 package nippon.kawauso.chiraura.messenger;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.SocketTimeoutException;
 import java.security.Key;
 import java.security.PrivateKey;
@@ -16,7 +15,6 @@ import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import nippon.kawauso.chiraura.lib.StreamFunctions;
 import nippon.kawauso.chiraura.lib.concurrent.ConcurrentFunctions;
 import nippon.kawauso.chiraura.lib.connection.TrafficLimiter;
 import nippon.kawauso.chiraura.lib.exception.MyRuleException;
@@ -43,7 +41,6 @@ final class Receiver implements Callable<Void> {
     private final Transceiver transceiver;
 
     private final Connection connection;
-    private final InputStream input;
 
     // 暗号化周り。
     private final PrivateKey myKey;
@@ -52,8 +49,7 @@ final class Receiver implements Callable<Void> {
     private Key decryptionKey;
 
     Receiver(final BlockingQueue<ReceivedMail> receivedMailSink, final BlockingQueue<MessengerReport> messengerReportSink, final TrafficLimiter limiter,
-            final long timeout,
-            final Transceiver transceiver, final Connection connection, final InputStream input, final PrivateKey myKey, final PublicKey destinationKey,
+            final long timeout, final Transceiver transceiver, final Connection connection, final PrivateKey myKey, final PublicKey destinationKey,
             final Key firstDecryptionKey) {
         if (receivedMailSink == null) {
             throw new IllegalArgumentException("Null received mail sink.");
@@ -67,8 +63,6 @@ final class Receiver implements Callable<Void> {
             throw new IllegalArgumentException("Null transceiver.");
         } else if (connection == null) {
             throw new IllegalArgumentException("Null connection.");
-        } else if (input == null) {
-            throw new IllegalArgumentException("Null input.");
         } else if (myKey == null) {
             throw new IllegalArgumentException("Null my key.");
         } else if (destinationKey == null) {
@@ -83,7 +77,6 @@ final class Receiver implements Callable<Void> {
         this.timeout = timeout;
         this.transceiver = transceiver;
         this.connection = connection;
-        this.input = input;
         this.myKey = myKey;
         this.destinationKey = destinationKey;
         this.decryptionKey = firstDecryptionKey;
@@ -125,7 +118,7 @@ final class Receiver implements Callable<Void> {
 
             // 受信終了かどうか検査。
             try {
-                if (StreamFunctions.isEof(this.input)) {
+                if (this.transceiver.isEof()) {
                     LOG.log(Level.FINEST, "{0}: 受信終了。", this.connection);
                     break;
                 }
@@ -145,7 +138,7 @@ final class Receiver implements Callable<Void> {
             // 受信。
             final int size;
             try {
-                size = this.transceiver.fromStream(this.input, this.decryptionKey, mail);
+                size = this.transceiver.fromStream(this.decryptionKey, mail);
             } catch (final SocketTimeoutException e) {
                 // 送信側が最終動作時刻を更新していないか検査。
                 if (this.connection.getDate() + this.timeout <= System.currentTimeMillis()) {
