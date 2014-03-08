@@ -5,6 +5,7 @@ package nippon.kawauso.chiraura.a;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.concurrent.BlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -40,9 +41,12 @@ final class SelfWriter extends Reporter<Void> {
     }
 
     @Override
-    protected Void subCall() throws InterruptedException {
+    protected Void subCall() throws InterruptedException, UnknownHostException {
         Environment.Self cur = this.environment.loadSelf();
         InetAddress source = null;
+        if (cur != null) {
+            source = InetAddress.getLocalHost();
+        }
 
         while (!Thread.currentThread().isInterrupted()) {
             final SelfReport report = this.selfReportSource.take();
