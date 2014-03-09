@@ -95,7 +95,7 @@ public final class BoardChunkConverter {
             final SimpleBoardChunk.Id oldId = (SimpleBoardChunk.Id) id;
 
             try {
-                if (storage.delete(oldId)) {
+                if (!storage.delete(oldId)) {
                     LOG.log(Level.WARNING, oldId + " の削除に失敗しましたが、無視します。");
                 }
             } catch (final IOException e) {
