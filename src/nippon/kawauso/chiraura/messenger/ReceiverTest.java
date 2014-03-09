@@ -43,10 +43,11 @@ import org.junit.Test;
  */
 public final class ReceiverTest {
 
-    private static final TransceiverShare transceiverShare;
+    private static final boolean http = false;
+    private static final Transceiver.Share transceiverShare;
     static {
         final TypeRegistry<Message> registry = TypeRegistries.newRegistry();
-        transceiverShare = new TransceiverShare(Integer.MAX_VALUE, RegistryInitializer.init(registry));
+        transceiverShare = new Transceiver.Share(Integer.MAX_VALUE, http, RegistryInitializer.init(registry));
     }
     private static final long duration = Duration.SECOND / 2;
     private static final long sizeLimit = 10_000_000L;
@@ -128,8 +129,8 @@ public final class ReceiverTest {
      */
     @Test
     public void testSample() throws Exception {
-        final Transceiver subjectTransceiver = new Transceiver(transceiverShare, this.subjectInput, new ByteArrayOutputStream());
-        final Transceiver testerTransceiver = new Transceiver(transceiverShare, new ByteArrayInputStream(new byte[0]), this.testerOutput);
+        final Transceiver subjectTransceiver = new Transceiver(transceiverShare, this.subjectInput, new ByteArrayOutputStream(), true);
+        final Transceiver testerTransceiver = new Transceiver(transceiverShare, new ByteArrayInputStream(new byte[0]), this.testerOutput, false);
         final Receiver instance = new Receiver(this.subjectReceivedMailQueue, this.subjectMessengerReportQueue, this.limiter, timeout, subjectTransceiver,
                 this.subjectConnection, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
         this.executor.submit(instance);
@@ -163,8 +164,8 @@ public final class ReceiverTest {
      */
     @Test
     public void testKeyUpdate() throws Exception {
-        final Transceiver subjectTransceiver = new Transceiver(transceiverShare, this.subjectInput, new ByteArrayOutputStream());
-        final Transceiver testerTransceiver = new Transceiver(transceiverShare, new ByteArrayInputStream(new byte[0]), this.testerOutput);
+        final Transceiver subjectTransceiver = new Transceiver(transceiverShare, this.subjectInput, new ByteArrayOutputStream(), true);
+        final Transceiver testerTransceiver = new Transceiver(transceiverShare, new ByteArrayInputStream(new byte[0]), this.testerOutput, false);
         final Receiver instance = new Receiver(this.subjectReceivedMailQueue, this.subjectMessengerReportQueue, this.limiter, timeout, subjectTransceiver,
                 this.subjectConnection, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
         this.executor.submit(instance);
@@ -205,8 +206,8 @@ public final class ReceiverTest {
         final int errorThreshold = 5;
         final InputStream subjectErrorInput = InputStreamWrapper.getErrorStream(this.subjectInput, errorThreshold);
 
-        final Transceiver subjectTransceiver = new Transceiver(transceiverShare, subjectErrorInput, new ByteArrayOutputStream());
-        final Transceiver testerTransceiver = new Transceiver(transceiverShare, new ByteArrayInputStream(new byte[0]), this.testerOutput);
+        final Transceiver subjectTransceiver = new Transceiver(transceiverShare, subjectErrorInput, new ByteArrayOutputStream(), true);
+        final Transceiver testerTransceiver = new Transceiver(transceiverShare, new ByteArrayInputStream(new byte[0]), this.testerOutput, false);
 
         final Receiver instance = new Receiver(this.subjectReceivedMailQueue, this.subjectMessengerReportQueue, this.limiter, errorThreshold,
                 subjectTransceiver, this.subjectConnection, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
@@ -245,7 +246,7 @@ public final class ReceiverTest {
      */
     @Test
     public void testInvalidMail() throws Exception {
-        final Transceiver subjectTransceiver = new Transceiver(transceiverShare, this.subjectInput, new ByteArrayOutputStream());
+        final Transceiver subjectTransceiver = new Transceiver(transceiverShare, this.subjectInput, new ByteArrayOutputStream(), true);
         final Receiver instance = new Receiver(this.subjectReceivedMailQueue, this.subjectMessengerReportQueue, this.limiter, timeout, subjectTransceiver,
                 this.subjectConnection, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
         final Future<Void> future = this.executor.submit(instance);
@@ -266,7 +267,7 @@ public final class ReceiverTest {
      */
     @Test
     public void testTimeout() throws Exception {
-        final Transceiver subjectTransceiver = new Transceiver(transceiverShare, this.subjectInput, new ByteArrayOutputStream());
+        final Transceiver subjectTransceiver = new Transceiver(transceiverShare, this.subjectInput, new ByteArrayOutputStream(), false);
         final long shortTimeout = 100L;
         this.subjectSocket.setSoTimeout((int) shortTimeout);
         final Receiver instance = new Receiver(this.subjectReceivedMailQueue, this.subjectMessengerReportQueue, this.limiter, shortTimeout, subjectTransceiver,

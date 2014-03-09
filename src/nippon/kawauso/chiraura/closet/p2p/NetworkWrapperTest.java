@@ -22,6 +22,8 @@ import nippon.kawauso.chiraura.network.AddressableNetworks;
  */
 public final class NetworkWrapperTest {
 
+    private static final boolean http = false;
+
     private static final boolean portIgnore = false;
     private static final int connectionLimit = 5;
 
@@ -49,7 +51,7 @@ public final class NetworkWrapperTest {
         final long versionGapThreshold = 1L;
         final long publicKeyLifetime = Duration.HOUR;
         final long commonKeyLifetime = 10 * Duration.MINUTE;
-        return Messengers.newInstance(port, receivBufferSize, sendBufferSize, connectionTimeout, operationTimeout, messageSizeLimit, version,
+        return Messengers.newInstance(port, receivBufferSize, sendBufferSize, connectionTimeout, operationTimeout, messageSizeLimit, http, version,
                 versionGapThreshold, id, publicKeyLifetime, commonKeyLifetime, portIgnore, connectionLimit, duration, sizeLimit, countLimit, penalty);
     }
 

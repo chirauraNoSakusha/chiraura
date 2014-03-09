@@ -50,7 +50,7 @@ final class Acceptor implements Callable<Void> {
     private final int sendBufferSize;
     private final long connectionTimeout;
     private final long operationTimeout;
-    private final TransceiverShare transceiverShare;
+    private final Transceiver.Share transceiverShare;
 
     private final AcceptedConnection acceptedConnection;
 
@@ -71,7 +71,7 @@ final class Acceptor implements Callable<Void> {
 
     Acceptor(final boolean portIgnore, final int connectionLimit, final BlockingQueue<MessengerReport> messengerReportSink,
             final ConnectionPool<AcceptedConnection> acceptedConnectionPool, final int sendBufferSize, final long connectionTimeout,
-            final long operationTimeout, final TransceiverShare transceiverShare, final AcceptedConnection acceptedConnection, final long version,
+            final long operationTimeout, final Transceiver.Share transceiverShare, final AcceptedConnection acceptedConnection, final long version,
             final long versionGapThreshold, final KeyPair id, final PublicKeyManager keyManager, final AtomicReference<InetSocketAddress> self,
             final ExecutorService executor, final SendQueuePool sendQueuePool, final BlockingQueue<ReceivedMail> receivedMailSink,
             final TrafficLimiter limiter, final ConnectionPool<Connection> connectionPool, final long keyLifetime) {
@@ -207,7 +207,7 @@ final class Acceptor implements Callable<Void> {
         final OutputStream output = new BufferedOutputStream(this.acceptedConnection.getSocket().getOutputStream(),
                 this.acceptedConnection.getSocket().getSendBufferSize());
 
-        final Transceiver transceiver = new Transceiver(this.transceiverShare, input, output);
+        final Transceiver transceiver = new Transceiver(this.transceiverShare, input, output, false);
 
         // 一言目を受信。
         final Message message1 = StartingProtocol.receiveFirst(transceiver);
@@ -326,7 +326,7 @@ final class Acceptor implements Callable<Void> {
 
             final InputStream input = new BufferedInputStream(socket.getInputStream());
             final OutputStream output = new BufferedOutputStream(socket.getOutputStream());
-            final Transceiver transceiver = new Transceiver(this.transceiverShare, input, output);
+            final Transceiver transceiver = new Transceiver(this.transceiverShare, input, output, true);
 
             // 検査用の言付けを送信。
             final Key communicationKey = CryptographicKeys.newCommonKey();

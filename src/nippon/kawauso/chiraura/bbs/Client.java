@@ -251,7 +251,9 @@ public final class Client {
                 .append("Host: ").append(server.getHostString()).append(Http.SEPARATOR)
                 .append(Http.SEPARATOR).toString();
         final HttpResponse response = sendAndReceive(server, request);
-        if (response.getStatus() == Http.Status.OK) {
+        if (response == null) {
+            return null;
+        } else if (response.getStatus() == Http.Status.OK) {
             return new ResumableBbsBoard(boardName, decodeBoard(new String(response.getContent(), CHARSET)),
                     response.getFields().get(Http.Field.LAST_MODIFIED), response.getFields().get(Http.Field.ETAG));
         } else {
@@ -282,7 +284,9 @@ public final class Client {
             }
             request.append(Http.SEPARATOR);
             final HttpResponse response = sendAndReceive(server, request.toString());
-            if (response.getStatus() == Http.Status.Not_Modified) {
+            if (response == null) {
+                return null;
+            } else if (response.getStatus() == Http.Status.Not_Modified) {
                 return board;
             } else if (response.getStatus() == Http.Status.OK) {
                 return new ResumableBbsBoard(board.getName(), decodeBoard(new String(response.getContent(), CHARSET)),
@@ -362,7 +366,9 @@ public final class Client {
                 .append("Host: ").append(server.getHostString()).append(Http.SEPARATOR)
                 .append(Http.SEPARATOR).toString();
         final HttpResponse response = sendAndReceive(server, request);
-        if (response.getStatus() == Http.Status.OK) {
+        if (response == null) {
+            return null;
+        } else if (response.getStatus() == Http.Status.OK) {
             return new ResumableBbsThread(boardName, threadName, decodeThread(new String(response.getContent(), CHARSET)), response.getContent(),
                     response.getFields().get(Http.Field.LAST_MODIFIED), response.getFields().get(Http.Field.ETAG));
         } else {
@@ -397,8 +403,9 @@ public final class Client {
             }
             request.append(Http.SEPARATOR);
             final HttpResponse response = sendAndReceive(server, request.toString());
-
-            if (response.getStatus() == Http.Status.Partial_Content) {
+            if (response == null) {
+                return null;
+            } else if (response.getStatus() == Http.Status.Partial_Content) {
                 if (resumable.rawDat[resumable.rawDat.length - 1] != response.getContent()[0]) {
                     // あぼーんがあったみたいなので、全取得。
                     return getThread(server, thread.getBoard(), thread.getName());
@@ -533,6 +540,9 @@ public final class Client {
                 .append(content)
                 .toString();
         final HttpResponse response = sendAndReceive(server, request);
+        if (response == null) {
+            return false;
+        }
         return response.getStatus() == Http.Status.OK && checkResult(new String(response.getContent(), CHARSET));
     }
 
@@ -576,6 +586,9 @@ public final class Client {
                 .append(content)
                 .toString();
         final HttpResponse response = sendAndReceive(server, request);
+        if (response == null) {
+            return false;
+        }
         return response.getStatus() == Http.Status.OK && checkResult(new String(response.getContent(), CHARSET));
     }
 

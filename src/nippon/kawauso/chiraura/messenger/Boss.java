@@ -65,7 +65,7 @@ final class Boss extends Chief {
 
     private final BlockingQueue<Socket> acceptedSocketQueue;
 
-    private final TransceiverShare transceiver;
+    private final Transceiver.Share transceiver;
 
     private final TrafficLimiter limiter;
 
@@ -77,10 +77,10 @@ final class Boss extends Chief {
             final SendQueuePool sendQueuePool, final BlockingQueue<MessengerReport> messengerReportSink,
             final ConnectionPool<AcceptedConnection> acceptedConnectionPool, final ConnectionPool<ContactingConnection> contactingConnectionPool,
             final ConnectionPool<Connection> connectionPool, final int port, final int receiveBufferSize, final int sendBufferSize,
-            final long connectionTimeout, final long operationTimeout, final int messageSizeLimit, final TypeRegistry<Message> registry, final long version,
-            final long versionGapThreshold, final KeyPair id, final long publicKeyLifetime, final long commonKeyLifetime,
-            final AtomicReference<InetSocketAddress> self, final boolean portIgnore, final int connectionLimit, final long trafficDuration,
-            final long trafficSizeLimit, final int trafficCountLimit, final long trafficPenalty) {
+            final long connectionTimeout, final long operationTimeout, final int messageSizeLimit, final boolean useHttpWrapper,
+            final TypeRegistry<Message> registry, final long version, final long versionGapThreshold, final KeyPair id, final long publicKeyLifetime,
+            final long commonKeyLifetime, final AtomicReference<InetSocketAddress> self, final boolean portIgnore, final int connectionLimit,
+            final long trafficDuration, final long trafficSizeLimit, final int trafficCountLimit, final long trafficPenalty) {
         super(new LinkedBlockingQueue<Reporter.Report>());
 
         if (executor == null) {
@@ -159,7 +159,7 @@ final class Boss extends Chief {
 
         this.connectionSerialGenerator = new AtomicInteger();
         this.acceptedSocketQueue = new LinkedBlockingQueue<>();
-        this.transceiver = new TransceiverShare(messageSizeLimit, registry);
+        this.transceiver = new Transceiver.Share(messageSizeLimit, useHttpWrapper, registry);
         if (portIgnore) {
             this.limiter = new PortIgnoringConstantTrafficLimiter(trafficDuration, trafficSizeLimit, trafficCountLimit, trafficPenalty);
         } else {

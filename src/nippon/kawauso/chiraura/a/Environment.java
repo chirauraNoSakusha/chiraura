@@ -80,6 +80,7 @@ final class Environment {
 
     private final int peerCapacity;
     private final int messageSizeLimit;
+    private final boolean useHttpWrapper;
     private final int receiveBufferSize;
     private final int sendBufferSize;
     private final long maintenanceInterval;
@@ -210,6 +211,7 @@ final class Environment {
 
         this.peerCapacity = getLargerInt(option, Option.Item.peerCapacity);
         this.messageSizeLimit = 1024 * 1024 + 1024; // 1MB + 1KB.
+        this.useHttpWrapper = Global.useHttpWrapper();
         this.receiveBufferSize = getLargerInt(option, Option.Item.receiveBufferSize);
         this.sendBufferSize = getLargerInt(option, Option.Item.sendBufferSize);
         this.maintenanceInterval = getDefaultLong(option, Option.Item.maintenanceInterval);
@@ -426,6 +428,10 @@ final class Environment {
 
     int getMessageSizeLimit() {
         return this.messageSizeLimit;
+    }
+
+    boolean getUseHttpWrapper() {
+        return this.useHttpWrapper;
     }
 
     AddressCalculator getAddressCalculator() {

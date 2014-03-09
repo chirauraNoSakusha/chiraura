@@ -35,4 +35,12 @@ public final class Global {
      */
     public static final Logger ROOT_LOGGER = Logger.getLogger(Global.class.getPackage().getName());
 
+    /**
+     * デフォルトで HTTP 偽装するかどうか。
+     * @return 偽装するなら true
+     */
+    public static boolean useHttpWrapper() {
+        return false;
+    }
+
 }

@@ -75,6 +75,7 @@ public final class P2pCloset implements Closet {
         private int indexCacheCapacity = 10_000;
         private int rangeCacheCapacity = 40;
         private int messageSizeLimit = 1024 * 1024 + 1024; // 1 MB + 1 KB.
+        private boolean useHttpWrapper = false;
         private int peerCapacity = 1_000;
         private int receiveBufferSize = 128 * 1024; // 128 KB.
         private int sendBufferSize = 64 * 1024; // 64 KB.
@@ -398,6 +399,16 @@ public final class P2pCloset implements Closet {
         }
 
         /**
+         * デフォルトで HTTP 偽装するかどうかを変える。
+         * @param value 新しい値
+         * @return this
+         */
+        public Parameters setUseHttpWrapper(final boolean value) {
+            this.useHttpWrapper = value;
+            return this;
+        }
+
+        /**
          * 直接通信して得た個体の論理位置を記憶する数を変える。
          * @param value 新しい値
          * @return this
@@ -473,8 +484,9 @@ public final class P2pCloset implements Closet {
         this.storage = new StorageWrapper(rawStorage, this.operationQueue, param.cacheLogCapacity, param.cacheDuration);
 
         final Messenger messenger = Messengers.newInstance(param.port, param.receiveBufferSize, param.sendBufferSize, param.connectionTimeout,
-                param.operationTimeout, param.messageSizeLimit, VERSION, VERSION_GAP_THRESHOLD, param.id, param.publicKeyLifetime, param.commonKeyLifetime,
-                param.portIgnore, param.connectionLimit, param.trafficDuration, param.trafficSizeLimit, param.trafficCountLimit, param.trafficPenalty);
+                param.operationTimeout, param.messageSizeLimit, param.useHttpWrapper, VERSION, VERSION_GAP_THRESHOLD, param.id, param.publicKeyLifetime,
+                param.commonKeyLifetime, param.portIgnore, param.connectionLimit, param.trafficDuration, param.trafficSizeLimit, param.trafficCountLimit,
+                param.trafficPenalty);
         final AddressableNetwork rawNetwork = AddressableNetworks.newInstance(param.calculator.calculate(param.id.getPublic()), param.peerCapacity,
                 param.maintenanceInterval);
         final PeerBlacklist blacklist = new TimeLimitedPeerBlacklist(param.blacklistCapacity, param.blacklistTimeout);

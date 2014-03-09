@@ -34,6 +34,7 @@ final class ThreadMessenger implements Messenger {
     private final long connectionTimeout;
     private final long operationTimeout;
     private final int messageSizeLimit;
+    private final boolean useHttpWrapper;
 
     private final long version;
     private final long versionGapThreshold;
@@ -63,9 +64,9 @@ final class ThreadMessenger implements Messenger {
     private final AtomicReference<InetSocketAddress> self;
 
     ThreadMessenger(final int port, final int receveBufferSize, final int sendBufferSize, final long connectionTimeout, final long operationTimeout,
-            final int messageSizeLimit, final long version, final long versionGapThreshold, final KeyPair id, final long publicKeyLifetime,
-            final long commonKeyLifetime, final boolean portIgnore, final int connectionLimit, final long trafficDuration, final long trafficSizeLimit,
-            final int trafficCountLimit, final long trafficPenalty) {
+            final int messageSizeLimit, final boolean useHttpWrapper, final long version, final long versionGapThreshold, final KeyPair id,
+            final long publicKeyLifetime, final long commonKeyLifetime, final boolean portIgnore, final int connectionLimit, final long trafficDuration,
+            final long trafficSizeLimit, final int trafficCountLimit, final long trafficPenalty) {
         if (!PortFunctions.isValid(port)) {
             throw new IllegalArgumentException("Invalid port ( " + port + " ).");
         } else if (connectionTimeout < 0) {
@@ -100,6 +101,8 @@ final class ThreadMessenger implements Messenger {
         this.connectionTimeout = connectionTimeout;
         this.operationTimeout = operationTimeout;
         this.messageSizeLimit = messageSizeLimit;
+        this.useHttpWrapper = useHttpWrapper;
+
         this.version = version;
         this.versionGapThreshold = versionGapThreshold;
         this.id = id;
@@ -205,9 +208,9 @@ final class ThreadMessenger implements Messenger {
     public void start(final ExecutorService executor) {
         executor.submit(new Boss(executor, this.connectRequestQueue, this.receivedMailSink, this.sendQueuePool, this.messengerReportSink,
                 this.acceptedConnectionPool, this.contactingConnectionPool, this.connectionPool, this.port, this.receveBufferSize, this.sendBufferSize,
-                this.connectionTimeout, this.operationTimeout, this.messageSizeLimit, this.registry, this.version, this.versionGapThreshold, this.id,
-                this.publicKeyLifetime, this.commonKeyLifetime, this.self, this.portIgnore, this.connectionLimit, this.trafficDuration, this.trafficSizeLimit,
-                this.trafficCountLimit, this.trafficPenalty));
+                this.connectionTimeout, this.operationTimeout, this.messageSizeLimit, this.useHttpWrapper, this.registry, this.version,
+                this.versionGapThreshold, this.id, this.publicKeyLifetime, this.commonKeyLifetime, this.self, this.portIgnore, this.connectionLimit,
+                this.trafficDuration, this.trafficSizeLimit, this.trafficCountLimit, this.trafficPenalty));
     }
 
     @Override

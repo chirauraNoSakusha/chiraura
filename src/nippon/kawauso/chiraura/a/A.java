@@ -83,6 +83,7 @@ public final class A implements AutoCloseable {
                         .setPotCapacity(environment.getPotCapacity())
                         .setOperationTimeout(environment.getOperationTimeout())
                         .setMessageSizeLimit(environment.getMessageSizeLimit())
+                        .setUseHttpWrapper(environment.getUseHttpWrapper())
                         .setCacheLogCapacity(environment.getCacheLogCapacity())
                         .setCacheDuration(environment.getCacheDuration())
                         .setAddressedPeers(environment.loadAddressedPeers())

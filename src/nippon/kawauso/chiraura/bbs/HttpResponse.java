@@ -4,7 +4,6 @@
 package nippon.kawauso.chiraura.bbs;
 
 import java.io.ByteArrayInputStream;
-import java.io.EOFException;
 import java.io.IOException;
 import java.net.ProtocolException;
 import java.nio.charset.Charset;
@@ -94,12 +93,19 @@ final class HttpResponse {
         return this.content;
     }
 
+    /**
+     * HTTP の返答を読み込む。
+     * @param input 読み込み元
+     * @return HTTP の返答。終端に達していたら null
+     * @throws MyRuleException 規約違反
+     * @throws IOException 読み込み異常
+     */
     final static HttpResponse fromStream(final InputStreamWrapper input) throws MyRuleException, IOException {
         String line;
         while (true) {
             line = input.readLine();
             if (line == null) {
-                throw new EOFException();
+                return null;
             } else if (!line.equals("")) {
                 break;
             }

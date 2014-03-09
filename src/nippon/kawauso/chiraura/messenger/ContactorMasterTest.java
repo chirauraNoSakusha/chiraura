@@ -41,10 +41,11 @@ import org.junit.Test;
  */
 public final class ContactorMasterTest {
 
-    private static final TransceiverShare transceiverShare;
+    private static final Transceiver.Share transceiverShare;
+    private static final boolean http = false;
     static {
         final TypeRegistry<Message> registry = TypeRegistries.newRegistry();
-        transceiverShare = new TransceiverShare(Integer.MAX_VALUE, RegistryInitializer.init(registry));
+        transceiverShare = new Transceiver.Share(Integer.MAX_VALUE, http, RegistryInitializer.init(registry));
     }
     private static final long duration = Duration.SECOND / 2;
     private static final long sizeLimit = 10_000_000L;
@@ -157,7 +158,7 @@ public final class ContactorMasterTest {
         testerSocket.setSoTimeout((int) connectionTimeout);
         final InputStream testerInput = new BufferedInputStream(testerSocket.getInputStream());
         final OutputStream testerOutput = new BufferedOutputStream(testerSocket.getOutputStream());
-        final Transceiver testerTransceiver = new Transceiver(transceiverShare, testerInput, testerOutput);
+        final Transceiver testerTransceiver = new Transceiver(transceiverShare, testerInput, testerOutput, false);
 
         // 一言目を受信。
         final FirstMessage message1 = (FirstMessage) StartingProtocol.receiveFirst(testerTransceiver);

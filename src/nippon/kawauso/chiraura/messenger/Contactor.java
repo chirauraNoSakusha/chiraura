@@ -49,7 +49,7 @@ final class Contactor implements Callable<Void> {
     private final int sendBufferSize;
     private final long connectionTimeout;
     private final long operationTimeout;
-    private final TransceiverShare transceiverShare;
+    private final Transceiver.Share transceiverShare;
 
     private final ContactingConnection contactingConnection;
 
@@ -71,7 +71,7 @@ final class Contactor implements Callable<Void> {
 
     Contactor(final BlockingQueue<MessengerReport> messengerReportSink, final ConnectionPool<ContactingConnection> contactingConnectionPool,
             final int receiveBufferSize, final int sendBufferSize, final long connectionTimeout, final long operationTimeout,
-            final TransceiverShare transceiverShare, final ContactingConnection contactingConnection, final long version, final long versionGapThreshold,
+            final Transceiver.Share transceiverShare, final ContactingConnection contactingConnection, final long version, final long versionGapThreshold,
             final int port, final KeyPair id, final PublicKeyManager keyManager, final AtomicReference<InetSocketAddress> self, final ExecutorService executor,
             final SendQueuePool sendQueuePool, final BlockingQueue<ReceivedMail> receivedMailSink, final TrafficLimiter limiter,
             final ConnectionPool<Connection> connectionPool, final long keyLifetime) {
@@ -217,7 +217,7 @@ final class Contactor implements Callable<Void> {
                 this.contactingConnection.getSocket().getReceiveBufferSize());
         final OutputStream output = new BufferedOutputStream(this.contactingConnection.getSocket().getOutputStream(),
                 this.contactingConnection.getSocket().getSendBufferSize());
-        final Transceiver transceiver = new Transceiver(this.transceiverShare, input, output);
+        final Transceiver transceiver = new Transceiver(this.transceiverShare, input, output, true);
 
         // 一言目の送信。
         final KeyPair keyPair = this.keyManager.getPublicKeyPair();

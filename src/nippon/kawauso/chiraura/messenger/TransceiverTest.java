@@ -23,7 +23,9 @@ import nippon.kawauso.chiraura.lib.exception.MyRuleException;
  */
 public final class TransceiverTest extends BytesConvertibleTest<TransceiverElement> {
 
-    private final TransceiverShare transceiverShare;
+    private static final boolean http = false;
+
+    private final Transceiver.Share transceiverShare;
     private final Key commonKey;
 
     /**
@@ -32,7 +34,7 @@ public final class TransceiverTest extends BytesConvertibleTest<TransceiverEleme
     public TransceiverTest() {
         final TypeRegistry<Message> registry = TypeRegistries.newRegistry();
         RegistryInitializer.init(registry);
-        this.transceiverShare = new TransceiverShare(Integer.MAX_VALUE, registry);
+        this.transceiverShare = new Transceiver.Share(Integer.MAX_VALUE, http, registry);
         this.commonKey = CryptographicKeys.newCommonKey();
     }
 
@@ -88,12 +90,12 @@ public final class TransceiverTest extends BytesConvertibleTest<TransceiverEleme
 
 final class TransceiverElement implements BytesConvertible {
 
-    private final TransceiverShare transceiverShare;
+    private final Transceiver.Share transceiverShare;
     private final List<Message> mail;
     private final Class<? extends Envelope> type;
     private final Key key;
 
-    TransceiverElement(final TransceiverShare transceiverShare, final List<Message> mail, final Class<? extends Envelope> type, final Key key) {
+    TransceiverElement(final Transceiver.Share transceiverShare, final List<Message> mail, final Class<? extends Envelope> type, final Key key) {
         this.transceiverShare = transceiverShare;
         this.mail = mail;
         this.type = type;
@@ -104,7 +106,7 @@ final class TransceiverElement implements BytesConvertible {
     public int byteSize() {
         final ByteArrayOutputStream buff = new ByteArrayOutputStream();
         try {
-            new Transceiver(this.transceiverShare, new ByteArrayInputStream(new byte[0]), buff).toStream(this.mail, this.type, this.key);
+            new Transceiver(this.transceiverShare, new ByteArrayInputStream(new byte[0]), buff, true).toStream(this.mail, this.type, this.key);
         } catch (final IOException e) {
             throw new RuntimeException(e);
         }
@@ -113,16 +115,16 @@ final class TransceiverElement implements BytesConvertible {
 
     @Override
     public int toStream(final OutputStream output) throws IOException {
-        return new Transceiver(this.transceiverShare, new ByteArrayInputStream(new byte[0]), output).toStream(this.mail, this.type, this.key);
+        return new Transceiver(this.transceiverShare, new ByteArrayInputStream(new byte[0]), output, true).toStream(this.mail, this.type, this.key);
     }
 
-    static BytesConvertible.Parser<TransceiverElement> getParser(final TransceiverShare transceiverShare, final Key key) {
+    static BytesConvertible.Parser<TransceiverElement> getParser(final Transceiver.Share transceiverShare, final Key key) {
         return new BytesConvertible.Parser<TransceiverElement>() {
             @Override
             public int fromStream(final InputStream input, final int maxByteSize, final List<? super TransceiverElement> output) throws MyRuleException,
                     IOException {
                 final List<Message> mail = new ArrayList<>();
-                final int size = new Transceiver(transceiverShare, input, new ByteArrayOutputStream(0)).fromStream(key, mail);
+                final int size = new Transceiver(transceiverShare, input, new ByteArrayOutputStream(0), true).fromStream(key, mail);
                 output.add(new TransceiverElement(transceiverShare, mail, null, key));
                 return size;
             }

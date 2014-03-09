@@ -43,10 +43,11 @@ import org.junit.Test;
  */
 public final class AcceptorTest {
 
-    private static final TransceiverShare transceiverShare;
+    private static final Transceiver.Share transceiverShare;
+    private static final boolean http = false;
     static {
         final TypeRegistry<Message> registry = TypeRegistries.newRegistry();
-        transceiverShare = new TransceiverShare(Integer.MAX_VALUE, RegistryInitializer.init(registry));
+        transceiverShare = new Transceiver.Share(Integer.MAX_VALUE, http, RegistryInitializer.init(registry));
     }
     private static final boolean portIgnore = false;
     private static final int connectionLimit = 5;
@@ -153,7 +154,7 @@ public final class AcceptorTest {
                 this.subjectConnectionPool, keyLifetime);
         this.executor.submit(instance);
 
-        final Transceiver testerTransceiver = new Transceiver(transceiverShare, this.testerInput, this.testerOutput);
+        final Transceiver testerTransceiver = new Transceiver(transceiverShare, this.testerInput, this.testerOutput, true);
 
         // 一言目の送信。
         StartingProtocol.sendFirst(testerTransceiver, testerPublicKeyPair.getPublic());
@@ -173,7 +174,7 @@ public final class AcceptorTest {
         try (final Socket socket = this.testerServerSocket.accept()) {
             final InputStream input = new BufferedInputStream(socket.getInputStream());
             final OutputStream output = new BufferedOutputStream(socket.getOutputStream());
-            final Transceiver testerTransceiver2 = new Transceiver(transceiverShare, input, output);
+            final Transceiver testerTransceiver2 = new Transceiver(transceiverShare, input, output, false);
 
             final PortCheckMessage portCheck = (PortCheckMessage) StartingProtocol.receiveFirst(testerTransceiver2);
             final byte[] keyBytes = CryptographicFunctions.decrypt(testerId.getPrivate(), portCheck.getEncryptedKey());
@@ -233,7 +234,7 @@ public final class AcceptorTest {
                 this.subjectConnectionPool, keyLifetime);
         final Future<Void> future = this.executor.submit(instance);
 
-        final Transceiver testerTransceiver = new Transceiver(transceiverShare, this.testerInput, this.testerOutput);
+        final Transceiver testerTransceiver = new Transceiver(transceiverShare, this.testerInput, this.testerOutput, true);
 
         // 一言目を送信。
         StartingProtocol.sendFirst(testerTransceiver, testerPublicKeyPair.getPublic());
@@ -305,7 +306,7 @@ public final class AcceptorTest {
 
         this.testerServerSocket.close();
 
-        final Transceiver testerTransceiver = new Transceiver(transceiverShare, this.testerInput, this.testerOutput);
+        final Transceiver testerTransceiver = new Transceiver(transceiverShare, this.testerInput, this.testerOutput, true);
 
         // 一言目の送信。
         StartingProtocol.sendFirst(testerTransceiver, testerPublicKeyPair.getPublic());
@@ -342,7 +343,7 @@ public final class AcceptorTest {
                 this.subjectConnectionPool, keyLifetime);
         this.executor.submit(instance);
 
-        final Transceiver testerTransceiver = new Transceiver(transceiverShare, this.testerInput, this.testerOutput);
+        final Transceiver testerTransceiver = new Transceiver(transceiverShare, this.testerInput, this.testerOutput, true);
         // 一言目の送信。
         StartingProtocol.sendFirst(testerTransceiver, testerPublicKeyPair.getPublic());
 
@@ -379,7 +380,7 @@ public final class AcceptorTest {
                 this.subjectConnectionPool, keyLifetime);
         this.executor.submit(instance);
 
-        final Transceiver testerTransceiver = new Transceiver(transceiverShare, this.testerInput, this.testerOutput);
+        final Transceiver testerTransceiver = new Transceiver(transceiverShare, this.testerInput, this.testerOutput, true);
 
         // 一言目の送信。
         StartingProtocol.sendFirst(testerTransceiver, testerPublicKeyPair.getPublic());

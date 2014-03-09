@@ -32,6 +32,7 @@ public final class ThreadMessengerTest {
     private static final int receiveBufferSize = 128 * 1024;
     private static final int sendBufferSize = 128 * 1024;
     private static final int messageSizeLimit = 1024 * 1024;
+    private static final boolean http = false;
     private static final long publicKeyLifetime = Duration.DAY;
     private static final long commonKeyLifetime = Duration.DAY;
     private static final long version = 1L;
@@ -63,9 +64,11 @@ public final class ThreadMessengerTest {
         // LoggingFunctions.startDebugLogging();
 
         final ThreadMessenger messenger1 = new ThreadMessenger(port1, receiveBufferSize, sendBufferSize, connectionTimeout, operationTimeout, messageSizeLimit,
-                version, versionGapThreshold, id1, publicKeyLifetime, commonKeyLifetime, portIgnore, connectionLimit, duration, sizeLimit, countLimit, penalty);
+                http, version, versionGapThreshold, id1, publicKeyLifetime, commonKeyLifetime, portIgnore, connectionLimit, duration, sizeLimit, countLimit,
+                penalty);
         final ThreadMessenger messenger2 = new ThreadMessenger(port2, receiveBufferSize, sendBufferSize, connectionTimeout, operationTimeout, messageSizeLimit,
-                version, versionGapThreshold, id2, publicKeyLifetime, commonKeyLifetime, portIgnore, connectionLimit, duration, sizeLimit, countLimit, penalty);
+                http, version, versionGapThreshold, id2, publicKeyLifetime, commonKeyLifetime, portIgnore, connectionLimit, duration, sizeLimit, countLimit,
+                penalty);
 
         messenger1.start(this.executor);
         messenger2.start(this.executor);

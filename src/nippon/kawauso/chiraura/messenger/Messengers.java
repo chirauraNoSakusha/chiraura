@@ -23,6 +23,7 @@ public final class Messengers {
      * @param connectionTimeout 無通信接続の切断猶予時間 (ミリ秒)
      * @param operationTimeout 規約通信の応答制限時間 (ミリ秒)
      * @param messageSizeLimit メッセージの最大バイトサイズ
+     * @param useHttpWrapper デフォルトで HTTP 偽装するかどうか
      * @param version バージョン番号
      * @param versionGapThreshold 弾く
      * @param id 自身の識別用鍵
@@ -37,11 +38,12 @@ public final class Messengers {
      * @return 通信係
      */
     public static Messenger newInstance(final int port, final int receveBufferSize, final int sendBufferSize, final long connectionTimeout,
-            final long operationTimeout, final int messageSizeLimit, final long version, final long versionGapThreshold, final KeyPair id,
-            final long publicKeyLifetime, final long commonKeyLifetime, final boolean portIgnore, final int connectionLimit, final long trafficDuration,
-            final long trafficSizeLimit, final int trafficCountLimit, final long trafficPenalty) {
-        return new ThreadMessenger(port, receveBufferSize, sendBufferSize, connectionTimeout, operationTimeout, messageSizeLimit, version, versionGapThreshold,
-                id, publicKeyLifetime, commonKeyLifetime, portIgnore, connectionLimit, trafficDuration, trafficSizeLimit, trafficCountLimit, trafficPenalty);
+            final long operationTimeout, final int messageSizeLimit, final boolean useHttpWrapper, final long version, final long versionGapThreshold,
+            final KeyPair id, final long publicKeyLifetime, final long commonKeyLifetime, final boolean portIgnore, final int connectionLimit,
+            final long trafficDuration, final long trafficSizeLimit, final int trafficCountLimit, final long trafficPenalty) {
+        return new ThreadMessenger(port, receveBufferSize, sendBufferSize, connectionTimeout, operationTimeout, messageSizeLimit, useHttpWrapper, version,
+                versionGapThreshold, id, publicKeyLifetime, commonKeyLifetime, portIgnore, connectionLimit, trafficDuration, trafficSizeLimit,
+                trafficCountLimit, trafficPenalty);
     }
 
     /**
