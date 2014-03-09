@@ -41,4 +41,17 @@ public final class RandomString {
         return new String(buff);
     }
 
+    /**
+     * @param length 生成する文字列の長さ
+     * @param random 乱数生成器
+     * @return 生成したランダム文字列
+     */
+    public static String nextAsciiString(final int length, final Random random) {
+        final char[] buff = new char[length];
+        for (int i = 0; i < length; i++) {
+            buff[i] = (char) (32 + random.nextInt(127 - 32));
+        }
+        return new String(buff);
+    }
+
 }
