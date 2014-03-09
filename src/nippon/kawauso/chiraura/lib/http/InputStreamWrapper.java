@@ -9,25 +9,32 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 
 import nippon.kawauso.chiraura.lib.BytesFunctions;
+import nippon.kawauso.chiraura.lib.StreamFunctions;
 import nippon.kawauso.chiraura.lib.exception.MyRuleException;
 
 /**
- * テキスト読み込みとバイト列読み込みを両備した InputStream もどき。
+ * テキスト読み込みとバイト列読み込みを両備した InputStream。
+ * mark と reset を実装するが、バイト操作の mark と reset の間にテキスト操作を挟むことはできない。
  * @author chirauraNoSakusha
  */
-public final class InputStreamWrapper implements AutoCloseable {
+public final class InputStreamWrapper extends InputStream {
 
     private final InputStream base;
     private final Charset charset;
     private final byte[] separator;
     private final byte[] buff;
 
-    // base から読み込み buff に格納されているバイトサイズ。
-    private int readSize;
+    // buff に読み込んであるまだ取り出してないバイトの先頭。
+    private int head;
+    // buff に読み込んであるバイトの末尾。
+    private int tail;
+    // mark, reset で使う。
+    private int mark;
+    private int readLimit;
 
     /**
-     * InputStream もどきを作成する。
-     * @param base 元にする入力
+     * 作成する。
+     * @param base 元にする InputStream
      * @param charset 文字コード
      * @param separator 改行
      * @param lineSize 1 行の許容バイトサイズ
@@ -47,7 +54,31 @@ public final class InputStreamWrapper implements AutoCloseable {
         this.charset = charset;
         this.separator = separator.getBytes(charset);
         this.buff = new byte[lineSize + separator.length()];
-        this.readSize = 0;
+        this.head = 0;
+        this.tail = 0;
+        this.mark = 0;
+        this.readLimit = 0;
+    }
+
+    // buff の中身を前に詰める。
+    private void shift() {
+        final int len = this.tail - this.head;
+        System.arraycopy(this.buff, this.head, this.buff, 0, len);
+        this.head = 0;
+        this.tail = len;
+        this.mark -= len;
+    }
+
+    // buff の後ろに入力を読み込む。
+    // EOF のときだけ true を返す。
+    private boolean fill() throws IOException {
+        final int size = this.base.read(this.buff, this.tail, this.buff.length - this.tail);
+        if (size < 0) {
+            return true;
+        } else {
+            this.tail += size;
+            return false;
+        }
     }
 
     /**
@@ -57,75 +88,171 @@ public final class InputStreamWrapper implements AutoCloseable {
      * @throws MyRuleException 読み込めるデータが足りなかった場合
      */
     public void completeRead(final byte[] output) throws IOException, MyRuleException {
-        if (output.length <= this.readSize) {
-            // 全部読み込み済み。
-
-            // 出力にコピー。
-            System.arraycopy(this.buff, 0, output, 0, output.length);
-
-            // 余りを詰める。
-            System.arraycopy(this.buff, output.length, this.buff, 0, this.readSize - output.length);
-            this.readSize = this.readSize - output.length;
+        final int len = this.tail - this.head;
+        if (len == 0) {
+            StreamFunctions.completeRead(this.base, output, 0, output.length);
+        } else if (len < output.length) {
+            System.arraycopy(this.buff, this.head, output, 0, len);
+            this.head = this.tail;
+            StreamFunctions.completeRead(this.base, output, len, output.length - len);
         } else {
-            // 読み込み済みの分をコピー。
-            System.arraycopy(this.buff, 0, output, 0, this.readSize);
-
-            // 不足分を直接読み込む。
-            for (int i = this.readSize; i < output.length;) {
-                final int size = this.base.read(output, i, output.length - i);
-                if (size < 0) {
-                    throw new MyRuleException("Read size ( " + i + " ) is shorter than required size ( " + output.length + " ).");
-                }
-                i += size;
-            }
-            this.readSize = 0;
+            System.arraycopy(this.buff, this.head, output, 0, output.length);
+            this.head += output.length;
         }
     }
 
     /**
      * 1 行読む。
-     * @return 1 行
+     * @return 1 行。もう無いときは null
      * @throws IOException 読み込み異常
      * @throws MyRuleException 1 行が許容サイズを超えた場合
      */
     public String readLine() throws IOException, MyRuleException {
-        int tail = 0;
-        while (true) {
-            final int index = BytesFunctions.indexOf(this.buff, this.separator, tail, this.readSize);
-            if (index >= 0) {
-                // 改行があった。
-                final String line = new String(this.buff, 0, index, this.charset);
-                final int usedLength = index + this.separator.length;
-                System.arraycopy(this.buff, usedLength, this.buff, 0, this.readSize - usedLength);
-                this.readSize -= usedLength;
-                return line;
-            }
+        for (int pointer = this.head;;) {
+            // System.out.println("Aho " + this.head + " " + pointer + " " + this.tail);
+            if (pointer + this.separator.length > this.tail) {
+                // System.out.println("Baka " + this.head + " " + pointer + " " + this.tail);
+                if (this.tail - this.head == this.buff.length) {
+                    // 行が長過ぎる。
+                    throw new MyRuleException("Too long line over limit ( " + (this.buff.length - this.separator.length) + " ).");
+                }
 
-            if (this.readSize == this.buff.length) {
-                // 行が長過ぎる。
-                throw new MyRuleException("Too long line over limit ( " + (this.buff.length - this.separator.length) + " ).");
-            }
-
-            final int size = this.base.read(this.buff, this.readSize, this.buff.length - this.readSize);
-            if (size < 0) {
-                // EOF.
-                if (this.readSize == 0) {
-                    return null;
-                } else {
-                    final String line = new String(this.buff, 0, this.readSize, this.charset);
-                    this.readSize = 0;
-                    return line;
+                pointer -= this.head;
+                shift();
+                if (fill()) {
+                    // EOF.
+                    if (this.head == this.tail) {
+                        return null;
+                    } else {
+                        final String line = new String(this.buff, this.head, this.tail - this.head, this.charset);
+                        this.head = this.tail;
+                        return line;
+                    }
                 }
             }
-            tail = Math.max(0, this.readSize - this.separator.length);
-            this.readSize += size;
-        }
 
+            final int index = BytesFunctions.indexOf(this.buff, this.separator, pointer, this.tail);
+            if (index < 0) {
+                pointer = Math.max(0, this.tail - (this.separator.length - 1));
+                continue;
+            }
+
+            // 改行があった。
+            // System.out.println("len = " + (index - this.head) + " " + Arrays.toString(Arrays.copyOfRange(this.buff, this.head, index)));
+            final String line = new String(this.buff, this.head, index - this.head, this.charset);
+            this.head = index + this.separator.length;
+            return line;
+        }
     }
 
     @Override
     public void close() throws IOException {
         this.base.close();
+    }
+
+    @Override
+    public int read() throws IOException {
+        final int len = this.tail - this.head;
+        if (len == 0) {
+            return this.base.read();
+        } else {
+            final int val = this.buff[this.head];
+            this.head++;
+            return val;
+        }
+    }
+
+    @Override
+    public int read(final byte[] b) throws IOException {
+        final int len = this.tail - this.head;
+        if (len == 0) {
+            return this.base.read(b);
+        } else if (len < b.length) {
+            System.arraycopy(this.buff, this.head, b, 0, len);
+            this.head = this.tail;
+            return len + this.base.read(b, len, b.length - len);
+        } else {
+            System.arraycopy(this.buff, this.head, b, 0, b.length);
+            this.head += b.length;
+            return b.length;
+        }
+    }
+
+    @Override
+    public int read(final byte[] b, final int off, final int len) throws IOException {
+        final int buffLen = this.tail - this.head;
+        if (buffLen == 0) {
+            return this.base.read(b, off, len);
+        } else if (buffLen < len) {
+            System.arraycopy(this.buff, this.head, b, off, buffLen);
+            this.head = this.tail;
+            return buffLen + this.base.read(b, off + buffLen, len - buffLen);
+        } else {
+            System.arraycopy(this.buff, this.head, b, off, len);
+            this.head += len;
+            return len;
+        }
+    }
+
+    @Override
+    public long skip(final long n) throws IOException {
+        final int len = this.tail - this.head;
+        if (len == 0) {
+            return this.base.skip(n);
+        } else if (len < n) {
+            this.head = this.tail;
+            return len + this.base.skip(n - len);
+        } else {
+            this.head += n;
+            return n;
+        }
+    }
+
+    @Override
+    public int available() throws IOException {
+        final int len = this.tail - this.head;
+        if (len == 0) {
+            return this.base.available();
+        } else {
+            return len + this.base.available();
+        }
+    }
+
+    @Override
+    public synchronized void mark(final int readlimit) {
+        this.mark = this.head;
+        this.readLimit = readlimit;
+
+        final int len = this.tail - this.head;
+        if (len == 0) {
+            this.base.mark(readlimit);
+        } else if (len < readlimit) {
+            this.base.mark(readlimit - len);
+        } else {
+        }
+    }
+
+    @Override
+    public synchronized void reset() throws IOException {
+        final int len = this.tail - this.mark;
+        if (len == 0) {
+            this.base.reset();
+        } else if (len < this.readLimit) {
+            this.base.reset();
+        } else {
+        }
+
+        this.head = this.mark;
+
+        // shift してたら動かない仕様。
+        if (this.head < 0) {
+            throw new IOException("Not supported situation.");
+        }
+    }
+
+    @Override
+    public boolean markSupported() {
+        return this.base.markSupported();
     }
 
     @SuppressWarnings("javadoc")
