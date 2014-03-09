@@ -13,6 +13,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import nippon.kawauso.chiraura.Global;
 import nippon.kawauso.chiraura.lib.Duration;
 
 import org.junit.Assert;
@@ -32,7 +33,7 @@ public final class ThreadMessengerTest {
     private static final int receiveBufferSize = 128 * 1024;
     private static final int sendBufferSize = 128 * 1024;
     private static final int messageSizeLimit = 1024 * 1024;
-    private static final boolean http = false;
+    private static final boolean http = Global.useHttpWrapper();
     private static final long publicKeyLifetime = Duration.DAY;
     private static final long commonKeyLifetime = Duration.DAY;
     private static final long version = 1L;

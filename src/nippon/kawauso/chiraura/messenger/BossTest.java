@@ -25,6 +25,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import nippon.kawauso.chiraura.Global;
 import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.converter.TypeRegistries;
 import nippon.kawauso.chiraura.lib.converter.TypeRegistry;
@@ -45,7 +46,7 @@ public final class BossTest {
         registry = TypeRegistries.newRegistry();
         RegistryInitializer.init(registry);
     }
-    private static final boolean http = false;
+    private static final boolean http = Global.useHttpWrapper();
     private static final Transceiver.Share transceiverShare = new Transceiver.Share(messageSizeLimit, http, registry);
 
     /*
@@ -147,7 +148,7 @@ public final class BossTest {
             // Acceptor 側の検査。
             final InputStream testerInput = new BufferedInputStream(testerSocket.getInputStream());
             final OutputStream testerOutput = new BufferedOutputStream(testerSocket.getOutputStream());
-            final Transceiver testerTransceiver = new Transceiver(transceiverShare, testerInput, testerOutput, true);
+            final Transceiver testerTransceiver = new Transceiver(transceiverShare, testerInput, testerOutput, new InetSocketAddress(subjectPort));
 
             // 一言目の送信。
             StartingProtocol.sendFirst(testerTransceiver, testerPublicKeyPair.getPublic());
@@ -167,7 +168,7 @@ public final class BossTest {
             try (final Socket socket = this.testerServerSocket.accept()) {
                 final InputStream input = new BufferedInputStream(socket.getInputStream());
                 final OutputStream output = new BufferedOutputStream(socket.getOutputStream());
-                final Transceiver testerTransceiver2 = new Transceiver(transceiverShare, input, output, false);
+                final Transceiver testerTransceiver2 = new Transceiver(transceiverShare, input, output, null);
 
                 final PortCheckMessage portCheck = (PortCheckMessage) StartingProtocol.receiveFirst(testerTransceiver2);
                 final byte[] keyBytes = CryptographicFunctions.decrypt(testerId.getPrivate(), portCheck.getEncryptedKey());
@@ -222,7 +223,7 @@ public final class BossTest {
             testerSocket.setSoTimeout((int) connectionTimeout);
             final InputStream testerInput = new BufferedInputStream(testerSocket.getInputStream());
             final OutputStream testerOutput = new BufferedOutputStream(testerSocket.getOutputStream());
-            final Transceiver testerTransceiver = new Transceiver(transceiverShare, testerInput, testerOutput, false);
+            final Transceiver testerTransceiver = new Transceiver(transceiverShare, testerInput, testerOutput, null);
 
             // 一言目を受信。
             final FirstMessage message1 = (FirstMessage) StartingProtocol.receiveFirst(testerTransceiver);

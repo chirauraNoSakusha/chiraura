@@ -372,7 +372,10 @@ final class StorageTest {
 
         int sum = 0;
         for (final Future<Integer> future : futures) {
-            sum += future.get();
+            Assert.assertNotNull(future);
+            final Integer val = future.get();
+            Assert.assertNotNull(val);
+            sum += val;
         }
         Assert.assertEquals(numOfProcesses * numOfLoops, sum);
 

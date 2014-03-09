@@ -207,7 +207,7 @@ final class Acceptor implements Callable<Void> {
         final OutputStream output = new BufferedOutputStream(this.acceptedConnection.getSocket().getOutputStream(),
                 this.acceptedConnection.getSocket().getSendBufferSize());
 
-        final Transceiver transceiver = new Transceiver(this.transceiverShare, input, output, false);
+        final Transceiver transceiver = new Transceiver(this.transceiverShare, input, output, null);
 
         // 一言目を受信。
         final Message message1 = StartingProtocol.receiveFirst(transceiver);
@@ -326,7 +326,7 @@ final class Acceptor implements Callable<Void> {
 
             final InputStream input = new BufferedInputStream(socket.getInputStream());
             final OutputStream output = new BufferedOutputStream(socket.getOutputStream());
-            final Transceiver transceiver = new Transceiver(this.transceiverShare, input, output, true);
+            final Transceiver transceiver = new Transceiver(this.transceiverShare, input, output, destination);
 
             // 検査用の言付けを送信。
             final Key communicationKey = CryptographicKeys.newCommonKey();

@@ -40,6 +40,7 @@ public abstract class BytesConvertibleTest<T extends BytesConvertible> {
      */
     public BytesConvertibleTest() {
         TestFunctions.testLogging(this.getClass().getName());
+        // LoggingFunctions.startDebugLogging();
     }
 
     private static final int PIPE_SIZE = 100 * 1024 * 1024; // 100MB.

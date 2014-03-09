@@ -8,6 +8,7 @@ import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import nippon.kawauso.chiraura.Global;
 import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.base.Address;
 import nippon.kawauso.chiraura.lib.base.AddressTest;
@@ -22,7 +23,7 @@ import nippon.kawauso.chiraura.network.AddressableNetworks;
  */
 public final class NetworkWrapperTest {
 
-    private static final boolean http = false;
+    private static final boolean http = Global.useHttpWrapper();
 
     private static final boolean portIgnore = false;
     private static final int connectionLimit = 5;

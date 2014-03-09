@@ -26,6 +26,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import nippon.kawauso.chiraura.Global;
 import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.connection.BasicConstantTrafficLimiter;
 import nippon.kawauso.chiraura.lib.connection.TrafficLimiter;
@@ -44,7 +45,7 @@ import org.junit.Test;
 public final class AcceptorTest {
 
     private static final Transceiver.Share transceiverShare;
-    private static final boolean http = false;
+    private static final boolean http = Global.useHttpWrapper();
     static {
         final TypeRegistry<Message> registry = TypeRegistries.newRegistry();
         transceiverShare = new Transceiver.Share(Integer.MAX_VALUE, http, RegistryInitializer.init(registry));
@@ -154,7 +155,8 @@ public final class AcceptorTest {
                 this.subjectConnectionPool, keyLifetime);
         this.executor.submit(instance);
 
-        final Transceiver testerTransceiver = new Transceiver(transceiverShare, this.testerInput, this.testerOutput, true);
+        final Transceiver testerTransceiver = new Transceiver(transceiverShare, this.testerInput, this.testerOutput, new InetSocketAddress(
+                this.subjectServerSocket.getLocalPort()));
 
         // 一言目の送信。
         StartingProtocol.sendFirst(testerTransceiver, testerPublicKeyPair.getPublic());
@@ -174,7 +176,7 @@ public final class AcceptorTest {
         try (final Socket socket = this.testerServerSocket.accept()) {
             final InputStream input = new BufferedInputStream(socket.getInputStream());
             final OutputStream output = new BufferedOutputStream(socket.getOutputStream());
-            final Transceiver testerTransceiver2 = new Transceiver(transceiverShare, input, output, false);
+            final Transceiver testerTransceiver2 = new Transceiver(transceiverShare, input, output, null);
 
             final PortCheckMessage portCheck = (PortCheckMessage) StartingProtocol.receiveFirst(testerTransceiver2);
             final byte[] keyBytes = CryptographicFunctions.decrypt(testerId.getPrivate(), portCheck.getEncryptedKey());
@@ -234,7 +236,8 @@ public final class AcceptorTest {
                 this.subjectConnectionPool, keyLifetime);
         final Future<Void> future = this.executor.submit(instance);
 
-        final Transceiver testerTransceiver = new Transceiver(transceiverShare, this.testerInput, this.testerOutput, true);
+        final Transceiver testerTransceiver = new Transceiver(transceiverShare, this.testerInput, this.testerOutput, new InetSocketAddress(
+                this.subjectServerSocket.getLocalPort()));
 
         // 一言目を送信。
         StartingProtocol.sendFirst(testerTransceiver, testerPublicKeyPair.getPublic());
@@ -306,7 +309,8 @@ public final class AcceptorTest {
 
         this.testerServerSocket.close();
 
-        final Transceiver testerTransceiver = new Transceiver(transceiverShare, this.testerInput, this.testerOutput, true);
+        final Transceiver testerTransceiver = new Transceiver(transceiverShare, this.testerInput, this.testerOutput, new InetSocketAddress(
+                this.subjectServerSocket.getLocalPort()));
 
         // 一言目の送信。
         StartingProtocol.sendFirst(testerTransceiver, testerPublicKeyPair.getPublic());
@@ -343,7 +347,8 @@ public final class AcceptorTest {
                 this.subjectConnectionPool, keyLifetime);
         this.executor.submit(instance);
 
-        final Transceiver testerTransceiver = new Transceiver(transceiverShare, this.testerInput, this.testerOutput, true);
+        final Transceiver testerTransceiver = new Transceiver(transceiverShare, this.testerInput, this.testerOutput, new InetSocketAddress(
+                this.subjectServerSocket.getLocalPort()));
         // 一言目の送信。
         StartingProtocol.sendFirst(testerTransceiver, testerPublicKeyPair.getPublic());
 
@@ -380,7 +385,8 @@ public final class AcceptorTest {
                 this.subjectConnectionPool, keyLifetime);
         this.executor.submit(instance);
 
-        final Transceiver testerTransceiver = new Transceiver(transceiverShare, this.testerInput, this.testerOutput, true);
+        final Transceiver testerTransceiver = new Transceiver(transceiverShare, this.testerInput, this.testerOutput, new InetSocketAddress(
+                this.subjectServerSocket.getLocalPort()));
 
         // 一言目の送信。
         StartingProtocol.sendFirst(testerTransceiver, testerPublicKeyPair.getPublic());

@@ -92,6 +92,7 @@ public final class NumberBytesConversion {
             output[i] = (byte) v;
             v >>= 8;
         }
+
         // 先頭バイトを整形。
         output[0] = (byte) ((output[0] | HEAD_PATTERN[size - 1]) & AND_MASK[size - 1]);
         return output;

@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
+import nippon.kawauso.chiraura.Global;
 import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.connection.BasicConstantTrafficLimiter;
 import nippon.kawauso.chiraura.lib.connection.TrafficLimiter;
@@ -40,7 +41,7 @@ import org.junit.Test;
  */
 public final class AcceptorMasterTest {
 
-    private static final boolean http = false;
+    private static final boolean http = Global.useHttpWrapper();
     private static final Transceiver.Share transceiverShare;
     static {
         final TypeRegistry<Message> registry = TypeRegistries.newRegistry();
@@ -162,7 +163,8 @@ public final class AcceptorMasterTest {
 
         this.subjectAcceptedSocketQueue.put(this.subjectSocket);
 
-        final Transceiver testerTransceiver = new Transceiver(transceiverShare, this.testerInput, this.testerOutput, true);
+        final Transceiver testerTransceiver = new Transceiver(transceiverShare, this.testerInput, this.testerOutput, new InetSocketAddress(
+                this.subjectServerSocket.getLocalPort()));
 
         // 一言目の送信。
         StartingProtocol.sendFirst(testerTransceiver, testerPublicKeyPair.getPublic());
@@ -182,7 +184,7 @@ public final class AcceptorMasterTest {
         try (final Socket socket = this.testerServerSocket.accept()) {
             final InputStream input = new BufferedInputStream(socket.getInputStream());
             final OutputStream output = new BufferedOutputStream(socket.getOutputStream());
-            final Transceiver testerTransceiver2 = new Transceiver(transceiverShare, input, output, false);
+            final Transceiver testerTransceiver2 = new Transceiver(transceiverShare, input, output, null);
 
             final PortCheckMessage portCheck = (PortCheckMessage) StartingProtocol.receiveFirst(testerTransceiver2);
             final byte[] keyBytes = CryptographicFunctions.decrypt(testerId.getPrivate(), portCheck.getEncryptedKey());

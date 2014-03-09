@@ -217,7 +217,7 @@ final class Contactor implements Callable<Void> {
                 this.contactingConnection.getSocket().getReceiveBufferSize());
         final OutputStream output = new BufferedOutputStream(this.contactingConnection.getSocket().getOutputStream(),
                 this.contactingConnection.getSocket().getSendBufferSize());
-        final Transceiver transceiver = new Transceiver(this.transceiverShare, input, output, true);
+        final Transceiver transceiver = new Transceiver(this.transceiverShare, input, output, this.contactingConnection.getDestination());
 
         // 一言目の送信。
         final KeyPair keyPair = this.keyManager.getPublicKeyPair();

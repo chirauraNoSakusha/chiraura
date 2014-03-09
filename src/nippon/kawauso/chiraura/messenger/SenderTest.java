@@ -24,6 +24,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import nippon.kawauso.chiraura.Global;
 import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.converter.TypeRegistries;
 import nippon.kawauso.chiraura.lib.converter.TypeRegistry;
@@ -38,7 +39,7 @@ import org.junit.Test;
  */
 public final class SenderTest {
 
-    private static boolean http;
+    private static boolean http = Global.useHttpWrapper();
     private static final Transceiver.Share transceiverShare;
     static {
         final TypeRegistry<Message> registry = TypeRegistries.newRegistry();
@@ -122,8 +123,11 @@ public final class SenderTest {
      */
     @Test
     public void testSample() throws Exception {
-        final Transceiver subjectTransceiver = new Transceiver(transceiverShare, new ByteArrayInputStream(new byte[0]), this.subjectOutput, true);
-        final Transceiver testerTransceiver = new Transceiver(transceiverShare, this.testerInput, new ByteArrayOutputStream(), false);
+        // LoggingFunctions.startDebugLogging();
+
+        final Transceiver subjectTransceiver = new Transceiver(transceiverShare, new ByteArrayInputStream(new byte[0]), this.subjectOutput,
+                new InetSocketAddress(this.subjectServerSocket.getLocalPort()));
+        final Transceiver testerTransceiver = new Transceiver(transceiverShare, this.testerInput, new ByteArrayOutputStream(), null);
         final Sender instance = new Sender(this.subjectSendQueuePool, this.subjectMessengerReportQueue, this.subjectConnectionPool, timeout,
                 subjectTransceiver, this.subjectConnection, keyLifetime, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
         this.executor.submit(instance);
@@ -156,8 +160,9 @@ public final class SenderTest {
      */
     @Test
     public void testKeyUpdate() throws Exception {
-        final Transceiver subjectTransceiver = new Transceiver(transceiverShare, new ByteArrayInputStream(new byte[0]), this.subjectOutput, true);
-        final Transceiver testerTransceiver = new Transceiver(transceiverShare, this.testerInput, new ByteArrayOutputStream(), false);
+        final Transceiver subjectTransceiver = new Transceiver(transceiverShare, new ByteArrayInputStream(new byte[0]), this.subjectOutput,
+                new InetSocketAddress(this.subjectServerSocket.getLocalPort()));
+        final Transceiver testerTransceiver = new Transceiver(transceiverShare, this.testerInput, new ByteArrayOutputStream(), null);
         final long shortKeyLifetime = 200L;
         final Sender instance = new Sender(this.subjectSendQueuePool, this.subjectMessengerReportQueue, this.subjectConnectionPool, timeout,
                 subjectTransceiver, this.subjectConnection, shortKeyLifetime, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
@@ -195,7 +200,8 @@ public final class SenderTest {
      */
     @Test
     public void testErrorStream() throws Exception {
-        final Transceiver subjectTransceiver = new Transceiver(transceiverShare, new ByteArrayInputStream(new byte[0]), this.subjectOutput, true);
+        final Transceiver subjectTransceiver = new Transceiver(transceiverShare, new ByteArrayInputStream(new byte[0]), this.subjectOutput,
+                new InetSocketAddress(this.subjectServerSocket.getLocalPort()));
         final Sender instance = new Sender(this.subjectSendQueuePool, this.subjectMessengerReportQueue, this.subjectConnectionPool, timeout,
                 subjectTransceiver, this.subjectConnection, keyLifetime, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
         final Future<Void> future = this.executor.submit(instance);
@@ -227,7 +233,8 @@ public final class SenderTest {
      */
     @Test
     public void testInvalidMessage() throws Exception {
-        final Transceiver subjectTransceiver = new Transceiver(transceiverShare, new ByteArrayInputStream(new byte[0]), this.subjectOutput, true);
+        final Transceiver subjectTransceiver = new Transceiver(transceiverShare, new ByteArrayInputStream(new byte[0]), this.subjectOutput,
+                new InetSocketAddress(this.subjectServerSocket.getLocalPort()));
         final Sender instance = new Sender(this.subjectSendQueuePool, this.subjectMessengerReportQueue, this.subjectConnectionPool, timeout,
                 subjectTransceiver, this.subjectConnection, keyLifetime, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);
         final Future<Void> future = this.executor.submit(instance);
@@ -263,7 +270,8 @@ public final class SenderTest {
      */
     @Test
     public void testTimeout() throws Exception {
-        final Transceiver subjectTransceiver = new Transceiver(transceiverShare, new ByteArrayInputStream(new byte[0]), this.subjectOutput, true);
+        final Transceiver subjectTransceiver = new Transceiver(transceiverShare, new ByteArrayInputStream(new byte[0]), this.subjectOutput,
+                new InetSocketAddress(this.subjectServerSocket.getLocalPort()));
         final long shortTimeout = 100L;
         final Sender instance = new Sender(this.subjectSendQueuePool, this.subjectMessengerReportQueue, this.subjectConnectionPool, shortTimeout,
                 subjectTransceiver, this.subjectConnection, shortTimeout, subjectKeyPair.getPrivate(), testerKeyPair.getPublic(), commonKey);

@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
+import nippon.kawauso.chiraura.Global;
 import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.connection.BasicConstantTrafficLimiter;
 import nippon.kawauso.chiraura.lib.connection.TrafficLimiter;
@@ -42,7 +43,7 @@ import org.junit.Test;
 public final class ContactorMasterTest {
 
     private static final Transceiver.Share transceiverShare;
-    private static final boolean http = false;
+    private static final boolean http = Global.useHttpWrapper();
     static {
         final TypeRegistry<Message> registry = TypeRegistries.newRegistry();
         transceiverShare = new Transceiver.Share(Integer.MAX_VALUE, http, RegistryInitializer.init(registry));
@@ -158,7 +159,7 @@ public final class ContactorMasterTest {
         testerSocket.setSoTimeout((int) connectionTimeout);
         final InputStream testerInput = new BufferedInputStream(testerSocket.getInputStream());
         final OutputStream testerOutput = new BufferedOutputStream(testerSocket.getOutputStream());
-        final Transceiver testerTransceiver = new Transceiver(transceiverShare, testerInput, testerOutput, false);
+        final Transceiver testerTransceiver = new Transceiver(transceiverShare, testerInput, testerOutput, null);
 
         // 一言目を受信。
         final FirstMessage message1 = (FirstMessage) StartingProtocol.receiveFirst(testerTransceiver);
