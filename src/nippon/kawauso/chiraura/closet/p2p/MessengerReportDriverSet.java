@@ -18,4 +18,6 @@ interface MessengerReportDriverSet {
 
     UnsentMailDriver getUnsentMail();
 
+    ClosePortWarningDriver getClosePortWarning();
+
 }

@@ -125,6 +125,7 @@ final class DriverSet implements MessageDriverSet, ReplyDriverSet, NonBlockingDr
     private final ContactErrorDriver contactError;
     private final AcceptanceErrorDriver acceptanceError;
     private final UnsentMailDriver unsentMail;
+    private final ClosePortWarningDriver closePortWarning;
 
     DriverSet(final NetworkWrapper network, final StorageWrapper storage, final SessionManager sessionManager,
             final BlockingQueue<Operation> operationSink, final ExecutorService executor, final int checkChunkLimit) {
@@ -281,6 +282,7 @@ final class DriverSet implements MessageDriverSet, ReplyDriverSet, NonBlockingDr
         this.contactError = new ContactErrorDriver(network);
         this.acceptanceError = new AcceptanceErrorDriver(network);
         this.unsentMail = new UnsentMailDriver(sessionManager);
+        this.closePortWarning = new ClosePortWarningDriver(network);
     }
 
     PeerAccessDriver getPeerAccess() {
@@ -681,6 +683,11 @@ final class DriverSet implements MessageDriverSet, ReplyDriverSet, NonBlockingDr
     @Override
     public UnsentMailDriver getUnsentMail() {
         return this.unsentMail;
+    }
+
+    @Override
+    public ClosePortWarningDriver getClosePortWarning() {
+        return this.closePortWarning;
     }
 
 }

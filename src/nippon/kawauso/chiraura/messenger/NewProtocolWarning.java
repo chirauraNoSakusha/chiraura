@@ -3,6 +3,7 @@
  */
 package nippon.kawauso.chiraura.messenger;
 
+
 /**
  * ポートが閉じているかもしれない異常。
  * @author chirauraNoSakusha

@@ -71,6 +71,7 @@ final class MessengerMonitor extends Reporter<Void> {
             } else if (report instanceof nippon.kawauso.chiraura.messenger.ServerError) {
                 ConcurrentFunctions.completePut(new ServerError((nippon.kawauso.chiraura.messenger.ServerError) report), this.closetReportSink);
             } else if (report instanceof nippon.kawauso.chiraura.messenger.ClosePortWarning) {
+                this.drivers.getClosePortWarning().execute((nippon.kawauso.chiraura.messenger.ClosePortWarning) report);
                 ConcurrentFunctions.completePut(new ClosePortWarning((nippon.kawauso.chiraura.messenger.ClosePortWarning) report), this.closetReportSink);
             } else if (report instanceof nippon.kawauso.chiraura.messenger.NewProtocolWarning) {
                 final nippon.kawauso.chiraura.messenger.NewProtocolWarning lowWarning = (nippon.kawauso.chiraura.messenger.NewProtocolWarning) report;
@@ -92,5 +93,4 @@ final class MessengerMonitor extends Reporter<Void> {
 
         return null;
     }
-
 }
