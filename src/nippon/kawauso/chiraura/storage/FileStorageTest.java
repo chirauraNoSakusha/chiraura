@@ -36,6 +36,7 @@ public final class FileStorageTest {
      */
     @Test
     public void testMinimum() throws Exception {
+        // LoggingFunctions.startDebugLogging();
         StorageTest.testMinimum(new FileStorage(this.root, this.chunkSizeLimit, this.directoryBitSize));
     }
 

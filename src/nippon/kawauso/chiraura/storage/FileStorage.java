@@ -319,13 +319,15 @@ final class FileStorage implements Storage {
                     SimpleIndex.getParser(parser).fromStream(input, this.fileSizeLimit, index);
                 }
                 indices.put(index.get(0).getId(), index.get(0));
-            } catch (final MyRuleException | FileNotFoundException e) {
+            } catch (final MyRuleException e) {
                 LOG.log(Level.WARNING, "異常が発生しました", e);
                 if (moveToTrash(file)) {
                     LOG.log(Level.INFO, "{0} を除外しました。", file.getPath());
                 } else {
                     LOG.log(Level.INFO, "{0} を無視します。", file.getPath());
                 }
+            } catch (final FileNotFoundException e) {
+                LOG.log(Level.WARNING, "一足遅かったようです", e);
             }
         }
         return indices;
