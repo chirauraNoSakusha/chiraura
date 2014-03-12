@@ -9,7 +9,9 @@ import java.net.InetSocketAddress;
 /**
  * @author chirauraNoSakusha
  */
-public final class PortIgnoringConstantTrafficLimiter extends ConstantTrafficLimiter<InetAddress> implements TrafficLimiter {
+public final class PortIgnoringConstantTrafficLimiter implements Limiter<InetSocketAddress> {
+
+    private final ConstantLimiter<InetAddress> base;
 
     /**
      * 作成する。
@@ -19,22 +21,22 @@ public final class PortIgnoringConstantTrafficLimiter extends ConstantTrafficLim
      * @param penalty 制限量に達したときの追加の待ち時間 (ミリ秒)
      */
     public PortIgnoringConstantTrafficLimiter(final long duration, final long sizeLimit, final int countLimit, final long penalty) {
-        super(duration, sizeLimit, countLimit, penalty);
+        this.base = new ConstantLimiter<InetAddress>(duration, sizeLimit, countLimit, penalty) {};
     }
 
     @Override
-    public long nextSleep(final long size, final InetSocketAddress destination) throws InterruptedException {
-        return super.nextSleep(size, destination.getAddress());
+    public long addValueAndCheckPenalty(final InetSocketAddress destination, final long size) throws InterruptedException {
+        return this.base.addValueAndCheckPenalty(destination.getAddress(), size);
     }
 
     @Override
-    public long nextSleep(final InetSocketAddress destination) throws InterruptedException {
-        return super.nextSleep(destination.getAddress());
+    public long checkPenalty(final InetSocketAddress destination) throws InterruptedException {
+        return this.base.checkPenalty(destination.getAddress());
     }
 
     @Override
     public void remove(final InetSocketAddress destination) throws InterruptedException {
-        super.remove(destination.getAddress());
+        this.base.remove(destination.getAddress());
     }
 
 }

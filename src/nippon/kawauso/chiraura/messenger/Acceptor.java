@@ -26,7 +26,7 @@ import java.util.logging.Logger;
 
 import nippon.kawauso.chiraura.lib.concurrent.ConcurrentFunctions;
 import nippon.kawauso.chiraura.lib.connection.InetAddressFunctions;
-import nippon.kawauso.chiraura.lib.connection.TrafficLimiter;
+import nippon.kawauso.chiraura.lib.connection.Limiter;
 import nippon.kawauso.chiraura.lib.exception.MyRuleException;
 
 /**
@@ -65,7 +65,7 @@ final class Acceptor implements Callable<Void> {
     private final ExecutorService executor;
     private final SendQueuePool sendQueuePool;
     private final BlockingQueue<ReceivedMail> receivedMailSink;
-    private final TrafficLimiter limiter;
+    private final Limiter<InetSocketAddress> limiter;
     private final ConnectionPool<Connection> connectionPool;
     private final long keyLifetime;
 
@@ -74,7 +74,7 @@ final class Acceptor implements Callable<Void> {
             final long operationTimeout, final Transceiver.Share transceiverShare, final AcceptedConnection acceptedConnection, final long version,
             final long versionGapThreshold, final KeyPair id, final PublicKeyManager keyManager, final AtomicReference<InetSocketAddress> self,
             final ExecutorService executor, final SendQueuePool sendQueuePool, final BlockingQueue<ReceivedMail> receivedMailSink,
-            final TrafficLimiter limiter, final ConnectionPool<Connection> connectionPool, final long keyLifetime) {
+            final Limiter<InetSocketAddress> limiter, final ConnectionPool<Connection> connectionPool, final long keyLifetime) {
         if (connectionLimit < 0) {
             throw new IllegalArgumentException("Negative connection limit ( " + connectionLimit + " ).");
         } else if (messengerReportSink == null) {

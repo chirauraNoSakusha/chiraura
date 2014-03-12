@@ -13,8 +13,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import nippon.kawauso.chiraura.Global;
+import nippon.kawauso.chiraura.lib.connection.Limiter;
 import nippon.kawauso.chiraura.lib.connection.PortFunctions;
-import nippon.kawauso.chiraura.lib.connection.TrafficLimiter;
 import nippon.kawauso.chiraura.lib.process.Reporter;
 
 /**
@@ -33,13 +33,14 @@ final class Server extends Reporter<Void> {
     private final ResponseMaker responseMaker;
     private final long internalTimeout;
 
-    private final TrafficLimiter limiter;
+    private final Limiter<InetSocketAddress> limiter;
 
     // 保持。
     private final ServerSocket serverSocket;
 
     Server(final BlockingQueue<? super Reporter.Report> reportSink, final int port, final ConnectionPool connectionPool, final ExecutorService executor,
-            final long connectionTimeout, final ResponseMaker responseMaker, final long internalTimeout, final TrafficLimiter limiter) throws IOException {
+            final long connectionTimeout, final ResponseMaker responseMaker, final long internalTimeout, final Limiter<InetSocketAddress> limiter)
+            throws IOException {
         super(reportSink);
 
         if (!PortFunctions.isValid(port)) {

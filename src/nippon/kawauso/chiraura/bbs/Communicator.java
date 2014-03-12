@@ -6,12 +6,13 @@ package nippon.kawauso.chiraura.bbs;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.InetSocketAddress;
 import java.net.SocketTimeoutException;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import nippon.kawauso.chiraura.lib.connection.TrafficLimiter;
+import nippon.kawauso.chiraura.lib.connection.Limiter;
 import nippon.kawauso.chiraura.lib.exception.MyRuleException;
 import nippon.kawauso.chiraura.lib.http.Http;
 import nippon.kawauso.chiraura.lib.http.InputStreamWrapper;
@@ -31,10 +32,10 @@ final class Communicator implements Callable<Void> {
     private final ResponseMaker responseMaker;
     private final long timeout;
 
-    private final TrafficLimiter limiter;
+    private final Limiter<InetSocketAddress> limiter;
 
     Communicator(final Connection connection, final ConnectionPool connectionPool, final ResponseMaker responseMaker, final long timeout,
-            final TrafficLimiter limiter) {
+            final Limiter<InetSocketAddress> limiter) {
         if (connection == null) {
             throw new IllegalArgumentException("Null connection.");
         } else if (connectionPool == null) {
@@ -127,14 +128,14 @@ final class Communicator implements Callable<Void> {
         long sleep;
         if (received) {
             // 回数制限だけだからサイズは 0 で報告。
-            sleep = this.limiter.nextSleep(0, this.connection.getDestination());
+            sleep = this.limiter.addValueAndCheckPenalty(this.connection.getDestination(), 0);
         } else {
-            sleep = this.limiter.nextSleep(this.connection.getDestination());
+            sleep = this.limiter.checkPenalty(this.connection.getDestination());
         }
         while (sleep > 0) {
             LOG.log(Level.WARNING, "{0}: {1} ミリ秒さぼります。", new Object[] { this.connection, sleep });
             Thread.sleep(sleep);
-            sleep = this.limiter.nextSleep(this.connection.getDestination());
+            sleep = this.limiter.checkPenalty(this.connection.getDestination());
         }
     }
 

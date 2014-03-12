@@ -5,15 +5,16 @@ package nippon.kawauso.chiraura.bbs;
 
 import java.io.IOException;
 import java.net.BindException;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import nippon.kawauso.chiraura.lib.connection.Limiter;
 import nippon.kawauso.chiraura.lib.connection.PortFunctions;
 import nippon.kawauso.chiraura.lib.connection.PortIgnoringConstantTrafficLimiter;
-import nippon.kawauso.chiraura.lib.connection.TrafficLimiter;
 import nippon.kawauso.chiraura.lib.process.Chief;
 import nippon.kawauso.chiraura.lib.process.Reporter;
 import nippon.kawauso.chiraura.lib.process.Reporter.Report;
@@ -38,7 +39,7 @@ final class Boss extends Chief {
 
     private ServerSocket serverSocket;
 
-    private final TrafficLimiter limiter;
+    private final Limiter<InetSocketAddress> limiter;
 
     Boss(final int port, final long connectionTimeout, final long internalTimeout, final ClosetWrapper closet, final Menu menu, final ExecutorService executor,
             final long trafficDuration, final int trafficCountLimit) {

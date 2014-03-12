@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import nippon.kawauso.chiraura.lib.connection.TrafficLimiter;
+import nippon.kawauso.chiraura.lib.connection.Limiter;
 import nippon.kawauso.chiraura.lib.process.Reporter;
 
 /**
@@ -37,7 +37,7 @@ final class AcceptorMaster extends Reporter<Void> {
 
     private final BlockingQueue<ReceivedMail> receivedMailSink;
     private final SendQueuePool sendQueuePool;
-    private final TrafficLimiter limiter;
+    private final Limiter<InetSocketAddress> limiter;
     private final BlockingQueue<MessengerReport> messengerReportSink;
     private final ConnectionPool<AcceptedConnection> acceptedConnectionPool;
     private final ConnectionPool<Connection> connectionPool;
@@ -56,7 +56,7 @@ final class AcceptorMaster extends Reporter<Void> {
 
     AcceptorMaster(final BlockingQueue<Reporter.Report> reportSink, final BlockingQueue<Socket> acceptedSocketSource, final AtomicInteger serialGenerator,
             final ExecutorService executor, final boolean portIgnore, final int connectionLimit, final BlockingQueue<ReceivedMail> receivedMailSink,
-            final SendQueuePool sendQueuePool, final TrafficLimiter limiter, final BlockingQueue<MessengerReport> messengerReportSink,
+            final SendQueuePool sendQueuePool, final Limiter<InetSocketAddress> limiter, final BlockingQueue<MessengerReport> messengerReportSink,
             final ConnectionPool<AcceptedConnection> acceptedConnectionPool, final ConnectionPool<Connection> connectionPool, final int sendBufferSize,
             final long connectionTimeout, final long operationTimeout, final Transceiver.Share transceiver, final long version, final long versionGapThreshold,
             final KeyPair id, final PublicKeyManager keyManager, final long keyLifetime, final AtomicReference<InetSocketAddress> self) {

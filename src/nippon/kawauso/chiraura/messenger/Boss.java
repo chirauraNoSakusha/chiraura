@@ -19,9 +19,9 @@ import java.util.logging.Logger;
 
 import nippon.kawauso.chiraura.lib.concurrent.ConcurrentFunctions;
 import nippon.kawauso.chiraura.lib.connection.BasicConstantTrafficLimiter;
+import nippon.kawauso.chiraura.lib.connection.Limiter;
 import nippon.kawauso.chiraura.lib.connection.PortFunctions;
 import nippon.kawauso.chiraura.lib.connection.PortIgnoringConstantTrafficLimiter;
-import nippon.kawauso.chiraura.lib.connection.TrafficLimiter;
 import nippon.kawauso.chiraura.lib.converter.TypeRegistry;
 import nippon.kawauso.chiraura.lib.process.Chief;
 import nippon.kawauso.chiraura.lib.process.Reporter;
@@ -67,7 +67,7 @@ final class Boss extends Chief {
 
     private final Transceiver.Share transceiver;
 
-    private final TrafficLimiter limiter;
+    private final Limiter<InetSocketAddress> limiter;
 
     private final PublicKeyManager keyManager;
 

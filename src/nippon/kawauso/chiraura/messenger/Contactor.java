@@ -27,8 +27,8 @@ import java.util.logging.Logger;
 import nippon.kawauso.chiraura.Global;
 import nippon.kawauso.chiraura.lib.concurrent.ConcurrentFunctions;
 import nippon.kawauso.chiraura.lib.connection.InetAddressFunctions;
+import nippon.kawauso.chiraura.lib.connection.Limiter;
 import nippon.kawauso.chiraura.lib.connection.PortFunctions;
-import nippon.kawauso.chiraura.lib.connection.TrafficLimiter;
 import nippon.kawauso.chiraura.lib.exception.MyRuleException;
 
 /**
@@ -65,7 +65,7 @@ final class Contactor implements Callable<Void> {
     private final ExecutorService executor;
     private final SendQueuePool sendQueuePool;
     private final BlockingQueue<ReceivedMail> receivedMailSink;
-    private final TrafficLimiter limiter;
+    private final Limiter<InetSocketAddress> limiter;
     private final ConnectionPool<Connection> connectionPool;
     private final long keyLifetime;
 
@@ -73,7 +73,7 @@ final class Contactor implements Callable<Void> {
             final int receiveBufferSize, final int sendBufferSize, final long connectionTimeout, final long operationTimeout,
             final Transceiver.Share transceiverShare, final ContactingConnection contactingConnection, final long version, final long versionGapThreshold,
             final int port, final KeyPair id, final PublicKeyManager keyManager, final AtomicReference<InetSocketAddress> self, final ExecutorService executor,
-            final SendQueuePool sendQueuePool, final BlockingQueue<ReceivedMail> receivedMailSink, final TrafficLimiter limiter,
+            final SendQueuePool sendQueuePool, final BlockingQueue<ReceivedMail> receivedMailSink, final Limiter<InetSocketAddress> limiter,
             final ConnectionPool<Connection> connectionPool, final long keyLifetime) {
         if (messengerReportSink == null) {
             throw new IllegalArgumentException("Null messenger report sink.");

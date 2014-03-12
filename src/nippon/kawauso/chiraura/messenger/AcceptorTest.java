@@ -29,7 +29,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import nippon.kawauso.chiraura.Global;
 import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.connection.BasicConstantTrafficLimiter;
-import nippon.kawauso.chiraura.lib.connection.TrafficLimiter;
+import nippon.kawauso.chiraura.lib.connection.Limiter;
 import nippon.kawauso.chiraura.lib.converter.TypeRegistries;
 import nippon.kawauso.chiraura.lib.converter.TypeRegistry;
 import nippon.kawauso.chiraura.lib.exception.MyRuleException;
@@ -56,7 +56,7 @@ public final class AcceptorTest {
     private static final long sizeLimit = 10_000_000L;
     private static final int countLimit = 1_000;
     private static final long penalty = 5 * Duration.SECOND;
-    private final TrafficLimiter limiter = new BasicConstantTrafficLimiter(duration, sizeLimit, countLimit, penalty);
+    private final Limiter<InetSocketAddress> limiter = new BasicConstantTrafficLimiter(duration, sizeLimit, countLimit, penalty);
 
     private static final int sendBufferSize = 128 * 1024;
     private static final long connectionTimeout = 10 * Duration.SECOND;

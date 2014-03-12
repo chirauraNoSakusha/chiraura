@@ -12,8 +12,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import nippon.kawauso.chiraura.lib.connection.Limiter;
 import nippon.kawauso.chiraura.lib.connection.PortFunctions;
-import nippon.kawauso.chiraura.lib.connection.TrafficLimiter;
 import nippon.kawauso.chiraura.lib.process.Reporter;
 
 /**
@@ -34,7 +34,7 @@ final class ContactorMaster extends Reporter<Void> {
 
     private final BlockingQueue<ReceivedMail> receivedMailSink;
     private final SendQueuePool sendQueuePool;
-    private final TrafficLimiter limiter;
+    private final Limiter<InetSocketAddress> limiter;
     private final BlockingQueue<MessengerReport> messengerReportSink;
     private final ConnectionPool<ContactingConnection> contactingConnectionPool;
     private final ConnectionPool<Connection> connectionPool;
@@ -55,7 +55,7 @@ final class ContactorMaster extends Reporter<Void> {
 
     ContactorMaster(final BlockingQueue<Reporter.Report> reportSink, final BlockingQueue<ConnectRequest> connectRequestSource,
             final AtomicInteger serialGenerator, final ExecutorService executor, final BlockingQueue<ReceivedMail> receivedMailSink,
-            final SendQueuePool sendQueuePool, final TrafficLimiter limiter, final BlockingQueue<MessengerReport> messengerReportSink,
+            final SendQueuePool sendQueuePool, final Limiter<InetSocketAddress> limiter, final BlockingQueue<MessengerReport> messengerReportSink,
             final ConnectionPool<ContactingConnection> contactingConnectionPool, final ConnectionPool<Connection> connectionPool,
             final int receiveBufferSize, final int sendBufferSize, final long connectionTimeout, final long operationTimeout,
             final Transceiver.Share transceiver, final long version, final long versionGapThreshold, final int port, final KeyPair id,

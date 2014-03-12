@@ -4,6 +4,7 @@
 package nippon.kawauso.chiraura.messenger;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.SocketTimeoutException;
 import java.security.Key;
 import java.security.PrivateKey;
@@ -16,7 +17,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import nippon.kawauso.chiraura.lib.concurrent.ConcurrentFunctions;
-import nippon.kawauso.chiraura.lib.connection.TrafficLimiter;
+import nippon.kawauso.chiraura.lib.connection.Limiter;
 import nippon.kawauso.chiraura.lib.exception.MyRuleException;
 
 /**
@@ -34,7 +35,7 @@ final class Receiver implements Callable<Void> {
     // 入出力。
     private final BlockingQueue<ReceivedMail> receivedMailSink;
     private final BlockingQueue<MessengerReport> messengerReportSink;
-    private final TrafficLimiter limiter;
+    private final Limiter<InetSocketAddress> limiter;
 
     // 通信周り。
     private final long timeout;
@@ -48,9 +49,9 @@ final class Receiver implements Callable<Void> {
 
     private Key decryptionKey;
 
-    Receiver(final BlockingQueue<ReceivedMail> receivedMailSink, final BlockingQueue<MessengerReport> messengerReportSink, final TrafficLimiter limiter,
-            final long timeout, final Transceiver transceiver, final Connection connection, final PrivateKey myKey, final PublicKey destinationKey,
-            final Key firstDecryptionKey) {
+    Receiver(final BlockingQueue<ReceivedMail> receivedMailSink, final BlockingQueue<MessengerReport> messengerReportSink,
+            final Limiter<InetSocketAddress> limiter, final long timeout, final Transceiver transceiver, final Connection connection, final PrivateKey myKey,
+            final PublicKey destinationKey, final Key firstDecryptionKey) {
         if (receivedMailSink == null) {
             throw new IllegalArgumentException("Null received mail sink.");
         } else if (messengerReportSink == null) {
@@ -170,11 +171,11 @@ final class Receiver implements Callable<Void> {
     }
 
     private void limitSleep(final int size) throws InterruptedException {
-        long sleep = this.limiter.nextSleep(size, this.connection.getDestination());
+        long sleep = this.limiter.addValueAndCheckPenalty(this.connection.getDestination(), size);
         while (sleep > 0) {
             LOG.log(Level.WARNING, "{0}: {1} ミリ秒さぼります。", new Object[] { this.connection, sleep });
             Thread.sleep(sleep);
-            sleep = this.limiter.nextSleep(this.connection.getDestination());
+            sleep = this.limiter.checkPenalty(this.connection.getDestination());
         }
     }
 

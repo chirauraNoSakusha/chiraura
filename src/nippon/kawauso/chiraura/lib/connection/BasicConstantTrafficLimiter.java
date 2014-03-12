@@ -8,7 +8,7 @@ import java.net.InetSocketAddress;
 /**
  * @author chirauraNoSakusha
  */
-public final class BasicConstantTrafficLimiter extends ConstantTrafficLimiter<InetSocketAddress> implements TrafficLimiter {
+public final class BasicConstantTrafficLimiter extends ConstantLimiter<InetSocketAddress> {
 
     /**
      * 作成する。
@@ -22,13 +22,13 @@ public final class BasicConstantTrafficLimiter extends ConstantTrafficLimiter<In
     }
 
     @Override
-    public long nextSleep(final long size, final InetSocketAddress destination) throws InterruptedException {
-        return super.nextSleep(size, destination);
+    public long addValueAndCheckPenalty(final InetSocketAddress destination, final long size) throws InterruptedException {
+        return super.addValueAndCheckPenalty(destination, size);
     }
 
     @Override
-    public long nextSleep(final InetSocketAddress destination) throws InterruptedException {
-        return super.nextSleep(destination);
+    public long checkPenalty(final InetSocketAddress destination) throws InterruptedException {
+        return super.checkPenalty(destination);
     }
 
     @Override
