@@ -16,6 +16,8 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 final class LockPool<T> {
 
+    // private static final Logger LOG = Logger.getLogger(LockPool.class.getName());
+
     private final ConcurrentMap<T, ReentrantLock> locks;
 
     /*
@@ -37,6 +39,7 @@ final class LockPool<T> {
      * @throws InterruptedException 待機中にインタラプトされた場合
      */
     void lock(final T key) throws InterruptedException {
+        // LOG.log(Level.SEVERE, "lock in " + key);
         while (true) {
             ReentrantLock lock = this.locks.get(key);
             if (lock == null) {
@@ -55,9 +58,11 @@ final class LockPool<T> {
             lock.lockInterruptibly();
 
             if (lock == this.locks.get(key)) {
+                // LOG.log(Level.SEVERE, "lock success " + key);
                 break;
             } else {
                 lock.unlock();
+                // LOG.log(Level.SEVERE, "lock failure " + key);
             }
         }
     }
@@ -139,6 +144,8 @@ final class LockPool<T> {
      * @throws IllegalArgumentException key によるロックがされていない場合
      */
     void unlock(final T key) {
+        // LOG.log(Level.SEVERE, "unlock in " + key);
+
         final ReentrantLock lock = this.locks.get(key);
         if (lock == null) {
             throw new IllegalMonitorStateException("Not locked ( " + key + " ).");
@@ -154,6 +161,7 @@ final class LockPool<T> {
          */
 
         lock.unlock();
+        // LOG.log(Level.SEVERE, "unlock success " + key);
     }
 
     /**

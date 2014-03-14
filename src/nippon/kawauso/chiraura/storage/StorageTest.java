@@ -303,62 +303,77 @@ final class StorageTest {
                         if (flag < 1.0 / 7.0) {
                             // contains.
                             final Chunk target = chunks.get((int) (bias.next() * chunks.size()));
+                            // LOG.log(Level.SEVERE, "{0} contains " + target.getId(), j);
                             if (instance.contains(target.getId())) {
                                 success++;
                             } else {
                                 failure++;
                             }
+                            // LOG.log(Level.SEVERE, "{0} Contains " + target.getId(), j);
                         } else if (flag < 2.0 / 7.0) {
                             // getIndex.
                             final Chunk target = chunks.get((int) (bias.next() * chunks.size()));
+                            // LOG.log(Level.SEVERE, "{0} getIndex " + target.getId(), j);
                             final Storage.Index index = instance.getIndex(target.getId());
                             if (index != null) {
                                 success++;
                             } else {
                                 failure++;
                             }
+                            // LOG.log(Level.SEVERE, "{0} GetIndex " + target.getId(), j);
                         } else if (flag < 3.0 / 7.0) {
                             // getIndices.
                             final Pair<Address, Address> target = ranges.get((int) (bias.next() * ranges.size()));
+                            // LOG.log(Level.SEVERE, "{0} getIndices " + target, j);
                             final Map<Chunk.Id<?>, Storage.Index> indices = instance.getIndices(target.getFirst(), target.getSecond());
                             if (!indices.isEmpty()) {
                                 success++;
                             } else {
                                 failure++;
                             }
+                            // LOG.log(Level.SEVERE, "{0} GetIndices " + target, j);
                         } else if (flag < 4.0 / 7.0) {
                             // read.
                             final Chunk target = chunks.get((int) (bias.next() * chunks.size()));
+                            // LOG.log(Level.SEVERE, "{0} read " + target.getId(), j);
                             final Chunk chunk = instance.read(target.getId());
                             if (chunk != null) {
                                 success++;
                             } else {
                                 failure++;
                             }
+                            // LOG.log(Level.SEVERE, "{0} Read " + target.getId(), j);
                         } else if (flag < 5.0 / 7.0) {
                             // write.
                             final Chunk target = chunks.get((int) (bias.next() * chunks.size()));
+                            // LOG.log(Level.SEVERE, "{0} write " + target.getId(), j);
                             if (instance.write(target)) {
                                 success++;
                             } else {
                                 failure++;
                             }
+                            // LOG.log(Level.SEVERE, "{0} Write " + target.getId(), j);
                         } else if (flag < 6.0 / 7.0) {
                             // forceWrite.
                             final Chunk target = chunks.get((int) (bias.next() * chunks.size()));
+                            // LOG.log(Level.SEVERE, "{0} forceWrite " + target.getId(), j);
                             instance.forceWrite(target);
                             success++;
+                            // LOG.log(Level.SEVERE, "{0} ForceWrite " + target.getId(), j);
                         } else {
                             // delete.
                             final Chunk target = chunks.get((int) (bias.next() * chunks.size()));
+                            // LOG.log(Level.SEVERE, "{0} delete " + target.getId(), j);
                             if (instance.delete(target.getId())) {
                                 success++;
                             } else {
                                 failure++;
                             }
+                            // LOG.log(Level.SEVERE, "{0} Delete " + target.getId(), j);
                         }
                     }
 
+                    // LOG.log(Level.SEVERE, "EXIT");
                     return success + failure;
                 }
             });
