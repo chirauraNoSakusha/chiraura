@@ -3,10 +3,10 @@
  */
 package nippon.kawauso.chiraura.network;
 
-import java.util.HashSet;
+import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Level;
@@ -61,21 +61,59 @@ final class CcFingerDigger extends Reporter<Void> {
                 continue;
             }
 
-            final int averageLevel = CcFunctions.distanceLevel(this.view.estimateAverageDistance());
-            final Set<Integer> targetLevels = new HashSet<>();
-            for (int i = averageLevel; i <= Address.SIZE; i++) {
-                targetLevels.add(i);
-            }
+            final BigInteger averageDistance = this.view.estimateAverageDistance().toBigInteger();
 
+            // レベルごとに、そのレベルの最大距離からのズレとピア間平均距離の比を重みにする。
+            final List<Integer> levels = new ArrayList<>();
+            final List<Integer> weights = new ArrayList<>();
+
+            int preLevel = -1;
+            Address preDistance = null;
             for (final AddressedPeer peer : shortcuts) {
-                targetLevels.remove(CcFunctions.distanceLevel(this.view.getBase().distanceTo(peer.getAddress())));
+                final Address distance = this.view.getBase().distanceTo(peer.getAddress());
+                final int level = CcFunctions.distanceLevel(distance);
+                if (preDistance != null && level > preLevel + 1) {
+                    for (int i = preLevel + 1; i < level; i++) {
+                        final Address milestone = Address.ZERO.addPowerOfTwo(i);
+                        final BigInteger diff = preDistance.distanceTo(milestone).toBigInteger();
+                        levels.add(i);
+                        weights.add(1 + diff.divide(averageDistance).intValue());
+                        // System.out.println("Aho " + i + " " + averageDistance + " " + diff);
+                    }
+                }
+                final Address milestone = Address.ZERO.addPowerOfTwo(level);
+                final BigInteger diff = distance.distanceTo(milestone).toBigInteger();
+                levels.add(level);
+                weights.add(1 + diff.divide(averageDistance).intValue());
+                // System.out.println("Baka " + level + " " + averageDistance + " " + diff);
+
+                preLevel = level;
+                preDistance = distance;
             }
 
-            if (targetLevels.isEmpty()) {
-                continue;
+            for (int i = preLevel + 1; i <= Address.SIZE; i++) {
+                final Address milestone = Address.ZERO.addPowerOfTwo(i);
+                @SuppressWarnings("null")
+                // shortcuts が空ではないので大丈夫。
+                final BigInteger diff = preDistance.distanceTo(milestone).toBigInteger();
+                levels.add(i);
+                weights.add(1 + diff.divide(averageDistance).intValue());
+                // System.out.println("China " + i + " " + averageDistance + " " + diff);
             }
 
-            final int targetLevel = targetLevels.toArray(new Integer[0])[random.nextInt(targetLevels.size())];
+            int weightSum = 0;
+            for (final int weight : weights) {
+                weightSum += weight;
+            }
+            int targetLevel = levels.get(0);
+            int v = random.nextInt(weightSum);
+            for (int i = 0; i < levels.size(); i++) {
+                v -= weights.get(i);
+                if (v < 0) {
+                    targetLevel = levels.get(i);
+                    break;
+                }
+            }
 
             final Address target;
             if (targetLevel >= Address.SIZE) {
@@ -84,6 +122,10 @@ final class CcFingerDigger extends Reporter<Void> {
             } else {
                 target = this.view.getBase().addPowerOfTwo(targetLevel);
             }
+
+            // for (int i = 0; i < levels.size(); i++) {
+            // System.out.println(levels.get(i) + " " + weights.get(i));
+            // }
 
             ConcurrentFunctions.completePut(new AddressAccessRequest(target), this.taskSink);
             LOG.log(Level.FINER, "論理位置 {0} への近道の開拓要請を出しました。", target);
