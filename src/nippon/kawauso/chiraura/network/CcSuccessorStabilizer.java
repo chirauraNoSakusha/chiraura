@@ -49,15 +49,17 @@ final class CcSuccessorStabilizer extends Reporter<Void> {
             /*
              * ご近所さんの中から1つを選んで接触要請を出す。
              */
+            Thread.sleep(this.interval);
+
             final List<AddressedPeer> successors = this.view.getSuccessors(Integer.MAX_VALUE);
 
-            if (!successors.isEmpty()) {
-                final AddressedPeer target = successors.get(random.nextInt(successors.size()));
-                ConcurrentFunctions.completePut(new PeerAccessRequest(target.getPeer()), this.taskSink);
-                LOG.log(Level.FINER, "後続個体 {0} の確認要請を出しました。", target);
+            if (successors.isEmpty()) {
+                continue;
             }
 
-            Thread.sleep(this.interval);
+            final AddressedPeer target = successors.get(random.nextInt(successors.size()));
+            ConcurrentFunctions.completePut(new PeerAccessRequest(target.getPeer()), this.taskSink);
+            LOG.log(Level.FINER, "後続個体 {0} の確認要請を出しました。", target);
         }
 
         return null;
