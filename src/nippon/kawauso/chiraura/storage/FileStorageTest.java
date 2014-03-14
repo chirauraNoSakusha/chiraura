@@ -8,6 +8,7 @@ import java.io.File;
 import nippon.kawauso.chiraura.lib.math.MathFunctions;
 import nippon.kawauso.chiraura.lib.test.TestFunctions;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -31,6 +32,12 @@ public final class FileStorageTest {
         // TestFunctions.testLogging(Level.ALL, Level.OFF);
     }
 
+    private void checkTrash() {
+        final File trash = new File(this.root, "%%trash%%");
+        final File[] files = trash.listFiles();
+        Assert.assertArrayEquals(new File[0], files);
+    }
+
     /**
      * @throws Exception 異常
      */
@@ -38,6 +45,7 @@ public final class FileStorageTest {
     public void testMinimum() throws Exception {
         // LoggingFunctions.startDebugLogging();
         StorageTest.testMinimum(new FileStorage(this.root, this.chunkSizeLimit, this.directoryBitSize));
+        checkTrash();
     }
 
     /**
@@ -48,6 +56,7 @@ public final class FileStorageTest {
         final int numOfLoops = 100_000;
         final int numOfChunks = 100;
         StorageTest.testRandom(new MemoryStorage(), new FileStorage(this.root, this.chunkSizeLimit, this.directoryBitSize), numOfLoops, numOfChunks);
+        checkTrash();
     }
 
     private static final String PREFIX = FileStorage.class.getName() + ":";
@@ -61,8 +70,10 @@ public final class FileStorageTest {
         final int numOfChunks = 100;
         final int numOfProcesses = 1_000;
         final int chunkSize = 2 * (int) ((MathFunctions.log2(numOfChunks) + Byte.SIZE - 1) / Byte.SIZE);
+        // LoggingFunctions.startLogging(Level.SEVERE);
         StorageTest.testConcurrencyPerformanceByConstantChunk(new FileStorage(this.root, this.chunkSizeLimit, this.directoryBitSize), numOfLoops, numOfChunks,
                 numOfProcesses, chunkSize, PREFIX);
+        checkTrash();
     }
 
     /**
@@ -75,6 +86,7 @@ public final class FileStorageTest {
         final int numOfProcesses = 1_000;
         StorageTest.testConcurrencyByVariableChunk(new FileStorage(this.root, this.chunkSizeLimit, this.directoryBitSize), numOfLoops, numOfChunks,
                 numOfProcesses, PREFIX);
+        checkTrash();
     }
 
     /**
@@ -86,7 +98,7 @@ public final class FileStorageTest {
      * @return データ片を保存するファイル
      */
     public static File getFile(final File root, final int directoryBitSize, final Chunk.Id<?> id, final long type) {
-        return FileStorage.getFile(root, directoryBitSize, id, type);
+        return new File(root, FileStorage.getBase(directoryBitSize, id, type));
     }
 
 }
