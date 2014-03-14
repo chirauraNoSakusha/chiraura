@@ -3,17 +3,13 @@
  */
 package nippon.kawauso.chiraura.network;
 
-import java.math.BigInteger;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import nippon.kawauso.chiraura.lib.base.Address;
 import nippon.kawauso.chiraura.lib.concurrent.ConcurrentFunctions;
 import nippon.kawauso.chiraura.lib.process.Reporter;
 
@@ -62,49 +58,9 @@ final class CcFingerStabilizer extends Reporter<Void> {
                 continue;
             }
 
-            final Map<Integer, Address> targets = new HashMap<>();
-            for (final AddressedPeer peer : shortcuts) {
-                final Address distance = this.view.getBase().distanceTo(peer.getAddress());
-                targets.put(CcFunctions.distanceLevel(distance), distance);
-            }
-
-            final int[] levels = new int[targets.size()];
-            final int[] weights = new int[targets.size()];
-            final BigInteger averageDistance = this.view.estimateAverageDistance().toBigInteger();
-            int index = 0;
-            for (final Map.Entry<Integer, Address> entry : targets.entrySet()) {
-                levels[index] = entry.getKey();
-                final Address milestone = Address.ZERO.addPowerOfTwo(entry.getKey());
-                final BigInteger diff = entry.getValue().distanceTo(milestone).toBigInteger();
-                weights[index] = 1 + diff.divide(averageDistance).intValue();
-
-                index++;
-            }
-
-            int weightSum = 0;
-            for (final int weight : weights) {
-                weightSum += weight;
-            }
-            int targetLevel = levels[0];
-            int v = random.nextInt(weightSum);
-            for (int i = 0; i < levels.length; i++) {
-                v -= weights[i];
-                if (v < 0) {
-                    targetLevel = levels[i];
-                    break;
-                }
-            }
-
-            final Address target;
-            if (targetLevel >= Address.SIZE) {
-                // 2 の Address.SIZE 乗先は自分なので、その手前にする。
-                target = this.view.getBase().subtractOne();
-            } else {
-                target = this.view.getBase().addPowerOfTwo(targetLevel);
-            }
-
-            ConcurrentFunctions.completePut(new AddressAccessRequest(target), this.taskSink);
-            LOG.log(Level.FINER, "論理位置 {0} への近道の確認要請を出しました。", target);
+            final AddressedPeer target = shortcuts.get(random.nextInt(shortcuts.size()));
+            ConcurrentFunctions.completePut(new PeerAccessRequest(target.getPeer()), this.taskSink);
+            LOG.log(Level.FINER, "近道個体 {0} の確認要請を出しました。", target);
         }
 
         return null;

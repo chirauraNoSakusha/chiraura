@@ -3,7 +3,6 @@
  */
 package nippon.kawauso.chiraura.network;
 
-import java.math.BigInteger;
 import java.net.InetSocketAddress;
 import java.util.HashSet;
 import java.util.Random;
@@ -59,9 +58,8 @@ public final class CcFingerStabilizerTest {
         }
 
         final NetworkTask task = taskQueue.take();
-        Assert.assertTrue(task instanceof AddressAccessRequest);
-        final BigInteger distance = view.getBase().distanceTo(((AddressAccessRequest) task).getAddress()).toBigInteger();
-        Assert.assertTrue(distance.bitCount() == 1 || distance.bitCount() == Address.SIZE);
+        Assert.assertTrue(task instanceof PeerAccessRequest);
+        Assert.assertTrue(peers.contains(((PeerAccessRequest) task).getPeer()));
 
         // 生存個体が居ないなら、何も要請されないことの検査。
         for (final AddressedPeer peer : addrPeers) {
