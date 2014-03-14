@@ -7,7 +7,6 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,7 +48,7 @@ final class FileStorage implements Storage {
 
     /*
      * データ片に対するロックをファイルロックとしても使う。
-     * id が指すデータ片に対応するファイル本体を読み書きする前後で lock(id) と unlock(id) を呼ぶ。
+     * id が指すデータ片に対応するファイルを読み書きする前後で lock(id) と unlock(id) を呼ぶ。
      * ファイルの存在検査等、ファイル本体ではなくディレクトリの読み書きでは呼ばない。
      */
 
@@ -59,7 +58,7 @@ final class FileStorage implements Storage {
     private final int directoryBitSize;
 
     // 保持。
-    private final LockPool<Chunk.Id<?>> locks;
+    private final LockPool<String> locks; // ファイル名でロックする。
     private final TypeRegistry<Chunk> chunkRegistry;
     private final TypeRegistry<Chunk.Id<?>> idRegistry;
 
@@ -122,21 +121,6 @@ final class FileStorage implements Storage {
     @Override
     public TypeRegistry<Chunk.Id<?>> getIdRegistry() {
         return TypeRegistries.unregisterableRegistry(this.idRegistry);
-    }
-
-    @Override
-    public void lock(final Chunk.Id<?> id) throws InterruptedException {
-        this.locks.lock(id);
-    }
-
-    @Override
-    public boolean tryLock(final Chunk.Id<?> id) {
-        return this.locks.tryLock(id);
-    }
-
-    @Override
-    public void unlock(final Chunk.Id<?> id) {
-        this.locks.unlock(id);
     }
 
     /**
@@ -204,11 +188,11 @@ final class FileStorage implements Storage {
         return Base64.fromBase64(string, BASE64_63, BASE64_64);
     }
 
-    static File getFile(final File root, final int directoryBitSize, final Chunk.Id<?> id, final long type) {
+    static String getBase(final int directoryBitSize, final Chunk.Id<?> id, final long type) {
         final byte[] buff = BytesConversion.toBytes("ol", id.getAddress(), type);
         final String dir = toFileString(getFront(buff, directoryBitSize));
         final String file = toFileString(getBack(buff, directoryBitSize));
-        return new File(root, dir + File.separator + file);
+        return (new StringBuilder(dir)).append(File.separator).append(file).toString();
     }
 
     /**
@@ -217,7 +201,22 @@ final class FileStorage implements Storage {
      * @return データ片が保存されるファイル
      */
     private File getFile(final Chunk.Id<?> id) {
-        return getFile(this.root, this.directoryBitSize, id, this.idRegistry.getId(id));
+        return new File(this.root, getBase(this.directoryBitSize, id, this.idRegistry.getId(id)));
+    }
+
+    @Override
+    public void lock(final Chunk.Id<?> id) throws InterruptedException {
+        this.locks.lock(getBase(this.directoryBitSize, id, this.idRegistry.getId(id)));
+    }
+
+    @Override
+    public boolean tryLock(final Chunk.Id<?> id) {
+        return this.locks.tryLock(getBase(this.directoryBitSize, id, this.idRegistry.getId(id)));
+    }
+
+    @Override
+    public void unlock(final Chunk.Id<?> id) {
+        this.locks.unlock(getBase(this.directoryBitSize, id, this.idRegistry.getId(id)));
     }
 
     @Override
@@ -233,8 +232,9 @@ final class FileStorage implements Storage {
             throw new IllegalArgumentException("Not registered chunk id type ( " + id.getClass() + " ).");
         }
 
-        final File file = getFile(id);
-        this.locks.lock(id);
+        final String base = getBase(this.directoryBitSize, id, this.idRegistry.getId(id));
+        final File file = new File(this.root, base);
+        this.locks.lock(base);
         try {
             if (!file.exists()) {
                 return null;
@@ -246,7 +246,7 @@ final class FileStorage implements Storage {
             }
             return index.get(0);
         } finally {
-            this.locks.unlock(id);
+            this.locks.unlock(base);
         }
     }
 
@@ -284,9 +284,11 @@ final class FileStorage implements Storage {
      * @return ディレクトリにあった全データ片の概要。
      *         ディレクトリが無い場合は null
      * @throws IOException 読み込み異常
+     * @throws InterruptedException 割り込まれた場合
      */
-    private Map<Chunk.Id<?>, Storage.Index> getDirIndices(final byte[] dirBytes, final Address min, final Address max) throws IOException {
-        final File dir = new File(this.root, toFileString(dirBytes));
+    private Map<Chunk.Id<?>, Storage.Index> getDirIndices(final byte[] dirBytes, final Address min, final Address max) throws IOException, InterruptedException {
+        final String dirStr = toFileString(dirBytes);
+        final File dir = new File(this.root, dirStr);
         final File[] files = dir.listFiles();
         if (files == null || files.length <= 0) {
             return null;
@@ -315,9 +317,26 @@ final class FileStorage implements Storage {
                 }
 
                 final List<Index> index = new ArrayList<>(1);
-                try (final InputStream input = new BufferedInputStream(new FileInputStream(file), INDEX_READ_BUFFER_SIZE)) {
-                    SimpleIndex.getParser(parser).fromStream(input, this.fileSizeLimit, index);
+                String base;
+                if (this.directoryBitSize == 0) {
+                    base = file.getName();
+                } else {
+                    base = (new StringBuilder(file.getParentFile().getName())).append(File.separator).append(file.getName()).toString();
                 }
+
+                this.locks.lock(base);
+                try {
+                    if (!file.exists()) {
+                        LOG.log(Level.WARNING, "{0} を読むには一足遅かったようです。", file.getPath());
+                        continue;
+                    }
+                    try (final InputStream input = new BufferedInputStream(new FileInputStream(file), INDEX_READ_BUFFER_SIZE)) {
+                        SimpleIndex.getParser(parser).fromStream(input, this.fileSizeLimit, index);
+                    }
+                } finally {
+                    this.locks.unlock(base);
+                }
+
                 indices.put(index.get(0).getId(), index.get(0));
             } catch (final MyRuleException e) {
                 LOG.log(Level.WARNING, "異常が発生しました", e);
@@ -326,8 +345,6 @@ final class FileStorage implements Storage {
                 } else {
                     LOG.log(Level.INFO, "{0} を無視します。", file.getPath());
                 }
-            } catch (final FileNotFoundException e) {
-                LOG.log(Level.WARNING, "一足遅かったようです", e);
             }
         }
         return indices;
@@ -352,7 +369,8 @@ final class FileStorage implements Storage {
     }
 
     @Override
-    public Map<Chunk.Id<?>, Storage.Index> getIndices(final Address min, final Address max) throws IOException {
+    public Map<Chunk.Id<?>, Storage.Index> getIndices(final Address min, final Address max) throws IOException, InterruptedException {
+
         final byte[] minBytes = getFront(BytesConversion.toBytes(min), this.directoryBitSize);
         final byte[] maxBytes = getFront(BytesConversion.toBytes(max), this.directoryBitSize);
 
@@ -383,6 +401,7 @@ final class FileStorage implements Storage {
         } else {
             return indices;
         }
+
     }
 
     @SuppressWarnings("unchecked")
@@ -394,20 +413,20 @@ final class FileStorage implements Storage {
         }
 
         // 読み込み。
-        final File file = getFile(id);
         final List<Storage.Index> index = new ArrayList<>(1);
         final List<Chunk> chunk = new ArrayList<>(1);
-        this.locks.lock(id);
+        final String base = getBase(this.directoryBitSize, id, this.idRegistry.getId(id));
+        final File file = new File(this.root, base);
+        this.locks.lock(base);
         try {
             if (!file.exists()) {
                 return null;
             }
             try (final InputStream input = new BufferedInputStream(new FileInputStream(file))) {
-                BytesConversion.fromStream(input, this.fileSizeLimit, "oo", index, parser, chunk,
-                        this.chunkRegistry.getParser(id.getChunkClass()));
+                BytesConversion.fromStream(input, this.fileSizeLimit, "oo", index, parser, chunk, this.chunkRegistry.getParser(id.getChunkClass()));
             }
         } finally {
-            this.locks.unlock(id);
+            this.locks.unlock(base);
         }
 
         // 検査。
@@ -421,15 +440,18 @@ final class FileStorage implements Storage {
 
     @Override
     public boolean write(final Chunk chunk) throws IOException, InterruptedException {
-        final File file = getFile(chunk.getId());
+        final String base = getBase(this.directoryBitSize, chunk.getId(), this.idRegistry.getId(chunk.getId()));
+        final File file = new File(this.root, base);
+
         // ディレクトリ存在検査。
-        if (!file.getParentFile().exists()) {
-            if (file.getParentFile().mkdir()) {
-                LOG.log(Level.FINEST, "ディレクトリ {0} を作成しました。", file.getParentFile().getName());
-            } else if (file.getParentFile().exists()) {
+        final File dir = file.getParentFile();
+        if (!dir.exists()) {
+            if (dir.mkdir()) {
+                LOG.log(Level.FINEST, "ディレクトリ {0} を作成しました。", dir.getPath());
+            } else if (dir.exists()) {
                 // exists と mkdir の間に他の誰かが作成した。
             } else {
-                throw new IOException("Cannot make directory ( " + file.getParent() + " ).");
+                throw new IOException("Cannot make directory ( " + dir.getPath() + " ).");
             }
         }
 
@@ -451,15 +473,16 @@ final class FileStorage implements Storage {
         }
 
         final int size;
-        this.locks.lock(chunk.getId());
-        try (final OutputStream output = new BufferedOutputStream(new FileOutputStream(file))) {
-            size = BytesConversion.toStream(output, "oo", index, chunk);
-            output.flush();
+        this.locks.lock(base);
+        try {
+            try (final OutputStream output = new BufferedOutputStream(new FileOutputStream(file))) {
+                size = BytesConversion.toStream(output, "oo", index, chunk);
+                output.flush();
+            }
         } finally {
-            this.locks.unlock(chunk.getId());
+            this.locks.unlock(base);
         }
-        LOG.log(Level.FINEST, "{0} のデータ片を {1} に書き込みました。",
-                new Object[] { chunk.getId().getAddress(), file.getParentFile().getName() + File.separator + file.getName() });
+        LOG.log(Level.FINEST, "{0} のデータ片を {1} に書き込みました。", new Object[] { chunk.getId().getAddress(), base });
         if (this.fileSizeLimit < size) {
             throw new IllegalArgumentException("Too large file size ( " + size + " ) over limit ( " + this.fileSizeLimit + " ).");
         }
@@ -468,29 +491,33 @@ final class FileStorage implements Storage {
 
     @Override
     public void forceWrite(final Chunk chunk) throws IOException, InterruptedException {
-        final File file = getFile(chunk.getId());
+        final String base = getBase(this.directoryBitSize, chunk.getId(), this.idRegistry.getId(chunk.getId()));
+        final File file = new File(this.root, base);
+
         // ディレクトリ存在検査。
-        if (!file.getParentFile().exists()) {
-            if (file.getParentFile().mkdir()) {
-                LOG.log(Level.FINEST, "ディレクトリ {0} を作成しました。", file.getParentFile().getName());
-            } else if (file.getParentFile().exists()) {
+        final File dir = file.getParentFile();
+        if (!dir.exists()) {
+            if (dir.mkdir()) {
+                LOG.log(Level.FINEST, "ディレクトリ {0} を作成しました。", dir.getPath());
+            } else if (dir.exists()) {
                 // exists と mkdir の間に他の誰かが作成した。
             } else {
-                throw new IOException("Cannot make directory ( " + file.getParent() + " ).");
+                throw new IOException("Cannot make directory ( " + dir.getPath() + " ).");
             }
         }
 
         final Index index = new SimpleIndex(chunk);
         final int size;
-        this.locks.lock(chunk.getId());
-        try (final OutputStream output = new BufferedOutputStream(new FileOutputStream(file))) {
-            size = BytesConversion.toStream(output, "oo", index, chunk);
-            output.flush();
+        this.locks.lock(base);
+        try {
+            try (final OutputStream output = new BufferedOutputStream(new FileOutputStream(file))) {
+                size = BytesConversion.toStream(output, "oo", index, chunk);
+                output.flush();
+            }
         } finally {
-            this.locks.unlock(chunk.getId());
+            this.locks.unlock(base);
         }
-        LOG.log(Level.FINEST, "{0} のデータ片を {1} に書き込みました。",
-                new Object[] { chunk.getId().getAddress(), file.getParentFile().getName() + File.separator + file.getName() });
+        LOG.log(Level.FINEST, "{0} のデータ片を {1} に書き込みました。", new Object[] { chunk.getId().getAddress(), base });
         if (this.fileSizeLimit < size) {
             throw new IllegalArgumentException("Too large file size ( " + size + " ) over limit ( " + this.fileSizeLimit + " ).");
         }
@@ -499,52 +526,55 @@ final class FileStorage implements Storage {
 
     @Override
     public boolean delete(final Chunk.Id<?> id) throws IOException, InterruptedException {
-        final File file = getFile(id);
-        if (!file.exists()) {
-            // 無い。
-            return false;
-        }
-
-        this.locks.lock(id);
+        final String base = getBase(this.directoryBitSize, id, this.idRegistry.getId(id));
+        final File file = new File(this.root, base);
+        this.locks.lock(base);
         try {
+            if (!file.exists()) {
+                return false;
+            }
             if (file.delete()) {
-                LOG.log(Level.FINEST, "{0} のデータ片 ( {1} ) を消しました。",
-                        new Object[] { id.getAddress(), file.getParentFile().getName() + File.separator + file.getName() });
+                LOG.log(Level.FINEST, "{0} のデータ片 ( {1} ) を消しました。", new Object[] { id.getAddress(), base });
                 return true;
             } else {
                 return false;
             }
         } finally {
-            this.locks.unlock(id);
+            this.locks.unlock(base);
         }
     }
 
-    private boolean moveToTrash(final File file) {
-        try {
-            final File dest;
-            if (this.directoryBitSize > 0) {
-                final File dir = file.getParentFile();
-                final File destDir = new File(this.trash, dir.getName());
-                if (!destDir.exists()) {
-                    if (!destDir.mkdir()) {
-                        LOG.log(Level.WARNING, "{0} を作成できませんでした。", destDir.getPath());
-                        return false;
-                    } else {
-                        LOG.log(Level.FINEST, "{0} を作成しました。", destDir.getPath());
-                    }
-                }
-
-                dest = new File(destDir, file.getName());
-            } else {
-                dest = new File(this.trash, file.getName());
-            }
-
-            Files.move(file.toPath(), dest.toPath());
-            return true;
-        } catch (final Exception e) {
-            LOG.log(Level.WARNING, "{0} を除外できませんでした。", file.getPath());
-            return false;
+    private boolean moveToTrash(final File file) throws InterruptedException {
+        String base;
+        if (this.directoryBitSize == 0) {
+            base = file.getName();
+        } else {
+            base = (new StringBuilder(file.getParentFile().getName())).append(File.separator).append(file.getName()).toString();
         }
+
+        final File dest = new File(this.trash, base);
+        final File destDir = dest.getParentFile();
+        if (!destDir.exists()) {
+            if (dest.getParentFile().mkdir()) {
+                LOG.log(Level.FINEST, "{0} を作成しました。", destDir.getPath());
+            } else if (destDir.exists()) {
+                // exists と mkdir の間に他の誰かが作成した。
+            } else {
+                LOG.log(Level.WARNING, "{0} を作成できませんでした。", destDir.getPath());
+                return false;
+            }
+        }
+
+        this.locks.lock(base);
+        try {
+            Files.move(file.toPath(), dest.toPath());
+        } catch (final Exception e) {
+            LOG.log(Level.WARNING, "{0} を除外できませんでした。", base);
+            return false;
+        } finally {
+            this.locks.unlock(base);
+        }
+        return true;
     }
 
     @Override
