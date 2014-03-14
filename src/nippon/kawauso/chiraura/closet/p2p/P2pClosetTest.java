@@ -30,6 +30,7 @@ import nippon.kawauso.chiraura.lib.exception.MyRuleException;
 import nippon.kawauso.chiraura.lib.logging.LoggingFunctions;
 import nippon.kawauso.chiraura.lib.math.MathFunctions;
 import nippon.kawauso.chiraura.lib.test.FileFunctions;
+import nippon.kawauso.chiraura.lib.test.TestFunctions;
 import nippon.kawauso.chiraura.messenger.CryptographicKeys;
 import nippon.kawauso.chiraura.network.AddressedPeer;
 import nippon.kawauso.chiraura.storage.Chunk;
@@ -644,6 +645,7 @@ public final class P2pClosetTest {
      */
     @Test
     public void testPatchAndGetOrUpdateCache20() throws Exception {
+        TestFunctions.testLogging(Level.OFF, Level.ALL, "Yo-Debug");
         testPatchAndGetOrUpdateCache(20);
     }
 
