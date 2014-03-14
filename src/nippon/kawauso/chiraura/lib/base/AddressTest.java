@@ -32,7 +32,7 @@ public final class AddressTest extends BytesConvertibleTest<Address> {
      * @return 試験用インスタンス
      */
     public static Address newInstance(final int seed) {
-        return new Address(BigInteger.valueOf(seed), Integer.SIZE);
+        return Address.ZERO.addReverseBits(seed);
     }
 
     @Override
