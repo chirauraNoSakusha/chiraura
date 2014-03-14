@@ -14,6 +14,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
+import nippon.kawauso.chiraura.lib.StreamFunctions;
 import nippon.kawauso.chiraura.lib.container.Pair;
 import nippon.kawauso.chiraura.lib.exception.MyRuleException;
 import nippon.kawauso.chiraura.lib.http.Http;
@@ -180,8 +181,7 @@ final class HttpRequest {
         final byte[] content;
         if (contentLength != null) {
             final int length = Integer.parseInt(contentLength);
-            content = new byte[length];
-            input.completeRead(content);
+            content = StreamFunctions.completeRead(input, length);
         } else {
             content = null;
         }

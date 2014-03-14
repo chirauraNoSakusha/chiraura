@@ -366,8 +366,7 @@ final class Transceiver {
                 continue;
             }
 
-            final byte[] buff = new byte[envelopeSize];
-            this.input.completeRead(buff);
+            final byte[] buff = StreamFunctions.completeRead(this.input, envelopeSize);
             size += buff.length;
             final Envelope envelope = BytesConversion.fromBytes(buff, parserGenerator.getParser(decryptionKey));
             sink.addAll(envelope.getMail());

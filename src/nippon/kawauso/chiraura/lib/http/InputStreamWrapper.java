@@ -82,26 +82,6 @@ public final class InputStreamWrapper extends InputStream {
     }
 
     /**
-     * 指定したバイト数だけ全部読む。
-     * @param output 読んだデータを格納するところ
-     * @throws IOException 読み込み異常
-     * @throws MyRuleException 読み込めるデータが足りなかった場合
-     */
-    public void completeRead(final byte[] output) throws IOException, MyRuleException {
-        final int len = this.tail - this.head;
-        if (len == 0) {
-            StreamFunctions.completeRead(this.base, output, 0, output.length);
-        } else if (len < output.length) {
-            System.arraycopy(this.buff, this.head, output, 0, len);
-            this.head = this.tail;
-            StreamFunctions.completeRead(this.base, output, len, output.length - len);
-        } else {
-            System.arraycopy(this.buff, this.head, output, 0, output.length);
-            this.head += output.length;
-        }
-    }
-
-    /**
      * 1 行読む。
      * @return 1 行。もう無いときは null
      * @throws IOException 読み込み異常
@@ -273,7 +253,7 @@ public final class InputStreamWrapper extends InputStream {
                 System.out.println(line);
             }
             final byte[] buff = new byte[104];
-            input.completeRead(buff);
+            StreamFunctions.completeRead(input, buff, 0, buff.length);
             System.out.println(new String(buff));
         }
     }
