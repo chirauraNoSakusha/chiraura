@@ -506,16 +506,6 @@ public final class P2pCloset implements Closet {
                 this.network.reservePeer(host);
             }
         }
-        // Lonely に並列性を持たせたので以下は不要。
-        // if (param.addressedPeers != null && !param.addressedPeers.isEmpty()) {
-        // // 初期個体への接続を予約する。
-        // for (final AddressedPeer peer : param.addressedPeers) {
-        // this.network.addPeer(peer);
-        // }
-        // if (!this.network.isEmpty()) {
-        // ConcurrentFunctions.completePut(new AddressAccessOperation(this.network.getSelfAddress().subtractOne()), this.operationQueue);
-        // }
-        // }
     }
 
     @Override
