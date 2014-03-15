@@ -1,6 +1,3 @@
-/**
- * 
- */
 package nippon.kawauso.chiraura.messenger;
 
 import java.security.PublicKey;

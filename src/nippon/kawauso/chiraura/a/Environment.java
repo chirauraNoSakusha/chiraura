@@ -1,6 +1,3 @@
-/**
- * 
- */
 package nippon.kawauso.chiraura.a;
 
 import java.io.BufferedReader;

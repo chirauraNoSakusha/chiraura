@@ -1,6 +1,3 @@
-/**
- * 
- */
 package nippon.kawauso.chiraura.lib.base;
 
 import java.io.IOException;

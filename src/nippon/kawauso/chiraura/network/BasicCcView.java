@@ -1,6 +1,3 @@
-/**
- * 
- */
 package nippon.kawauso.chiraura.network;
 
 import java.math.BigInteger;

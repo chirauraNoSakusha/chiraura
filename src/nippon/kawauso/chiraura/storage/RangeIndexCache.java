@@ -1,6 +1,3 @@
-/**
- * 
- */
 package nippon.kawauso.chiraura.storage;
 
 import java.util.HashMap;

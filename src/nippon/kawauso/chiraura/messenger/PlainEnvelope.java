@@ -1,6 +1,3 @@
-/**
- * 
- */
 package nippon.kawauso.chiraura.messenger;
 
 import java.io.IOException;
@@ -19,7 +16,7 @@ import nippon.kawauso.chiraura.lib.exception.MyRuleException;
  * 何もしない封筒。
  * 最小のメッセージは1バイトの0。
  * 以下の形式のバイト列と相互変換できる。
- * 
+ *
  * <pre>
  * {要素数}
  * {要素種別1}{要素サイズ1}

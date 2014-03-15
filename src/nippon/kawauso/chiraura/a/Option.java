@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package nippon.kawauso.chiraura.a;
 
 import java.io.File;

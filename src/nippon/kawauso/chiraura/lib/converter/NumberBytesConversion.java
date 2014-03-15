@@ -22,7 +22,7 @@ public final class NumberBytesConversion {
 
     /**
      * long が64ビットであることに依存している。
-     * 
+     *
      * <pre>
      * バイト長 先頭ビットパターン 数値部ビット長 補正値                    正値                        負値
      * 1        0                  7              +-0                       0から2^6-1                  -1から-2^6

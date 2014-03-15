@@ -1,6 +1,3 @@
-/**
- * 
- */
 package nippon.kawauso.chiraura.closet;
 
 import java.util.List;

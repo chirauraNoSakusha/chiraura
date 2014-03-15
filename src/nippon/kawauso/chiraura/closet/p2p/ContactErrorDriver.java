@@ -1,6 +1,3 @@
-/**
- * 
- */
 package nippon.kawauso.chiraura.closet.p2p;
 
 import java.net.ConnectException;

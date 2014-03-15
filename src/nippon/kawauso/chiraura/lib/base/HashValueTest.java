@@ -36,7 +36,7 @@ public final class HashValueTest extends BytesConvertibleTest<HashValue> {
     /**
      * 入力が分割されていても同じ値になるかどうかの検査。
      */
-    
+
     @Test
     public void testConsistency() {
         Assert.assertEquals(HashValue.calculateFromBytes(new byte[] { 1, 2, 3, 4, 5, 6 }),
@@ -99,7 +99,7 @@ public final class HashValueTest extends BytesConvertibleTest<HashValue> {
     /**
      * @throws Exception エラー
      */
-    
+
     @Test
     public void testStringConversion() throws Exception {
         ConversionTest.testEachOther(originalList, stringConverter, stringReverseConverter);
@@ -138,7 +138,7 @@ public final class HashValueTest extends BytesConvertibleTest<HashValue> {
     /**
      * @throws Exception エラー
      */
-    
+
     @Test
     public void testBase64Conversion() throws Exception {
         ConversionTest.testEachOther(originalList, base64Converter, base64ReverseConverter);

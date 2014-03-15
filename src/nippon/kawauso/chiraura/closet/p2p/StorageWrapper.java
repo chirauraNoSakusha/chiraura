@@ -1,6 +1,3 @@
-/**
- * 
- */
 package nippon.kawauso.chiraura.closet.p2p;
 
 import java.io.IOException;
@@ -225,7 +222,7 @@ final class StorageWrapper {
      * データ片が無いなら書き込む。
      * データ片が既に存在しても基礎が違うなら何もしない。
      * 基礎が同じなら全差分を加える。
-     * 
+     *
      * <pre>
      * isNotFound isSuccess
      * X          O         書き換えた。
@@ -280,7 +277,7 @@ final class StorageWrapper {
      * データ片が無いなら書き込む。
      * データ片が既に存在しても基礎が違うなら上書きする。
      * 差分形式で基礎が同じなら全差分を加える。
-     * 
+     *
      * <pre>
      * isNotFound isSuccess
      * X          O         書き換えた。
@@ -338,7 +335,7 @@ final class StorageWrapper {
      * データ片が既に存在して、差分形式でないなら上書きする。
      * データ片が既に存在して、差分形式で基礎が違うなら何もしない。
      * 差分形式で基礎が同じなら全差分を加える。
-     * 
+     *
      * <pre>
      * isNotFound isSuccess
      * X          O         書き換えた。
@@ -367,7 +364,7 @@ final class StorageWrapper {
      * データ片が無いなら書き込む。
      * データ片が既に存在して、差分形式でない、または、差分形式でも基礎が違うなら上書きする。
      * 差分形式で基礎が同じなら全差分を加える。
-     * 
+     *
      * <pre>
      * isNotFound isSuccess
      * X          O         書き換えた。
@@ -436,7 +433,7 @@ final class StorageWrapper {
 
     /**
      * 差分を適用する。
-     * 
+     *
      * <pre>
      * isNotFound isSuccess
      * O          -         対象が無かった。
@@ -481,7 +478,7 @@ final class StorageWrapper {
 
     /**
      * 差分を適用する。
-     * 
+     *
      * <pre>
      * isNotFound isSuccess
      * O          -         対象が無かった。
@@ -598,7 +595,7 @@ final class StorageWrapper {
 
     /**
      * 新鮮な複製を読み込む。
-     * 
+     *
      * <pre>
      * hasInfo isNotFound isSuccess
      * O       O          -         新鮮な不在情報がある。
@@ -641,7 +638,7 @@ final class StorageWrapper {
      * 複製を保存する。
      * ただし、より新しい複製がある場合は何もしない。
      * 不在情報ならより新しくても無視して保存する。
-     * 
+     *
      * <pre>
      * hasInfo isNotFound isSuccess
      * O       X          O         書き換えた。
@@ -684,7 +681,7 @@ final class StorageWrapper {
     /**
      * 不在情報を登録する。
      * ただし、新鮮な複製がある場合は何もしない。
-     * 
+     *
      * <pre>
      * hasInfo isNotFound isSuccess
      * O       O          O         登録した。
@@ -732,7 +729,7 @@ final class StorageWrapper {
      * 複製に差分を適用する。
      * ただし、複製が無い、または、複製の方が新しい場合は何もしない。
      * 差分を適用した後のハッシュ値が hashValue と異なる場合も何もしない。
-     * 
+     *
      * <pre>
      * hasInfo isNotFound isSuccess
      * O       O          -         新鮮な不在情報があった。

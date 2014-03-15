@@ -1,6 +1,3 @@
-/**
- * 
- */
 package nippon.kawauso.chiraura.lib.test;
 
 import java.net.Inet4Address;

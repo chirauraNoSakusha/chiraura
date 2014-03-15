@@ -1,6 +1,3 @@
-/**
- * 
- */
 package nippon.kawauso.chiraura;
 
 import java.nio.charset.Charset;

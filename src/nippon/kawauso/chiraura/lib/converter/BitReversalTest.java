@@ -45,7 +45,7 @@ public final class BitReversalTest {
      * サンプルで変換検査。
      * @throws Exception エラー
      */
-    
+
     @Test
     public void testByteConversion() throws Exception {
         ConversionTest.testEachOther(byteList, byteConverter, byteConverter);
@@ -85,7 +85,7 @@ public final class BitReversalTest {
      * サンプルで変換検査。
      * @throws Exception エラー
      */
-    
+
     @Test
     public void testShortConversion() throws Exception {
         ConversionTest.testEachOther(shortList, shortConverter, shortConverter);
@@ -125,7 +125,7 @@ public final class BitReversalTest {
      * サンプルで変換検査。
      * @throws Exception エラー
      */
-    
+
     @Test
     public void testIntConversion() throws Exception {
         ConversionTest.testEachOther(intList, intConverter, intConverter);
@@ -165,7 +165,7 @@ public final class BitReversalTest {
      * サンプルで変換検査。
      * @throws Exception エラー
      */
-    
+
     @Test
     public void testLongConversion() throws Exception {
         ConversionTest.testEachOther(longList, longConverter, longConverter);
@@ -223,7 +223,7 @@ public final class BitReversalTest {
      * サンプルで変換検査。
      * @throws Exception エラー
      */
-    
+
     @Test
     public void testBigIntegerConversion() throws Exception {
         ConversionTest.testEachOther(bigIntegerList, getBigIntegerConverter(40), getBigIntegerConverter(40));
@@ -232,7 +232,7 @@ public final class BitReversalTest {
     /**
      * @throws Exception エラー
      */
-    
+
     @Test
     public void testBigIntegerPerformance() throws Exception {
         for (final int numOfBits : new int[] { 10, 20, 40, 80, 160 }) {
@@ -244,7 +244,7 @@ public final class BitReversalTest {
     /**
      * @throws Exception エラー
      */
-    
+
     @Test
     public void testOldBigIntegerPerformance() throws Exception {
         for (final int numOfBits : new int[] { 10, 20, 40, 80, 160 }) {

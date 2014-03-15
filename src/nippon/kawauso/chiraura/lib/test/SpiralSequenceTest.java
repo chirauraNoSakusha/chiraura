@@ -12,7 +12,7 @@ public final class SpiralSequenceTest {
     /**
      * 最初と最後のあたりの検査。
      */
-    
+
     @Test
     public void testBounds() {
         SpiralSequence sequence;

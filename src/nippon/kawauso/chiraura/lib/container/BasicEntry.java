@@ -1,6 +1,3 @@
-/**
- * 
- */
 package nippon.kawauso.chiraura.lib.container;
 
 import java.util.Map;

@@ -1,6 +1,3 @@
-/**
- * 
- */
 package nippon.kawauso.chiraura.storage;
 
 import nippon.kawauso.chiraura.lib.math.MathFunctions;

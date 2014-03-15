@@ -69,7 +69,7 @@ public final class Base64Test {
      * サンプルで変換検査。
      * @throws Exception エラー
      */
-    
+
     @Test
     public void testConversion() throws Exception {
         ConversionTest.testEachOther(ogiginalList, converter, reverseConverter);

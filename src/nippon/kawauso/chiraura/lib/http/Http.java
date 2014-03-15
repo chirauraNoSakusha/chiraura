@@ -1,6 +1,3 @@
-/**
- * 
- */
 package nippon.kawauso.chiraura.lib.http;
 
 import java.net.ProtocolException;

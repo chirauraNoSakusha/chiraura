@@ -1,6 +1,3 @@
-/**
- * 
- */
 package nippon.kawauso.chiraura.lib.cell;
 
 import nippon.kawauso.chiraura.lib.converter.BytesConvertible;

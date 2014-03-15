@@ -9,7 +9,7 @@ import java.util.logging.LogRecord;
 
 /**
  * 基本 1 行で SimpleFormatter にスレッド番号を加えた程度の情報を表示する。
- * 
+ *
  * <pre>yyyy/MM/dd HH:mm:ss LEVEL CLASS METHOD (THREAD): MESSAGE[:\nTHROWABLE]\n</pre>
  * @author chirauraNoSakusha
  */

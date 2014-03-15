@@ -1,6 +1,3 @@
-/**
- * 
- */
 package nippon.kawauso.chiraura.lib;
 
 import java.net.InetSocketAddress;

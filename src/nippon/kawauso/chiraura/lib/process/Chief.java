@@ -1,6 +1,3 @@
-/**
- * 
- */
 package nippon.kawauso.chiraura.lib.process;
 
 import java.util.concurrent.BlockingQueue;

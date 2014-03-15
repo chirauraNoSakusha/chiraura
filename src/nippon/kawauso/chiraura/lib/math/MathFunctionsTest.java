@@ -14,7 +14,7 @@ public final class MathFunctionsTest {
     /**
      * 最高位の1の位置を探せるか検査。
      */
-    
+
     @Test
     public void testGetHighestSetBit() {
         Assert.assertEquals(13, MathFunctions.getHighestSetBit(BigInteger.valueOf(0x2c34L), 100));

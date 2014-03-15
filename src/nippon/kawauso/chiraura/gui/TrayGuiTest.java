@@ -1,6 +1,3 @@
-/**
- * 
- */
 package nippon.kawauso.chiraura.gui;
 
 import java.net.InetAddress;

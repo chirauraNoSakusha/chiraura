@@ -1,6 +1,3 @@
-/**
- * 
- */
 package nippon.kawauso.chiraura.util;
 
 import java.awt.image.BufferedImage;

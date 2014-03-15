@@ -1,6 +1,3 @@
-/**
- * 
- */
 package nippon.kawauso.chiraura.bbs;
 
 import nippon.kawauso.chiraura.closet.Mountain;

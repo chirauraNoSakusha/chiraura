@@ -1,6 +1,3 @@
-/**
- * 
- */
 package nippon.kawauso.chiraura.lib.converter;
 
 import java.io.ByteArrayInputStream;
@@ -25,9 +22,9 @@ import nippon.kawauso.chiraura.lib.exception.MyRuleException;
  * l long
  * o BytesConvertible
  * </pre>
- * 
+ *
  * 指定子に対する引数の型は以下の通り。
- * 
+ *
  * <pre>
  * 指定子     変換元  変換先
  * b          byte    byte[1]
