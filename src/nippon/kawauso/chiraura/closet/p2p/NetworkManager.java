@@ -52,7 +52,7 @@ final class NetworkManager extends Reporter<Void> {
             if (task instanceof AddressAccessRequest) {
                 this.addressAccessDriver.execute(new AddressAccessOperation(((AddressAccessRequest) task).getAddress()), this.operationTimeout);
             } else if (task instanceof PeerAccessRequest) {
-                this.peerAccessDriver.execute(new PeerAccessOperation(((PeerAccessRequest) task).getPeer()), this.operationTimeout);
+                this.peerAccessDriver.execute(new PeerAccessOperation(((PeerAccessRequest) task).getPeer()), this.operationTimeout / 2); // 直接なら短く。
             } else {
                 done = false;
             }

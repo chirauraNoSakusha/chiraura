@@ -44,7 +44,7 @@ final class Worker extends Reporter<Void> {
 
             boolean done = true;
             if (operation instanceof PeerAccessOperation) {
-                this.drivers.getPeerAccessNonBlocking().execute((PeerAccessOperation) operation, this.operationTimeout);
+                this.drivers.getPeerAccessNonBlocking().execute((PeerAccessOperation) operation, this.operationTimeout / 2);// 直接なら短く。
             } else if (operation instanceof AddressAccessOperation) {
                 this.drivers.getAddressAccessNonBlocking().execute((AddressAccessOperation) operation, this.operationTimeout);
             } else if (operation instanceof GetChunkOperation) {
@@ -66,9 +66,9 @@ final class Worker extends Reporter<Void> {
             } else if (operation instanceof PatchAndGetOrUpdateCacheOperation) {
                 this.drivers.getPatchAndGetOrUpdateCacheNonBlocking().execute((PatchAndGetOrUpdateCacheOperation<?>) operation, this.operationTimeout);
             } else if (operation instanceof BackupOneOperation) {
-                this.drivers.getBackupOneNonBlocking().execute((BackupOneOperation) operation, this.operationTimeout);
+                this.drivers.getBackupOneNonBlocking().execute((BackupOneOperation) operation, this.operationTimeout / 2);// 直接なら短く。
             } else if (operation instanceof SimpleRecoveryOperation) {
-                this.drivers.getSimpleRecoveryNonBlocking().execute((SimpleRecoveryOperation) operation, this.operationTimeout);
+                this.drivers.getSimpleRecoveryNonBlocking().execute((SimpleRecoveryOperation) operation, this.operationTimeout / 2);// 直接なら短く。
             } else {
                 done = false;
             }

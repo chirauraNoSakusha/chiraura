@@ -96,7 +96,7 @@ final class Backupper extends Reporter<Void> {
          */
 
         while (!isEnd()) {
-            final CheckStockResult result = this.drivers.getCheckStockBlocking().execute(new CheckStockOperation(this.destination), this.interval);
+            final CheckStockResult result = this.drivers.getCheckStockBlocking().execute(new CheckStockOperation(this.destination), this.timeout / 2);// 直接なら短く。
 
             if (result == null || result.isGivenUp()) {
                 LOG.log(Level.FINEST, "{0} への最初の在庫確認が失敗しました。", this.destination);
@@ -109,7 +109,7 @@ final class Backupper extends Reporter<Void> {
                         break;
                     }
                     LOG.log(Level.FINEST, "{0} からの最初の取り寄せ {1} 個目 {2} を始めます。", new Object[] { this.destination, i, result.getStockedEntries().get(i).getId() });
-                    this.drivers.getRecoverySelect().execute(new RecoveryOperation(result.getStockedEntries().get(i), this.destination), this.timeout);
+                    this.drivers.getRecoverySelect().execute(new RecoveryOperation(result.getStockedEntries().get(i), this.destination), this.timeout / 2);// 直接なら短く。
                 }
                 break;
             }
@@ -119,7 +119,7 @@ final class Backupper extends Reporter<Void> {
     private void recovery() throws IOException, InterruptedException {
         final long start = System.currentTimeMillis();
 
-        final CheckStockResult result = this.drivers.getCheckStockBlocking().execute(new CheckStockOperation(this.destination), this.interval);
+        final CheckStockResult result = this.drivers.getCheckStockBlocking().execute(new CheckStockOperation(this.destination), this.timeout / 2);// 直接なら短く。
 
         if (result == null || result.isGivenUp()) {
             LOG.log(Level.FINEST, "{0} への在庫確認が失敗しました。", this.destination);
@@ -133,7 +133,7 @@ final class Backupper extends Reporter<Void> {
                 break;
             }
 
-            final long currentTimeout = Math.min(this.timeout, start + this.interval - System.currentTimeMillis());
+            final long currentTimeout = Math.min(this.timeout / 2, start + this.interval - System.currentTimeMillis()); // 直接なら短く。
 
             if (currentTimeout <= 0) {
                 break;
@@ -147,7 +147,7 @@ final class Backupper extends Reporter<Void> {
     private void backup() throws IOException, InterruptedException {
         final long start = System.currentTimeMillis();
 
-        final CheckDemandResult result = this.drivers.getCheckDemandBlocking().execute(new CheckDemandOperation(this.destination), this.timeout);
+        final CheckDemandResult result = this.drivers.getCheckDemandBlocking().execute(new CheckDemandOperation(this.destination), this.timeout / 2);// 直接なら短く。
 
         if (result == null || result.isGivenUp()) {
             LOG.log(Level.FINEST, "{0} への発注依頼が失敗しました。", this.destination);
@@ -161,7 +161,7 @@ final class Backupper extends Reporter<Void> {
                 break;
             }
 
-            final long currentTimeout = Math.min(this.timeout, start + this.interval - System.currentTimeMillis());
+            final long currentTimeout = Math.min(this.timeout / 2, start + this.interval - System.currentTimeMillis());// 直接なら短く。
 
             if (currentTimeout <= 0) {
                 break;
