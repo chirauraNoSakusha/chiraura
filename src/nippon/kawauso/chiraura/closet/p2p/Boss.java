@@ -160,7 +160,7 @@ final class Boss extends Chief {
     }
 
     @Override
-    protected void after() throws Exception {
+    protected void after() {
         // 念の為。
         for (final BackupperMaster.BackupperUnit unit : this.backupeerPool.values()) {
             unit.close();

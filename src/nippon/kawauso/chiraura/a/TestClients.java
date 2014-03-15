@@ -571,7 +571,7 @@ final class TestClients {
             }
 
             @Override
-            protected Void subCall() throws Exception {
+            protected Void subCall() throws MyRuleException, IOException, InterruptedException {
                 // 最初に板取得。
                 updateBoard();
 
@@ -630,7 +630,7 @@ final class TestClients {
             }
 
             @Override
-            protected Void subCall() throws Exception {
+            protected Void subCall() throws MyRuleException, IOException, InterruptedException {
                 while (!Thread.currentThread().isInterrupted()) {
                     updateBoard();
 

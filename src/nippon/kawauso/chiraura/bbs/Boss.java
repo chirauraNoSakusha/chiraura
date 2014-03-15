@@ -90,7 +90,7 @@ final class Boss extends Chief {
     }
 
     @Override
-    protected void reaction(final Report report) throws Exception {
+    protected void reaction(final Report report) {
         boolean done = true;
         if (report.getSource() == Server.class) {
             if (this.serverSocket != null) {

@@ -47,7 +47,7 @@ final class SimpleRecoveryNonBlockingDriver {
         // 自分で始める。
         this.executor.submit(new Reporter<Void>(Level.WARNING) {
             @Override
-            protected Void subCall() throws Exception {
+            protected Void subCall() throws IOException, InterruptedException {
                 SimpleRecoveryResult result = null;
                 try {
                     result = SimpleRecoveryNonBlockingDriver.this.coreDriver.execute(operation, timeout);

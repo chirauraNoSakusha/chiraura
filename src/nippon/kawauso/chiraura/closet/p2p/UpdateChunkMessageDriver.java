@@ -1,5 +1,6 @@
 package nippon.kawauso.chiraura.closet.p2p;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.security.PublicKey;
 import java.util.ArrayList;
@@ -57,7 +58,7 @@ final class UpdateChunkMessageDriver {
 
         this.executor.submit(new Reporter<Void>(Level.WARNING) {
             @Override
-            protected Void subCall() throws Exception {
+            protected Void subCall() throws IOException, InterruptedException {
                 final UpdateChunkOperation operation = new UpdateChunkOperation(message.getId(), message.getDate());
                 final UpdateChunkResult result = UpdateChunkMessageDriver.this.blockingDriver.execute(operation, timeout);
 

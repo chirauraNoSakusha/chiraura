@@ -1,5 +1,6 @@
 package nippon.kawauso.chiraura.closet.p2p;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.security.PublicKey;
 import java.util.ArrayList;
@@ -57,7 +58,7 @@ final class PatchOrAddAndGetCacheMessageDriver {
 
         this.executor.submit(new Reporter<Void>(Level.WARNING) {
             @Override
-            protected Void subCall() throws Exception {
+            protected Void subCall() throws InterruptedException, IOException {
                 final PatchOrAddAndGetCacheOperation operation = new PatchOrAddAndGetCacheOperation(message.getChunk());
                 final PatchOrAddAndGetCacheResult result = PatchOrAddAndGetCacheMessageDriver.this.blockingDriver.execute(operation, timeout);
 

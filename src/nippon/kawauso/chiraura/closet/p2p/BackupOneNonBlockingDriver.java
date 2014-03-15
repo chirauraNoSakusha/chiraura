@@ -1,5 +1,6 @@
 package nippon.kawauso.chiraura.closet.p2p;
 
+import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -42,7 +43,7 @@ final class BackupOneNonBlockingDriver {
         // 自分で始める。
         this.executor.submit(new Reporter<Void>(Level.WARNING) {
             @Override
-            protected Void subCall() throws Exception {
+            protected Void subCall() throws IOException, InterruptedException {
                 BackupOneResult result = null;
                 try {
                     result = BackupOneNonBlockingDriver.this.coreDriver.execute(operation, timeout);

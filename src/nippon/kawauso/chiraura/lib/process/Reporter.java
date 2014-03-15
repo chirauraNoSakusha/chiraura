@@ -98,7 +98,7 @@ public abstract class Reporter<T> implements Callable<T> {
     }
 
     @Override
-    public final T call() throws Exception {
+    public final T call() {
         LOG.logp(Level.FINE, this.getClass().getName(), Thread.currentThread().getStackTrace()[1].getMethodName(), "こんにちは。");
 
         try {

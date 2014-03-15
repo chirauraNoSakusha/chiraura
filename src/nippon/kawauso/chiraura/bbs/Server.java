@@ -89,7 +89,7 @@ final class Server extends Reporter<Void> {
     }
 
     @Override
-    protected Void subCall() throws Exception {
+    protected Void subCall() throws IOException {
         try {
             if (Global.isDebug()) {
                 this.serverSocket.setReuseAddress(true);

@@ -165,7 +165,7 @@ final class TestUnit {
 
         chirauraExecutor.submit(new Reporter<Void>(Level.SEVERE) {
             @Override
-            protected Void subCall() throws Exception {
+            protected Void subCall() throws FileNotFoundException, IOException {
                 A.main(argList.toArray(new String[0]));
                 return null;
             }

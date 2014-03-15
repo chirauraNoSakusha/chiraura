@@ -40,7 +40,7 @@ final class CcSuccessorStabilizer extends Reporter<Void> {
     }
 
     @Override
-    protected Void subCall() throws Exception {
+    protected Void subCall() throws InterruptedException {
         final Random random = ThreadLocalRandom.current();
         while (!Thread.currentThread().isInterrupted()) {
             /*

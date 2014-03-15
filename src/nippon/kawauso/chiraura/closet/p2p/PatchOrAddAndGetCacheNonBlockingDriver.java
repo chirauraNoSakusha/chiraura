@@ -1,5 +1,6 @@
 package nippon.kawauso.chiraura.closet.p2p;
 
+import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -41,7 +42,7 @@ final class PatchOrAddAndGetCacheNonBlockingDriver {
         // 自分で始める。
         this.executor.submit(new Reporter<Void>(Level.WARNING) {
             @Override
-            protected Void subCall() throws Exception {
+            protected Void subCall() throws InterruptedException, IOException {
                 PatchOrAddAndGetCacheResult result = null;
                 try {
                     result = PatchOrAddAndGetCacheNonBlockingDriver.this.coreDriver.execute(operation, timeout);

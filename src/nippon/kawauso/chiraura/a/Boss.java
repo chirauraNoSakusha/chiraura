@@ -75,7 +75,7 @@ final class Boss extends Chief {
     }
 
     @Override
-    protected void reaction(final Reporter.Report report) throws Exception {
+    protected void reaction(final Reporter.Report report) {
         boolean done = true;
         if (report.getSource() == ClosetMonitor.class) {
             this.executor.submit(newClosetMonitor());

@@ -47,7 +47,7 @@ final class GetCacheNonBlockingDriver {
 
         this.executor.submit(new Reporter<Void>(Level.WARNING) {
             @Override
-            protected Void subCall() throws Exception {
+            protected Void subCall() throws InterruptedException, IOException {
                 GetCacheResult result = null;
                 try {
                     result = GetCacheNonBlockingDriver.this.coreDriver.execute(operation, timeout);

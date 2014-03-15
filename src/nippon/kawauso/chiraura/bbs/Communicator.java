@@ -54,7 +54,7 @@ final class Communicator implements Callable<Void> {
     }
 
     @Override
-    public Void call() throws Exception {
+    public Void call() {
         LOG.log(Level.FINE, "こんにちは。");
 
         try {

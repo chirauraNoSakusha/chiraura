@@ -11,7 +11,7 @@ import nippon.kawauso.chiraura.lib.logging.LoggingFunctions;
  */
 final class TrayGuiMain {
 
-    public static void main(final String[] args) throws Exception {
+    public static void main(final String[] args) throws InterruptedException {
         /*
          * 検査用。
          * メニューを表示させると死ねない環境がある。
