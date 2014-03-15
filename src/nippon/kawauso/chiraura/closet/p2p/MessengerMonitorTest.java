@@ -1,6 +1,8 @@
 package nippon.kawauso.chiraura.closet.p2p;
 
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -10,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 import nippon.kawauso.chiraura.closet.ClosetReport;
 import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.process.Reporter;
+import nippon.kawauso.chiraura.storage.Chunk;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -42,7 +45,8 @@ public final class MessengerMonitorTest {
         final NetworkWrapper network = NetworkWrapperTest.sample(this.random, new HashingCalculator(1_000));
         final StorageWrapper storage = StorageWrapperTest.sample(this.random, this.operationQueue);
 
-        final DriverSet drivers = new DriverSet(network, storage, new SessionManager(), this.operationQueue, this.executor, entryLimit);
+        final Set<Class<? extends Chunk>> backupTypes = new HashSet<>();
+        final DriverSet drivers = new DriverSet(network, storage, new SessionManager(), this.operationQueue, this.executor, entryLimit, backupTypes);
 
         this.instance = new MessengerMonitor(this.reportQueue, network, this.closerReportQueue, versionGapThreshold, drivers);
         this.shutdownTimeout = Duration.SECOND;

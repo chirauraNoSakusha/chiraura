@@ -5,6 +5,7 @@ import java.net.InetSocketAddress;
 import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -26,8 +27,10 @@ final class CheckDemandMessageDriver {
     private final TypeRegistry<Chunk.Id<?>> idRegistry;
 
     private final int entryLimit;
+    private final Set<Class<? extends Chunk>> backupTypes;
 
-    CheckDemandMessageDriver(final NetworkWrapper network, final StorageWrapper storage, final TypeRegistry<Chunk.Id<?>> idRegistry, final int entryLimit) {
+    CheckDemandMessageDriver(final NetworkWrapper network, final StorageWrapper storage, final TypeRegistry<Chunk.Id<?>> idRegistry, final int entryLimit,
+            final Set<Class<? extends Chunk>> backupTypes) {
         if (network == null) {
             throw new IllegalArgumentException("Null network.");
         } else if (storage == null) {
@@ -36,12 +39,15 @@ final class CheckDemandMessageDriver {
             throw new IllegalArgumentException("Null id registry.");
         } else if (entryLimit < 0) {
             throw new IllegalArgumentException("Negative entry limit ( " + entryLimit + " ).");
+        } else if (backupTypes == null) {
+            throw new IllegalArgumentException("Null backup types.");
         }
         this.network = network;
         this.storage = storage;
         this.idRegistry = idRegistry;
 
         this.entryLimit = entryLimit;
+        this.backupTypes = backupTypes;
     }
 
     void execute(final CheckDemandMessage message, final Session session, final PublicKey sourceId, final InetSocketAddress source) throws InterruptedException {
@@ -53,7 +59,7 @@ final class CheckDemandMessageDriver {
             // データ片の列挙。
             try {
                 final List<DemandEntry> entries = DemandEntry.getDemandedEntries(this.storage, message.getStartAddress(), message.getEndAddress(),
-                        this.entryLimit, message.getCandidates(), this.idRegistry);
+                        this.entryLimit, message.getCandidates(), this.idRegistry, this.backupTypes);
                 LOG.log(Level.FINEST, "{0} に依頼された {1} への返答に {2} 個発注しました。", new Object[] { source, message, entries.size() });
                 reply.add(new CheckDemandReply(entries));
             } catch (final IOException e) {

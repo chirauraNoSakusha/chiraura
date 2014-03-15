@@ -1,6 +1,8 @@
 package nippon.kawauso.chiraura.closet.p2p;
 
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -9,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 
 import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.process.Reporter;
+import nippon.kawauso.chiraura.storage.Chunk;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -43,7 +46,8 @@ public final class MailReaderTest {
         this.executor = Executors.newCachedThreadPool();
 
         final StorageWrapper storage = StorageWrapperTest.sample(this.random, this.operationQueue);
-        this.drivers = new DriverSet(this.network, storage, this.sessionManager, new LinkedBlockingQueue<Operation>(), this.executor, entryLimit);
+        final Set<Class<? extends Chunk>> backupTypes = new HashSet<>();
+        this.drivers = new DriverSet(this.network, storage, this.sessionManager, new LinkedBlockingQueue<Operation>(), this.executor, entryLimit, backupTypes);
     }
 
     /**

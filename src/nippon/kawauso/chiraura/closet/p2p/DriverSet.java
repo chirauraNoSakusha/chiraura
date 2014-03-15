@@ -1,5 +1,6 @@
 package nippon.kawauso.chiraura.closet.p2p;
 
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 
@@ -125,7 +126,8 @@ final class DriverSet implements MessageDriverSet, ReplyDriverSet, NonBlockingDr
     private final ClosePortWarningDriver closePortWarning;
 
     DriverSet(final NetworkWrapper network, final StorageWrapper storage, final SessionManager sessionManager,
-            final BlockingQueue<Operation> operationSink, final ExecutorService executor, final int checkChunkLimit) {
+            final BlockingQueue<Operation> operationSink, final ExecutorService executor, final int checkChunkLimit,
+            final Set<Class<? extends Chunk>> backupTypes) {
         if (network == null) {
             throw new IllegalArgumentException("Null network.");
         } else if (storage == null) {
@@ -138,6 +140,8 @@ final class DriverSet implements MessageDriverSet, ReplyDriverSet, NonBlockingDr
             throw new IllegalArgumentException("Null executor.");
         } else if (checkChunkLimit < 0) {
             throw new IllegalArgumentException("Negative check chunk limit ( " + checkChunkLimit + " ).");
+        } else if (backupTypes == null) {
+            throw new IllegalArgumentException("Null backup types.");
         }
 
         final TypeRegistry<Chunk> chunkRegistry = storage.getChunkRegistry();
@@ -229,15 +233,15 @@ final class DriverSet implements MessageDriverSet, ReplyDriverSet, NonBlockingDr
         this.patchAndGetOrUpdateCacheReply = new PatchAndGetOrUpdateCacheReplyDriver(storage);
 
         final OperationAggregator<CheckStockOperation, CheckStockResult> checkStockAggregator = new OperationAggregator<>();
-        this.checkStock = new CheckStockDriver(network, storage, sessionManager, idRegistry, checkChunkLimit);
+        this.checkStock = new CheckStockDriver(network, storage, sessionManager, idRegistry, checkChunkLimit, backupTypes);
         this.checkStockBlocking = new CheckStockBlockingDriver(checkStockAggregator, this.checkStock);
-        this.checkStockMessage = new CheckStockMessageDriver(network, storage, idRegistry, checkChunkLimit);
+        this.checkStockMessage = new CheckStockMessageDriver(network, storage, idRegistry, checkChunkLimit, backupTypes);
         this.checkStockReply = new CheckStockReplyDriver();
 
         final OperationAggregator<CheckDemandOperation, CheckDemandResult> checkDemandAggregator = new OperationAggregator<>();
-        this.checkDemand = new CheckDemandDriver(network, storage, sessionManager, idRegistry, checkChunkLimit);
+        this.checkDemand = new CheckDemandDriver(network, storage, sessionManager, idRegistry, checkChunkLimit, backupTypes);
         this.checkDemandBlocking = new CheckDemandBlockingDriver(checkDemandAggregator, this.checkDemand);
-        this.checkDemandMessage = new CheckDemandMessageDriver(network, storage, idRegistry, checkChunkLimit);
+        this.checkDemandMessage = new CheckDemandMessageDriver(network, storage, idRegistry, checkChunkLimit, backupTypes);
         this.checkDemandReply = new CheckDemandReplyDriver();
 
         final OperationAggregator<RecoveryOperation, RecoveryResult> recoveryAggregator = new OperationAggregator<>();
@@ -264,7 +268,7 @@ final class DriverSet implements MessageDriverSet, ReplyDriverSet, NonBlockingDr
         final OperationAggregator<CheckOneDemandOperation, CheckOneDemandResult> checkOneDemandAggregator = new OperationAggregator<>();
         this.checkOneDemand = new CheckOneDemandDriver(network, storage, sessionManager, idRegistry);
         this.checkOneDemandNonBlocking = new CheckOneDemandBlockingDriver(checkOneDemandAggregator, this.checkOneDemand);
-        this.checkOneDemandMessage = new CheckOneDemandMessageDriver(network, storage, idRegistry);
+        this.checkOneDemandMessage = new CheckOneDemandMessageDriver(network, storage, idRegistry, backupTypes);
         this.checkOneDemandReply = new CheckOneDemandReplyDriver();
 
         final OperationAggregator<BackupOneOperation, BackupOneResult> backupOneAggregator = new OperationAggregator<>();

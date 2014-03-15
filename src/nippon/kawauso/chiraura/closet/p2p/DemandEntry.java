@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import nippon.kawauso.chiraura.closet.Mountain;
 import nippon.kawauso.chiraura.lib.StreamFunctions;
@@ -185,9 +186,15 @@ final class DemandEntry implements BytesConvertible {
      * @throws MyRuleException
      */
     static List<DemandEntry> getDemandedEntries(final StorageWrapper storage, final Address start, final Address end, final int limit,
-            final List<StockEntry> candidates, final TypeRegistry<Chunk.Id<?>> idRegistry) throws IOException, InterruptedException {
+            final List<StockEntry> candidates, final TypeRegistry<Chunk.Id<?>> idRegistry, final Set<Class<? extends Chunk>> backupTypes) throws IOException,
+            InterruptedException {
         final List<DemandEntry> entries = new ArrayList<>();
         for (final StockEntry candidate : candidates) {
+            if (!backupTypes.contains(candidate.getId().getChunkClass())) {
+                // 非対象。
+                continue;
+            }
+
             final DemandEntry demand = getDemandedEntry(storage.getIndex(candidate.getId()), candidate, idRegistry);
             if (demand != null) {
                 entries.add(demand);
@@ -196,8 +203,12 @@ final class DemandEntry implements BytesConvertible {
         return entries;
     }
 
-    static DemandEntry getDemandedEntry(final StorageWrapper storage, final StockEntry candidate, final TypeRegistry<Id<?>> idRegistry) throws IOException,
-            InterruptedException {
+    static DemandEntry getDemandedEntry(final StorageWrapper storage, final StockEntry candidate, final TypeRegistry<Id<?>> idRegistry,
+            final Set<Class<? extends Chunk>> backupTypes) throws IOException, InterruptedException {
+        if (!backupTypes.contains(candidate.getId().getChunkClass())) {
+            // 非対象。
+            return null;
+        }
         return getDemandedEntry(storage.getIndex(candidate.getId()), candidate, idRegistry);
     }
 

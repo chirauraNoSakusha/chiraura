@@ -5,6 +5,7 @@ import java.net.InetSocketAddress;
 import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -25,17 +26,23 @@ final class CheckOneDemandMessageDriver {
     private final StorageWrapper storage;
     private final TypeRegistry<Chunk.Id<?>> idRegistry;
 
-    CheckOneDemandMessageDriver(final NetworkWrapper network, final StorageWrapper storage, final TypeRegistry<Chunk.Id<?>> idRegistry) {
+    private final Set<Class<? extends Chunk>> backupTypes;
+
+    CheckOneDemandMessageDriver(final NetworkWrapper network, final StorageWrapper storage, final TypeRegistry<Chunk.Id<?>> idRegistry,
+            final Set<Class<? extends Chunk>> backupTypes) {
         if (network == null) {
             throw new IllegalArgumentException("Null network.");
         } else if (storage == null) {
             throw new IllegalArgumentException("Null storage.");
         } else if (idRegistry == null) {
             throw new IllegalArgumentException("Null id registry.");
+        } else if (backupTypes == null) {
+            throw new IllegalArgumentException("Null backup types.");
         }
         this.network = network;
         this.storage = storage;
         this.idRegistry = idRegistry;
+        this.backupTypes = backupTypes;
     }
 
     void execute(final CheckOneDemandMessage message, final Session session, final PublicKey sourceId, final InetSocketAddress source)
@@ -47,7 +54,7 @@ final class CheckOneDemandMessageDriver {
         } else {
             // データ片の列挙。
             try {
-                final DemandEntry demand = DemandEntry.getDemandedEntry(this.storage, message.getCandidate(), this.idRegistry);
+                final DemandEntry demand = DemandEntry.getDemandedEntry(this.storage, message.getCandidate(), this.idRegistry, this.backupTypes);
                 if (demand == null) {
                     LOG.log(Level.FINEST, "{0} に依頼された {1} は要りませんでした。", new Object[] { source, message });
                     reply.add(CheckOneDemandReply.newNoDemand());

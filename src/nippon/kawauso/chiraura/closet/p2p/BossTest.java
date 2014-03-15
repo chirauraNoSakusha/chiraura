@@ -1,6 +1,8 @@
 package nippon.kawauso.chiraura.closet.p2p;
 
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -10,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 
 import nippon.kawauso.chiraura.closet.ClosetReport;
 import nippon.kawauso.chiraura.lib.Duration;
+import nippon.kawauso.chiraura.storage.Chunk;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -32,7 +35,6 @@ public final class BossTest {
     private final StorageWrapper storage;
     private final SessionManager sessionManager;
     private final ExecutorService executor;
-
     private final DriverSet drivers;
 
     /**
@@ -46,8 +48,10 @@ public final class BossTest {
         this.storage = StorageWrapperTest.sample(this.random, this.operationQueue);
         this.sessionManager = new SessionManager();
         this.executor = Executors.newCachedThreadPool();
+        final Set<Class<? extends Chunk>> backupTypes = new HashSet<>();
 
-        this.drivers = new DriverSet(this.network, this.storage, this.sessionManager, new LinkedBlockingQueue<Operation>(), this.executor, entryLimit);
+        this.drivers = new DriverSet(this.network, this.storage, this.sessionManager, new LinkedBlockingQueue<Operation>(), this.executor, entryLimit,
+                backupTypes);
     }
 
     /**

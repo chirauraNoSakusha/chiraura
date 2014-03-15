@@ -3,6 +3,7 @@ package nippon.kawauso.chiraura.closet.p2p;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -28,9 +29,10 @@ final class CheckDemandDriver {
     private final TypeRegistry<Chunk.Id<?>> idRegistry;
 
     private final int entryLimit;
+    private final Set<Class<? extends Chunk>> backupTypes;
 
     CheckDemandDriver(final NetworkWrapper network, final StorageWrapper storage, final SessionManager sessionManager,
-            final TypeRegistry<Chunk.Id<?>> idRegistry, final int entryLimit) {
+            final TypeRegistry<Chunk.Id<?>> idRegistry, final int entryLimit, final Set<Class<? extends Chunk>> backupTypes) {
         if (network == null) {
             throw new IllegalArgumentException("Null network.");
         } else if (storage == null) {
@@ -41,6 +43,8 @@ final class CheckDemandDriver {
             throw new IllegalArgumentException("Null id registry.");
         } else if (entryLimit < 0) {
             throw new IllegalArgumentException("Negative entry limit ( " + entryLimit + " ).");
+        } else if (backupTypes == null) {
+            throw new IllegalArgumentException("Null backup types.");
         }
         this.network = network;
         this.storage = storage;
@@ -48,6 +52,7 @@ final class CheckDemandDriver {
         this.idRegistry = idRegistry;
 
         this.entryLimit = entryLimit;
+        this.backupTypes = backupTypes;
     }
 
     CheckDemandResult execute(final CheckDemandOperation operation, final long timeout) throws InterruptedException, IOException {
@@ -60,7 +65,7 @@ final class CheckDemandDriver {
         final List<Message> mail = new ArrayList<>(2);
         final Pair<Address, Address> domain = this.network.getDomain();
         final List<StockEntry> entries = StockEntry.getStockedEntries(this.storage, domain.getFirst(), domain.getSecond(), this.entryLimit,
-                new ArrayList<StockEntry>(0), this.idRegistry);
+                new ArrayList<StockEntry>(0), this.idRegistry, this.backupTypes);
         if (entries.isEmpty()) {
             // やるだけ無駄なんで止める。
             LOG.log(Level.FINEST, "{0} に必要な [{1}, {2}] の複製候補はありませんでした。", new Object[] { operation, domain.getFirst(), domain.getSecond() });

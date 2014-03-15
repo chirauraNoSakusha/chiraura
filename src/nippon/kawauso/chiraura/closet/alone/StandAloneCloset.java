@@ -66,6 +66,11 @@ public final class StandAloneCloset implements Closet {
     }
 
     @Override
+    public void removeBackupType(final Class<? extends Chunk> chunkClass) {
+        return;
+    }
+
+    @Override
     public <T extends Chunk> T getChunk(final Chunk.Id<T> id, final long timeout) throws InterruptedException {
         try {
             return this.storage.read(id);

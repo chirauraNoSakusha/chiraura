@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.security.KeyPair;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -451,6 +453,7 @@ public final class P2pCloset implements Closet {
     // 保持。
     private final NetworkWrapper network;
     private final StorageWrapper storage;
+    private final Set<Class<? extends Chunk>> backupTypes;
 
     private final BlockingQueue<Operation> operationQueue;
     private final SessionManager sessionManager;
@@ -494,8 +497,10 @@ public final class P2pCloset implements Closet {
 
         Register.init(this.network, this.storage);
 
+        this.backupTypes = new HashSet<>();
+
         this.closetReportQueue = new LinkedBlockingQueue<>();
-        this.drivers = new DriverSet(this.network, this.storage, this.sessionManager, this.operationQueue, param.executor, CHECK_CHUNK_LIMIT);
+        this.drivers = new DriverSet(this.network, this.storage, this.sessionManager, this.operationQueue, param.executor, CHECK_CHUNK_LIMIT, this.backupTypes);
 
         this.maintenanceInterval = param.maintenanceInterval;
         this.sleepTime = param.sleepTime;
@@ -564,6 +569,7 @@ public final class P2pCloset implements Closet {
     public <C extends Chunk, I extends Chunk.Id<C>> void registerChunk(final long type, final Class<C> chunkClass,
             final BytesConvertible.Parser<? extends C> chunkParser, final Class<I> idClass, final BytesConvertible.Parser<? extends I> idParser) {
         this.storage.registerChunk(type, chunkClass, chunkParser, idClass, idParser);
+        this.backupTypes.add(chunkClass);
     }
 
     @Override
@@ -571,6 +577,12 @@ public final class P2pCloset implements Closet {
             final BytesConvertible.Parser<? extends C> chunkParser, final Class<I> idClass, final BytesConvertible.Parser<? extends I> idParser,
             final Class<D> diffClass, final BytesConvertible.Parser<? extends D> diffParser) {
         this.storage.registerChunk(type, chunkClass, chunkParser, idClass, idParser, diffClass, diffParser);
+        this.backupTypes.add(chunkClass);
+    }
+
+    @Override
+    public void removeBackupType(final Class<? extends Chunk> chunkClass) {
+        this.backupTypes.remove(chunkClass);
     }
 
     @Override

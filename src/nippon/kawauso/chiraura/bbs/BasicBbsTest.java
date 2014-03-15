@@ -52,17 +52,19 @@ public final class BasicBbsTest {
 
             @Override
             public <C extends Chunk, I extends Chunk.Id<C>> void registerChunk(final long type, final Class<C> chunkClass,
-                    final BytesConvertible.Parser<? extends C> chunkParser,
-                    final Class<I> idClass,
-                    final BytesConvertible.Parser<? extends I> idParser) {
+                    final BytesConvertible.Parser<? extends C> chunkParser, final Class<I> idClass, final BytesConvertible.Parser<? extends I> idParser) {
                 return;
             }
 
             @Override
             public <C extends Mountain, I extends Chunk.Id<C>, D extends Mountain.Dust<C>> void registerChunk(final long type, final Class<C> chunkClass,
-                    final BytesConvertible.Parser<? extends C> chunkParser,
-                    final Class<I> idClass, final BytesConvertible.Parser<? extends I> idParser, final Class<D> diffClass,
-                    final BytesConvertible.Parser<? extends D> diffParser) {
+                    final BytesConvertible.Parser<? extends C> chunkParser, final Class<I> idClass, final BytesConvertible.Parser<? extends I> idParser,
+                    final Class<D> diffClass, final BytesConvertible.Parser<? extends D> diffParser) {
+                return;
+            }
+
+            @Override
+            public void removeBackupType(final Class<? extends Chunk> chunkClass) {
                 return;
             }
 
@@ -187,6 +189,7 @@ public final class BasicBbsTest {
 
             @Override
             public void close() {}
+
         };
         this.executor = Executors.newCachedThreadPool();
 

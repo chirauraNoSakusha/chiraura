@@ -9,6 +9,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import nippon.kawauso.chiraura.closet.Mountain;
 import nippon.kawauso.chiraura.lib.ArrayFunctions;
@@ -138,9 +139,10 @@ final class StockEntry implements BytesConvertible {
      * @throws IOException 読み込み異常
      */
     static List<StockEntry> getStockedEntries(final StorageWrapper storage, final Address start, final Address end, final int limit,
-            final List<StockEntry> exclusive, final TypeRegistry<Chunk.Id<?>> idRegistry) throws IOException, InterruptedException {
+            final List<StockEntry> exclusive, final TypeRegistry<Chunk.Id<?>> idRegistry, final Set<Class<? extends Chunk>> backupTypes) throws IOException,
+            InterruptedException {
 
-        final Storage.Index[] filtered = filter(storage.getIndices(start, end), exclusive);
+        final Storage.Index[] filtered = filter(storage.getIndices(start, end), exclusive, backupTypes);
 
         if (filtered.length > limit) {
             ArrayFunctions.orderSelect(filtered, limit / 2, 0, filtered.length, new Comparator<Storage.Index>() {
@@ -169,7 +171,7 @@ final class StockEntry implements BytesConvertible {
         return entries;
     }
 
-    private static Storage.Index[] filter(final Collection<Storage.Index> before, final List<StockEntry> exclusive) {
+    private static Storage.Index[] filter(final Collection<Storage.Index> before, final List<StockEntry> exclusive, final Set<Class<? extends Chunk>> backupTypes) {
         final Map<Chunk.Id<?>, StockEntry> blacklist = new HashMap<>();
         for (final StockEntry entry : exclusive) {
             blacklist.put(entry.getId(), entry);
@@ -177,6 +179,11 @@ final class StockEntry implements BytesConvertible {
 
         final List<Storage.Index> after = new ArrayList<>(before.size());
         for (final Storage.Index index : before) {
+            if (!backupTypes.contains(index.getId().getChunkClass())) {
+                // 非対象。
+                continue;
+            }
+
             final StockEntry black = blacklist.get(index.getId());
             if (black == null) {
                 after.add(index);

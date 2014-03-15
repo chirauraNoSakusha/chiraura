@@ -45,6 +45,12 @@ public interface Closet extends AutoCloseable {
             BytesConvertible.Parser<? extends D> diffParser);
 
     /**
+     * 指定した型のデータ片をバックアップしなくする。
+     * @param chunkClass バックアップしなくするデータ片の型
+     */
+    void removeBackupType(Class<? extends Chunk> chunkClass);
+
+    /**
      * データ片を取得する。
      * @param <T> データ片の型
      * @param id 取得するデータ片の識別子
