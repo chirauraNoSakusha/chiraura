@@ -70,6 +70,11 @@ final class Communicator implements Callable<Void> {
             // 登録の削除。
             this.connectionPool.remove(this.connection);
             this.connection.close();
+            try {
+                this.limiter.remove(this.connection.getDestination());
+            } catch (final InterruptedException ignored) {
+                // 正常な終了信号。
+            }
         }
 
         LOG.log(Level.FINE, "さようなら。");
