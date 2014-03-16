@@ -527,7 +527,8 @@ public final class P2pCloset implements Closet {
         this.backupTypes = new HashSet<>();
 
         this.closetReportQueue = new LinkedBlockingQueue<>();
-        this.drivers = new DriverSet(this.network, this.storage, this.sessionManager, this.operationQueue, param.executor, CHECK_CHUNK_LIMIT, this.backupTypes);
+        this.drivers = new DriverSet(this.network, this.storage, this.sessionManager, this.operationQueue, param.executor, this.portIgnore, CHECK_CHUNK_LIMIT,
+                this.backupTypes);
 
         this.maintenanceInterval = param.maintenanceInterval;
         this.sleepTime = param.sleepTime;

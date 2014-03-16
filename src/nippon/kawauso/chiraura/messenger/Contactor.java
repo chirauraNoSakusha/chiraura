@@ -243,14 +243,14 @@ final class Contactor implements Callable<Void> {
         } catch (final SocketTimeoutException e) {
             // たぶんポート検査で弾かれた。
             LOG.log(Level.FINEST, "反応が無いのでポートが開いてないのかなと疑ってみます。");
-            ConcurrentFunctions.completePut(new ClosePortWarning(this.port, this.contactingConnection.getSocket().getInetAddress()), this.messengerReportSink);
+            ConcurrentFunctions.completePut(new ClosePortWarning(this.port, this.contactingConnection.getDestination()), this.messengerReportSink);
             errorAction();
             return;
         }
 
         if (received instanceof PortErrorMessage) {
             // ポート検査で弾かれた。
-            ConcurrentFunctions.completePut(new ClosePortWarning(this.port, this.contactingConnection.getSocket().getInetAddress()), this.messengerReportSink);
+            ConcurrentFunctions.completePut(new ClosePortWarning(this.port, this.contactingConnection.getDestination()), this.messengerReportSink);
             errorAction();
             return;
         }

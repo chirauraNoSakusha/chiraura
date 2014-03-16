@@ -55,7 +55,7 @@ final class ClosetMonitor extends Reporter<Void> {
                 final ClosePortWarning report0 = (ClosePortWarning) report;
                 LOG.log(Level.WARNING, "ポート {0} が開いていないかもしれません。", Integer.toString(report0.getPort()));
                 if (this.gui != null) {
-                    this.gui.displayClosePortWarning(report0.getPort(), report0.getDestination());
+                    this.gui.displayClosePortWarning(report0.getPort(), report0.getDestination().getAddress());
                 }
             } else if (report instanceof NewProtocolWarning) {
                 final NewProtocolWarning report0 = (NewProtocolWarning) report;

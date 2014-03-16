@@ -56,8 +56,8 @@ public final class BossTest {
         this.executor = Executors.newCachedThreadPool();
         final Set<Class<? extends Chunk>> backupTypes = new HashSet<>();
 
-        this.drivers = new DriverSet(this.network, this.storage, this.sessionManager, new LinkedBlockingQueue<Operation>(), this.executor, entryLimit,
-                backupTypes);
+        this.drivers = new DriverSet(this.network, this.storage, this.sessionManager, new LinkedBlockingQueue<Operation>(), this.executor, portIgnore,
+                entryLimit, backupTypes);
     }
 
     /**

@@ -21,6 +21,7 @@ import org.junit.Test;
  */
 public final class MailReaderTest {
 
+    private static final boolean portIgnore = true;
     private static final int entryLimit = 10;
 
     private static final long timeout = Duration.SECOND;
@@ -47,7 +48,8 @@ public final class MailReaderTest {
 
         final StorageWrapper storage = StorageWrapperTest.sample(this.random, this.operationQueue);
         final Set<Class<? extends Chunk>> backupTypes = new HashSet<>();
-        this.drivers = new DriverSet(this.network, storage, this.sessionManager, new LinkedBlockingQueue<Operation>(), this.executor, entryLimit, backupTypes);
+        this.drivers = new DriverSet(this.network, storage, this.sessionManager, new LinkedBlockingQueue<Operation>(), this.executor, portIgnore, entryLimit,
+                backupTypes);
     }
 
     /**

@@ -1,14 +1,11 @@
 package nippon.kawauso.chiraura.closet.p2p;
 
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.security.KeyPair;
 import java.security.PublicKey;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import nippon.kawauso.chiraura.lib.base.Address;
 import nippon.kawauso.chiraura.lib.concurrent.ConcurrentFunctions;
@@ -28,7 +25,7 @@ import nippon.kawauso.chiraura.network.NetworkTask;
  */
 final class NetworkWrapper {
 
-    private static final Logger LOG = Logger.getLogger(NetworkWrapper.class.getName());
+    // private static final Logger LOG = Logger.getLogger(NetworkWrapper.class.getName());
 
     private final long version;
     private final AddressableNetwork network;
@@ -163,16 +160,6 @@ final class NetworkWrapper {
             this.activeAddressLog.add(peer, address);
             return this.network.addPeer(new AddressedPeer(address, peer));
         }
-    }
-
-    boolean removePeer(final InetAddress peer) {
-        LOG.log(Level.INFO, "未実装なので {0} は削除されません。", peer);
-        return false;
-    }
-
-    boolean removeInvalidPeer(final InetAddress peer) {
-        LOG.log(Level.INFO, "未実装なので {0} は削除されません。", peer);
-        return false;
     }
 
     boolean removePeer(final InetSocketAddress peer) {

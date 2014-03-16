@@ -1,6 +1,6 @@
 package nippon.kawauso.chiraura.closet.p2p;
 
-import java.net.InetAddress;
+import java.net.InetSocketAddress;
 
 import nippon.kawauso.chiraura.closet.ClosetReport;
 
@@ -11,7 +11,7 @@ import nippon.kawauso.chiraura.closet.ClosetReport;
 public final class ClosePortWarning implements ClosetReport {
 
     private final int port;
-    private final InetAddress destination;
+    private final InetSocketAddress destination;
 
     ClosePortWarning(final nippon.kawauso.chiraura.messenger.ClosePortWarning base) {
         if (base == null) {
@@ -33,7 +33,7 @@ public final class ClosePortWarning implements ClosetReport {
      * 通信先を返す。
      * @return 通信先
      */
-    public InetAddress getDestination() {
+    public InetSocketAddress getDestination() {
         return this.destination;
     }
 

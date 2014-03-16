@@ -126,7 +126,7 @@ final class DriverSet implements MessageDriverSet, ReplyDriverSet, NonBlockingDr
     private final ClosePortWarningDriver closePortWarning;
 
     DriverSet(final NetworkWrapper network, final StorageWrapper storage, final SessionManager sessionManager,
-            final BlockingQueue<Operation> operationSink, final ExecutorService executor, final int checkChunkLimit,
+            final BlockingQueue<Operation> operationSink, final ExecutorService executor, final boolean portIgnore, final int checkChunkLimit,
             final Set<Class<? extends Chunk>> backupTypes) {
         if (network == null) {
             throw new IllegalArgumentException("Null network.");
@@ -281,7 +281,7 @@ final class DriverSet implements MessageDriverSet, ReplyDriverSet, NonBlockingDr
 
         this.communicationError = new CommunicationErrorDriver(network);
         this.contactError = new ContactErrorDriver(network);
-        this.acceptanceError = new AcceptanceErrorDriver(network);
+        this.acceptanceError = new AcceptanceErrorDriver(portIgnore, network);
         this.unsentMail = new UnsentMailDriver(sessionManager);
         this.closePortWarning = new ClosePortWarningDriver(network);
     }
