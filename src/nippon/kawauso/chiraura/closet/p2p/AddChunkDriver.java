@@ -31,9 +31,10 @@ final class AddChunkDriver {
     private final BlockingQueue<Operation> operationSink;
     private final SessionManager sessionManager;
     private final TypeRegistry<Chunk> chunkRegistry;
+    private final BlockingQueue<OutlawReport> outlawReportSink;
 
     AddChunkDriver(final NetworkWrapper network, final StorageWrapper storage, final BlockingQueue<Operation> operationSink,
-            final SessionManager sessionManager, final TypeRegistry<Chunk> chunkRegistry) {
+            final SessionManager sessionManager, final TypeRegistry<Chunk> chunkRegistry, final BlockingQueue<OutlawReport> outlawReportSink) {
         if (network == null) {
             throw new IllegalArgumentException("Null network.");
         } else if (storage == null) {
@@ -42,6 +43,8 @@ final class AddChunkDriver {
             throw new IllegalArgumentException("Null operation sink.");
         } else if (sessionManager == null) {
             throw new IllegalArgumentException("Null session manager.");
+        } else if (outlawReportSink == null) {
+            throw new IllegalArgumentException("Null outlaw report sink.");
         } else if (chunkRegistry == null) {
             throw new IllegalArgumentException("Null chunk registry.");
         }
@@ -50,6 +53,7 @@ final class AddChunkDriver {
         this.operationSink = operationSink;
         this.sessionManager = sessionManager;
         this.chunkRegistry = chunkRegistry;
+        this.outlawReportSink = outlawReportSink;
     }
 
     AddChunkResult execute(final AddChunkOperation operation, final long timeout) throws InterruptedException, IOException {
@@ -124,7 +128,7 @@ final class AddChunkDriver {
                     // プロトコル違反。
                     LOG.log(Level.WARNING, "{0} からの返事の型 {1} は期待する型 {2} と異なります。", new Object[] { destination, receivedMail.getMail().get(0).getClass(),
                             AddChunkReply.class });
-                    this.network.removeInvalidPeer(destination.getPeer());
+                    ConcurrentFunctions.completePut(new OutlawReport(destination.getPeer()), this.outlawReportSink);
                     continue;
                 }
             }

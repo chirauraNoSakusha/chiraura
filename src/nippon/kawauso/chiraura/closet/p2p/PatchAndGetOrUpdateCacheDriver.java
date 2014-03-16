@@ -34,10 +34,11 @@ final class PatchAndGetOrUpdateCacheDriver {
     private final TypeRegistry<Chunk.Id<?>> idRegistry;
     private final GetCacheBlockingDriver getDriver;
     private final PatchOrAddAndGetCacheBlockingDriver patchAndGetDriver;
+    private final BlockingQueue<OutlawReport> outlawReportSink;
 
     PatchAndGetOrUpdateCacheDriver(final NetworkWrapper network, final StorageWrapper storage, final BlockingQueue<Operation> operationSink,
             final SessionManager sessionManager, final TypeRegistry<Chunk.Id<?>> idRegistry, final GetCacheBlockingDriver getDriver,
-            final PatchOrAddAndGetCacheBlockingDriver patchAndGetDriver) {
+            final PatchOrAddAndGetCacheBlockingDriver patchAndGetDriver, final BlockingQueue<OutlawReport> outlawReportSink) {
         if (network == null) {
             throw new IllegalArgumentException("Null network.");
         } else if (storage == null) {
@@ -52,6 +53,8 @@ final class PatchAndGetOrUpdateCacheDriver {
             throw new IllegalArgumentException("Null get driver.");
         } else if (patchAndGetDriver == null) {
             throw new IllegalArgumentException("Null patch and get driver.");
+        } else if (outlawReportSink == null) {
+            throw new IllegalArgumentException("Null outlaw report sink.");
         }
         this.network = network;
         this.storage = storage;
@@ -60,6 +63,7 @@ final class PatchAndGetOrUpdateCacheDriver {
         this.idRegistry = idRegistry;
         this.getDriver = getDriver;
         this.patchAndGetDriver = patchAndGetDriver;
+        this.outlawReportSink = outlawReportSink;
     }
 
     <T extends Mountain> PatchAndGetOrUpdateCacheResult execute(final PatchAndGetOrUpdateCacheOperation<T> operation, final long timeout)
@@ -219,7 +223,7 @@ final class PatchAndGetOrUpdateCacheDriver {
                     // プロトコル違反。
                     LOG.log(Level.WARNING, "{0} からの返事の型 {1} は期待する型 {2} と異なります。", new Object[] { destination, receivedMail.getMail().get(0).getClass(),
                             PatchAndGetOrUpdateCacheReply.class });
-                    this.network.removeInvalidPeer(destination.getPeer());
+                    ConcurrentFunctions.completePut(new OutlawReport(destination.getPeer()), this.outlawReportSink);
                     continue;
                 }
             }

@@ -5,11 +5,13 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import nippon.kawauso.chiraura.closet.Mountain;
 import nippon.kawauso.chiraura.lib.base.Address;
+import nippon.kawauso.chiraura.lib.concurrent.ConcurrentFunctions;
 import nippon.kawauso.chiraura.lib.converter.TypeRegistry;
 import nippon.kawauso.chiraura.messenger.ConnectionTypes;
 import nippon.kawauso.chiraura.messenger.Message;
@@ -32,9 +34,11 @@ final class GetOrUpdateCacheDriver {
 
     private final GetCacheBlockingDriver getDriver;
     private final PatchOrAddAndGetCacheBlockingDriver patchAndGetDriver;
+    private final BlockingQueue<OutlawReport> outlawReportSink;
 
     GetOrUpdateCacheDriver(final NetworkWrapper network, final StorageWrapper storage, final SessionManager sessionManager,
-            final TypeRegistry<Chunk.Id<?>> idRegistry, final GetCacheBlockingDriver getDriver, final PatchOrAddAndGetCacheBlockingDriver patchAndGetDriver) {
+            final TypeRegistry<Chunk.Id<?>> idRegistry, final GetCacheBlockingDriver getDriver, final PatchOrAddAndGetCacheBlockingDriver patchAndGetDriver,
+            final BlockingQueue<OutlawReport> outlawReportSink) {
         if (network == null) {
             throw new IllegalArgumentException("Null network.");
         } else if (storage == null) {
@@ -47,6 +51,8 @@ final class GetOrUpdateCacheDriver {
             throw new IllegalArgumentException("Null get driver.");
         } else if (patchAndGetDriver == null) {
             throw new IllegalArgumentException("Null patch and get driver.");
+        } else if (outlawReportSink == null) {
+            throw new IllegalArgumentException("Null outlaw report sink.");
         }
         this.network = network;
         this.storage = storage;
@@ -54,6 +60,7 @@ final class GetOrUpdateCacheDriver {
         this.idRegistry = idRegistry;
         this.getDriver = getDriver;
         this.patchAndGetDriver = patchAndGetDriver;
+        this.outlawReportSink = outlawReportSink;
     }
 
     boolean isObvious(final GetOrUpdateCacheOperation operation) throws InterruptedException, IOException {
@@ -198,7 +205,7 @@ final class GetOrUpdateCacheDriver {
                     // プロトコル違反。
                     LOG.log(Level.WARNING, "{0} からの返事の型 {1} は期待する型 {2} と異なります。",
                             new Object[] { destination, receivedMail.getMail().get(0).getClass(), GetOrUpdateCacheReply.class });
-                    this.network.removeInvalidPeer(destination.getPeer());
+                    ConcurrentFunctions.completePut(new OutlawReport(destination.getPeer()), this.outlawReportSink);
                     continue;
                 }
             }

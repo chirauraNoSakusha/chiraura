@@ -3,10 +3,12 @@ package nippon.kawauso.chiraura.closet.p2p;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import nippon.kawauso.chiraura.closet.Mountain;
+import nippon.kawauso.chiraura.lib.concurrent.ConcurrentFunctions;
 import nippon.kawauso.chiraura.lib.converter.TypeRegistry;
 import nippon.kawauso.chiraura.messenger.ConnectionTypes;
 import nippon.kawauso.chiraura.messenger.Message;
@@ -26,9 +28,10 @@ final class RecoveryDriver {
     private final StorageWrapper storage;
     private final SessionManager sessionManager;
     private final TypeRegistry<Chunk.Id<?>> idRegistry;
+    private final BlockingQueue<OutlawReport> outlawReportSink;
 
     RecoveryDriver(final NetworkWrapper network, final StorageWrapper storage, final SessionManager sessionManager,
-            final TypeRegistry<Chunk.Id<?>> idRegistry) {
+            final TypeRegistry<Chunk.Id<?>> idRegistry, final BlockingQueue<OutlawReport> outlawReportSink) {
         if (network == null) {
             throw new IllegalArgumentException("Null network.");
         } else if (storage == null) {
@@ -37,11 +40,14 @@ final class RecoveryDriver {
             throw new IllegalArgumentException("Null session manager.");
         } else if (idRegistry == null) {
             throw new IllegalArgumentException("Null id registry.");
+        } else if (outlawReportSink == null) {
+            throw new IllegalArgumentException("Null outlaw report sink.");
         }
         this.network = network;
         this.storage = storage;
         this.sessionManager = sessionManager;
         this.idRegistry = idRegistry;
+        this.outlawReportSink = outlawReportSink;
     }
 
     <T extends Mountain> RecoveryResult execute(final RecoveryOperation operation, final long timeout) throws InterruptedException, IOException {
@@ -140,7 +146,7 @@ final class RecoveryDriver {
                 // プロトコル違反。
                 LOG.log(Level.WARNING, "{0} からの返事の型 {1} は期待する型 {2} と異なります。", new Object[] { operation.getDestination(), reply.get(0).getClass(),
                         RecoveryReply.class });
-                this.network.removeInvalidPeer(operation.getDestination());
+                ConcurrentFunctions.completePut(new OutlawReport(operation.getDestination()), this.outlawReportSink);
                 return RecoveryResult.newGiveUp();
             }
         }

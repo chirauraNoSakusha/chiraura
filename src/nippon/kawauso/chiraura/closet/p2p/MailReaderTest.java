@@ -48,8 +48,8 @@ public final class MailReaderTest {
 
         final StorageWrapper storage = StorageWrapperTest.sample(this.random, this.operationQueue);
         final Set<Class<? extends Chunk>> backupTypes = new HashSet<>();
-        this.drivers = new DriverSet(this.network, storage, this.sessionManager, new LinkedBlockingQueue<Operation>(), this.executor, portIgnore, entryLimit,
-                backupTypes);
+        this.drivers = new DriverSet(this.network, storage, this.sessionManager, new LinkedBlockingQueue<Operation>(), new LinkedBlockingQueue<OutlawReport>(),
+                this.executor, portIgnore, entryLimit, backupTypes);
     }
 
     /**

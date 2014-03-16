@@ -2,9 +2,11 @@ package nippon.kawauso.chiraura.closet.p2p;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import nippon.kawauso.chiraura.lib.concurrent.ConcurrentFunctions;
 import nippon.kawauso.chiraura.messenger.ConnectionTypes;
 import nippon.kawauso.chiraura.messenger.Message;
 import nippon.kawauso.chiraura.messenger.ReceivedMail;
@@ -20,16 +22,20 @@ final class FirstAccessDriver {
     // 参照。
     private final SessionManager sessionManager;
     private final NetworkWrapper network;
+    private final BlockingQueue<OutlawReport> outlawReportSink;
 
-    FirstAccessDriver(final SessionManager sessionManager, final NetworkWrapper network) {
+    FirstAccessDriver(final SessionManager sessionManager, final NetworkWrapper network, final BlockingQueue<OutlawReport> outlawReportSink) {
         if (sessionManager == null) {
             throw new IllegalArgumentException("Null session manager.");
         } else if (network == null) {
             throw new IllegalArgumentException("Null network.");
+        } else if (outlawReportSink == null) {
+            throw new IllegalArgumentException("Null outlaw report sink.");
         }
 
         this.sessionManager = sessionManager;
         this.network = network;
+        this.outlawReportSink = outlawReportSink;
     }
 
     FirstAccessResult execute(final FirstAccessOperation operation, final long timeout) throws InterruptedException {
@@ -87,7 +93,7 @@ final class FirstAccessDriver {
                 // プロトコル違反なので、通信先を取り除いて再試行。
                 LOG.log(Level.WARNING, "{0} からの返信 ( {1} ) は期待する内容 ( {2} ) と異なります。", new Object[] { operation.getDestination(),
                         receivedMail.getMail().get(0).getClass(), AddressAccessReply.class });
-                this.network.removeInvalidPeer(operation.getDestination());
+                ConcurrentFunctions.completePut(new OutlawReport(operation.getDestination()), this.outlawReportSink);
                 return FirstAccessResult.newGiveUp();
             }
         }

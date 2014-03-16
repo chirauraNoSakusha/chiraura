@@ -1,8 +1,10 @@
 package nippon.kawauso.chiraura.closet.p2p;
 
+import java.util.concurrent.BlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import nippon.kawauso.chiraura.lib.concurrent.ConcurrentFunctions;
 import nippon.kawauso.chiraura.lib.exception.MyRuleException;
 import nippon.kawauso.chiraura.messenger.CommunicationError;
 
@@ -14,29 +16,23 @@ final class CommunicationErrorDriver {
 
     private static final Logger LOG = Logger.getLogger(CommunicationErrorDriver.class.getName());
 
-    private final NetworkWrapper network;
+    // 参照。
+    private final BlockingQueue<OutlawReport> outlawReportSink;
 
-    CommunicationErrorDriver(final NetworkWrapper network) {
-        if (network == null) {
-            throw new IllegalArgumentException("Null network.");
+    CommunicationErrorDriver(final BlockingQueue<OutlawReport> outlawReportSink) {
+        if (outlawReportSink == null) {
+            throw new IllegalArgumentException("Null outlaw report sink.");
         }
 
-        this.network = network;
+        this.outlawReportSink = outlawReportSink;
     }
 
     void execute(final CommunicationError error) {
+        ConcurrentFunctions.completePut(new OutlawReport(error.getDestination()), this.outlawReportSink);
         if (error.getError() instanceof MyRuleException) {
-            if (this.network.removeInvalidPeer(error.getDestination())) {
-                LOG.log(Level.FINER, "不正な個体 {0} を除外しました。", error.getDestination());
-            } else {
-                LOG.log(Level.FINEST, "不正な個体 {0} を検知しました。", error.getDestination());
-            }
+            LOG.log(Level.FINEST, "不正な個体 {0} を検知しました。", error.getDestination());
         } else {
-            if (this.network.removePeer(error.getDestination())) {
-                LOG.log(Level.FINER, "{0} を通信網から外しました。", error.getDestination());
-            } else {
-                LOG.log(Level.FINEST, "{0} の異常を検知しました。", error.getDestination());
-            }
+            LOG.log(Level.FINEST, "{0} の異常を検知しました。", error.getDestination());
         }
     }
 

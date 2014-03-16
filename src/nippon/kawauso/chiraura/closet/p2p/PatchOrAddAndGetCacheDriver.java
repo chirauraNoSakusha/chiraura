@@ -32,9 +32,10 @@ final class PatchOrAddAndGetCacheDriver {
     private final BlockingQueue<Operation> operationSink;
     private final SessionManager sessionManager;
     private final TypeRegistry<Chunk> chunkRegistry;
+    private final BlockingQueue<OutlawReport> outlawReportSink;
 
     PatchOrAddAndGetCacheDriver(final NetworkWrapper network, final StorageWrapper storage, final BlockingQueue<Operation> operationSink,
-            final SessionManager sessionManager, final TypeRegistry<Chunk> chunkRegistry) {
+            final SessionManager sessionManager, final TypeRegistry<Chunk> chunkRegistry, final BlockingQueue<OutlawReport> outlawReportSink) {
         if (network == null) {
             throw new IllegalArgumentException("Null network.");
         } else if (storage == null) {
@@ -45,12 +46,15 @@ final class PatchOrAddAndGetCacheDriver {
             throw new IllegalArgumentException("Null session manager.");
         } else if (chunkRegistry == null) {
             throw new IllegalArgumentException("Null chunk registry.");
+        } else if (outlawReportSink == null) {
+            throw new IllegalArgumentException("Null outlaw report sink.");
         }
         this.network = network;
         this.storage = storage;
         this.operationSink = operationSink;
         this.sessionManager = sessionManager;
         this.chunkRegistry = chunkRegistry;
+        this.outlawReportSink = outlawReportSink;
     }
 
     PatchOrAddAndGetCacheResult execute(final PatchOrAddAndGetCacheOperation operation, final long timeout) throws InterruptedException, IOException {
@@ -127,7 +131,7 @@ final class PatchOrAddAndGetCacheDriver {
                     // プロトコル違反。
                     LOG.log(Level.WARNING, "{0} からの返事の型 {1} は期待する型 {2} と異なります。", new Object[] { destination, receivedMail.getMail().get(0).getClass(),
                             PatchOrAddAndGetCacheReply.class });
-                    this.network.removeInvalidPeer(destination.getPeer());
+                    ConcurrentFunctions.completePut(new OutlawReport(destination.getPeer()), this.outlawReportSink);
                     continue;
                 }
             }

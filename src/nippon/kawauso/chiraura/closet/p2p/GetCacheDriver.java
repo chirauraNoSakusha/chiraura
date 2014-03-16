@@ -5,10 +5,12 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import nippon.kawauso.chiraura.lib.base.Address;
+import nippon.kawauso.chiraura.lib.concurrent.ConcurrentFunctions;
 import nippon.kawauso.chiraura.lib.converter.TypeRegistry;
 import nippon.kawauso.chiraura.messenger.ConnectionTypes;
 import nippon.kawauso.chiraura.messenger.Message;
@@ -28,9 +30,10 @@ final class GetCacheDriver {
     private final StorageWrapper storage;
     private final SessionManager sessionManager;
     private final TypeRegistry<Chunk.Id<?>> idRegistry;
+    private final BlockingQueue<OutlawReport> outlawReportSink;
 
     GetCacheDriver(final NetworkWrapper network, final StorageWrapper storage, final SessionManager sessionManager,
-            final TypeRegistry<Chunk.Id<?>> idRegistry) {
+            final TypeRegistry<Chunk.Id<?>> idRegistry, final BlockingQueue<OutlawReport> outlawReportSink) {
         if (network == null) {
             throw new IllegalArgumentException("Null network.");
         } else if (storage == null) {
@@ -39,11 +42,14 @@ final class GetCacheDriver {
             throw new IllegalArgumentException("Null session manager.");
         } else if (idRegistry == null) {
             throw new IllegalArgumentException("Null id registry.");
+        } else if (outlawReportSink == null) {
+            throw new IllegalArgumentException("Null outlaw report sink.");
         }
         this.network = network;
         this.storage = storage;
         this.sessionManager = sessionManager;
         this.idRegistry = idRegistry;
+        this.outlawReportSink = outlawReportSink;
     }
 
     boolean isObvious(final GetCacheOperation operation) throws InterruptedException, IOException {
@@ -144,7 +150,7 @@ final class GetCacheDriver {
                     // プロトコル違反。
                     LOG.log(Level.WARNING, "{0} からの返事の型 {1} は期待する型 {2} と異なります。", new Object[] { destination, receivedMail.getMail().get(0).getClass(),
                             GetCacheReply.class });
-                    this.network.removeInvalidPeer(destination.getPeer());
+                    ConcurrentFunctions.completePut(new OutlawReport(destination.getPeer()), this.outlawReportSink);
                     continue;
                 }
             }

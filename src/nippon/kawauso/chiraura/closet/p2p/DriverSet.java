@@ -125,8 +125,8 @@ final class DriverSet implements MessageDriverSet, ReplyDriverSet, NonBlockingDr
     private final UnsentMailDriver unsentMail;
     private final ClosePortWarningDriver closePortWarning;
 
-    DriverSet(final NetworkWrapper network, final StorageWrapper storage, final SessionManager sessionManager,
-            final BlockingQueue<Operation> operationSink, final ExecutorService executor, final boolean portIgnore, final int checkChunkLimit,
+    DriverSet(final NetworkWrapper network, final StorageWrapper storage, final SessionManager sessionManager, final BlockingQueue<Operation> operationSink,
+            final BlockingQueue<OutlawReport> outlawReportSink, final ExecutorService executor, final boolean portIgnore, final int checkChunkLimit,
             final Set<Class<? extends Chunk>> backupTypes) {
         if (network == null) {
             throw new IllegalArgumentException("Null network.");
@@ -136,6 +136,8 @@ final class DriverSet implements MessageDriverSet, ReplyDriverSet, NonBlockingDr
             throw new IllegalArgumentException("Null session manager.");
         } else if (operationSink == null) {
             throw new IllegalArgumentException("Null operation sink.");
+        } else if (outlawReportSink == null) {
+            throw new IllegalArgumentException("Null outlaw report sink.");
         } else if (executor == null) {
             throw new IllegalArgumentException("Null executor.");
         } else if (checkChunkLimit < 0) {
@@ -151,56 +153,56 @@ final class DriverSet implements MessageDriverSet, ReplyDriverSet, NonBlockingDr
         this.connectReport = new ConnectReportDriver(network);
 
         final OperationAggregator<PeerAccessOperation, PeerAccessResult> peerAccessAggregator = new OperationAggregator<>();
-        this.peerAccess = new PeerAccessDriver(sessionManager, network);
+        this.peerAccess = new PeerAccessDriver(sessionManager, network, outlawReportSink);
         this.peerAccessNonBlocking = new PeerAccessNonBlockingDriver(peerAccessAggregator, this.peerAccess, executor);
         this.peerAccessSelect = new PeerAccessSelectDriver(peerAccessAggregator, this.peerAccess);
         this.peerAccessMessage = new PeerAccessMessageDriver(network);
         this.peerAccessReply = new PeerAccessReplyDriver(network);
 
         final OperationAggregator<AddressAccessOperation, AddressAccessResult> addressAccessAggregator = new OperationAggregator<>();
-        this.addressAccess = new AddressAccessDriver(sessionManager, network);
+        this.addressAccess = new AddressAccessDriver(sessionManager, network, outlawReportSink);
         this.addressAccessBlocking = new AddressAccessBlockingDriver(addressAccessAggregator, this.addressAccess);
         this.addressAccessNonBlocking = new AddressAccessNonBlockingDriver(addressAccessAggregator, this.addressAccess, executor);
         this.addressAccessMessage = new AddressAccessMessageDriver(network, this.addressAccessBlocking, executor);
         this.addressAccessReply = new AddressAccessReplyDriver(network);
 
         final OperationAggregator<GetChunkOperation, GetChunkResult> getChunkAggregator = new OperationAggregator<>();
-        this.getChunk = new GetChunkDriver(network, storage, sessionManager, idRegistry);
+        this.getChunk = new GetChunkDriver(network, storage, sessionManager, idRegistry, outlawReportSink);
         this.getChunkBlocking = new GetChunkBlockingDriver(getChunkAggregator, this.getChunk);
         this.getChunkNonBlocking = new GetChunkNonBlockingDriver(getChunkAggregator, this.getChunk, executor);
         this.getChunkMessage = new GetChunkMessageDriver(network, this.getChunkBlocking, chunkRegistry, executor);
         this.getChunkReply = new GetChunkReplyDriver();
 
         final OperationAggregator<UpdateChunkOperation, UpdateChunkResult> updateChunkAggregator = new OperationAggregator<>();
-        this.updateChunk = new UpdateChunkDriver(network, storage, sessionManager, idRegistry);
+        this.updateChunk = new UpdateChunkDriver(network, storage, sessionManager, idRegistry, outlawReportSink);
         this.updateChunkBlocking = new UpdateChunkBlockingDriver(updateChunkAggregator, this.updateChunk);
         this.updateChunkNonBlocking = new UpdateChunkNonBlockingDriver(updateChunkAggregator, this.updateChunk, executor);
         this.updateChunkMessage = new UpdateChunkMessageDriver(network, this.updateChunkBlocking, diffRegistry, executor);
         this.updateChunkReply = new UpdateChunkReplyDriver();
 
         final OperationAggregator<AddChunkOperation, AddChunkResult> addChunkAggregator = new OperationAggregator<>();
-        this.addChunk = new AddChunkDriver(network, storage, operationSink, sessionManager, chunkRegistry);
+        this.addChunk = new AddChunkDriver(network, storage, operationSink, sessionManager, chunkRegistry, outlawReportSink);
         this.addChunkBlocking = new AddChunkBlockingDriver(addChunkAggregator, this.addChunk);
         this.addChunkNonBlocking = new AddChunkNonBlockingDriver(addChunkAggregator, this.addChunk, executor);
         this.addChunkMessage = new AddChunkMessageDriver(network, this.addChunkBlocking, executor);
         this.addChunkReply = new AddChunkReplyDriver();
 
         final OperationAggregator<PatchChunkOperation<?>, PatchChunkResult> patchChunkAggregator = new OperationAggregator<>();
-        this.patchChunk = new PatchChunkDriver(network, storage, operationSink, sessionManager, idRegistry);
+        this.patchChunk = new PatchChunkDriver(network, storage, operationSink, sessionManager, idRegistry, outlawReportSink);
         this.patchChunkBlocking = new PatchChunkBlockingDriver(patchChunkAggregator, this.patchChunk);
         this.patchChunkNonBlocking = new PatchChunkNonBlockingDriver(patchChunkAggregator, this.patchChunk, executor);
         this.patchChunkMessage = new PatchChunkMessageDriver(network, this.patchChunkBlocking, executor);
         this.patchChunkReply = new PatchChunkReplyDriver();
 
         final OperationAggregator<GetCacheOperation, GetCacheResult> getCacheAggregator = new OperationAggregator<>();
-        this.getCache = new GetCacheDriver(network, storage, sessionManager, idRegistry);
+        this.getCache = new GetCacheDriver(network, storage, sessionManager, idRegistry, outlawReportSink);
         this.getCacheBlocking = new GetCacheBlockingDriver(getCacheAggregator, this.getCache);
         this.getCacheNonBlocking = new GetCacheNonBlockingDriver(getCacheAggregator, this.getCache, executor);
         this.getCacheMessage = new GetCacheMessageDriver(network, this.getCacheBlocking, chunkRegistry, idRegistry, executor);
         this.getCacheReply = new GetCacheReplyDriver(storage);
 
         final OperationAggregator<PatchOrAddAndGetCacheOperation, PatchOrAddAndGetCacheResult> patchOrAddAndGetCacheAggregator = new OperationAggregator<>();
-        this.patchOrAddAndGetCache = new PatchOrAddAndGetCacheDriver(network, storage, operationSink, sessionManager, chunkRegistry);
+        this.patchOrAddAndGetCache = new PatchOrAddAndGetCacheDriver(network, storage, operationSink, sessionManager, chunkRegistry, outlawReportSink);
         this.patchOrAddAndGetCacheBlocking = new PatchOrAddAndGetCacheBlockingDriver(patchOrAddAndGetCacheAggregator, this.patchOrAddAndGetCache);
         this.patchOrAddAndGetCacheNonBlocking = new PatchOrAddAndGetCacheNonBlockingDriver(patchOrAddAndGetCacheAggregator, this.patchOrAddAndGetCache,
                 executor);
@@ -209,14 +211,14 @@ final class DriverSet implements MessageDriverSet, ReplyDriverSet, NonBlockingDr
 
         final OperationAggregator<GetOrUpdateCacheOperation, GetOrUpdateCacheResult> getOrUpdateCacheAggregator = new OperationAggregator<>();
         this.getOrUpdateCache = new GetOrUpdateCacheDriver(network, storage, sessionManager, idRegistry, this.getCacheBlocking,
-                this.patchOrAddAndGetCacheBlocking);
+                this.patchOrAddAndGetCacheBlocking, outlawReportSink);
         this.getOrUpdateCacheBlocking = new GetOrUpdateCacheBlockingDriver(getOrUpdateCacheAggregator, this.getOrUpdateCache);
         this.getOrUpdateCacheNonBlocking = new GetOrUpdateCacheNonBlockingDriver(getOrUpdateCacheAggregator, this.getOrUpdateCache, executor);
         this.getOrUpdateCacheMessage = new GetOrUpdateCacheMessageDriver(network, this.getOrUpdateCacheBlocking, chunkRegistry, idRegistry, executor);
         this.getOrUpdateCacheReply = new GetOrUpdateCacheReplyDriver(storage);
 
         final OperationAggregator<AddCacheOperation, AddCacheResult> addCacheAggregator = new OperationAggregator<>();
-        this.addCache = new AddCacheDriver(network, storage, operationSink, sessionManager, chunkRegistry);
+        this.addCache = new AddCacheDriver(network, storage, operationSink, sessionManager, chunkRegistry, outlawReportSink);
         this.addCacheBlocking = new AddCacheBlockingDriver(addCacheAggregator, this.addCache);
         this.addCacheNonBlocking = new AddCacheNonBlockingDriver(addCacheAggregator, this.addCache, executor);
         this.addCacheMessage = new AddCacheMessageDriver(network, this.addCacheBlocking, executor);
@@ -224,7 +226,7 @@ final class DriverSet implements MessageDriverSet, ReplyDriverSet, NonBlockingDr
 
         final OperationAggregator<PatchAndGetOrUpdateCacheOperation<?>, PatchAndGetOrUpdateCacheResult> patchAndGetOrUpdateCacheAggregator = new OperationAggregator<>();
         this.patchAndGetOrUpdateCache = new PatchAndGetOrUpdateCacheDriver(network, storage, operationSink, sessionManager, idRegistry, this.getCacheBlocking,
-                this.patchOrAddAndGetCacheBlocking);
+                this.patchOrAddAndGetCacheBlocking, outlawReportSink);
         this.patchAndGetOrUpdateCacheBlocking = new PatchAndGetOrUpdateCacheBlockingDriver(patchAndGetOrUpdateCacheAggregator, this.patchAndGetOrUpdateCache);
         this.patchAndGetOrUpdateCacheNonBlocking = new PatchAndGetOrUpdateCacheNonBlockingDriver(patchAndGetOrUpdateCacheAggregator,
                 this.patchAndGetOrUpdateCache, executor);
@@ -233,26 +235,26 @@ final class DriverSet implements MessageDriverSet, ReplyDriverSet, NonBlockingDr
         this.patchAndGetOrUpdateCacheReply = new PatchAndGetOrUpdateCacheReplyDriver(storage);
 
         final OperationAggregator<CheckStockOperation, CheckStockResult> checkStockAggregator = new OperationAggregator<>();
-        this.checkStock = new CheckStockDriver(network, storage, sessionManager, idRegistry, checkChunkLimit, backupTypes);
+        this.checkStock = new CheckStockDriver(network, storage, sessionManager, idRegistry, checkChunkLimit, backupTypes, outlawReportSink);
         this.checkStockBlocking = new CheckStockBlockingDriver(checkStockAggregator, this.checkStock);
         this.checkStockMessage = new CheckStockMessageDriver(network, storage, idRegistry, checkChunkLimit, backupTypes);
         this.checkStockReply = new CheckStockReplyDriver();
 
         final OperationAggregator<CheckDemandOperation, CheckDemandResult> checkDemandAggregator = new OperationAggregator<>();
-        this.checkDemand = new CheckDemandDriver(network, storage, sessionManager, idRegistry, checkChunkLimit, backupTypes);
+        this.checkDemand = new CheckDemandDriver(network, storage, sessionManager, idRegistry, checkChunkLimit, backupTypes, outlawReportSink);
         this.checkDemandBlocking = new CheckDemandBlockingDriver(checkDemandAggregator, this.checkDemand);
         this.checkDemandMessage = new CheckDemandMessageDriver(network, storage, idRegistry, checkChunkLimit, backupTypes);
         this.checkDemandReply = new CheckDemandReplyDriver();
 
         final OperationAggregator<RecoveryOperation, RecoveryResult> recoveryAggregator = new OperationAggregator<>();
-        this.recovery = new RecoveryDriver(network, storage, sessionManager, idRegistry);
+        this.recovery = new RecoveryDriver(network, storage, sessionManager, idRegistry, outlawReportSink);
         this.recoverySelect = new RecoverySelectDriver(recoveryAggregator, this.recovery);
         this.recoveryNonBlocking = new RecoveryNonBlockingDriver(recoveryAggregator, this.recovery, executor);
         this.recoveryMessage = new RecoveryMessageDriver(network, storage, chunkRegistry);
         this.recoveryReply = new RecoveryReplyDriver(network, storage);
 
         final OperationAggregator<BackupOperation, BackupResult> backupAggregator = new OperationAggregator<>();
-        this.backup = new BackupDriver(network, storage, sessionManager, chunkRegistry);
+        this.backup = new BackupDriver(network, storage, sessionManager, chunkRegistry, outlawReportSink);
         this.backupBlocking = new BackupBlockingDriver(backupAggregator, this.backup);
         this.backupSelect = new BackupSelectDriver(backupAggregator, this.backup);
         this.backupNonBlocking = new BackupNonBlockingDriver(backupAggregator, this.backup, executor);
@@ -260,13 +262,13 @@ final class DriverSet implements MessageDriverSet, ReplyDriverSet, NonBlockingDr
         this.backupReply = new BackupReplyDriver(network, storage);
 
         final OperationAggregator<SimpleRecoveryOperation, SimpleRecoveryResult> simpleRecoveryAggregator = new OperationAggregator<>();
-        this.simpleRecovery = new SimpleRecoveryDriver(network, storage, sessionManager, idRegistry);
+        this.simpleRecovery = new SimpleRecoveryDriver(network, storage, sessionManager, idRegistry, outlawReportSink);
         this.simpleRecoveryNonBlocking = new SimpleRecoveryNonBlockingDriver(simpleRecoveryAggregator, this.simpleRecovery, executor);
         this.simpleRecoveryMessage = new SimpleRecoveryMessageDriver(network, storage, chunkRegistry);
         this.simpleRecoveryReply = new SimpleRecoveryReplyDriver(network, storage);
 
         final OperationAggregator<CheckOneDemandOperation, CheckOneDemandResult> checkOneDemandAggregator = new OperationAggregator<>();
-        this.checkOneDemand = new CheckOneDemandDriver(network, storage, sessionManager, idRegistry);
+        this.checkOneDemand = new CheckOneDemandDriver(network, storage, sessionManager, idRegistry, outlawReportSink);
         this.checkOneDemandNonBlocking = new CheckOneDemandBlockingDriver(checkOneDemandAggregator, this.checkOneDemand);
         this.checkOneDemandMessage = new CheckOneDemandMessageDriver(network, storage, idRegistry, backupTypes);
         this.checkOneDemandReply = new CheckOneDemandReplyDriver();
@@ -276,12 +278,12 @@ final class DriverSet implements MessageDriverSet, ReplyDriverSet, NonBlockingDr
         this.backupOneNonBlocking = new BackupOneNonBlockingDriver(backupOneAggregator, this.backupOne, executor);
 
         final OperationAggregator<FirstAccessOperation, FirstAccessResult> firstAccessAggregator = new OperationAggregator<>();
-        this.firstAccess = new FirstAccessDriver(sessionManager, network);
+        this.firstAccess = new FirstAccessDriver(sessionManager, network, outlawReportSink);
         this.firstAccessSelect = new FirstAccessSelectDriver(firstAccessAggregator, this.firstAccess);
 
-        this.communicationError = new CommunicationErrorDriver(network);
-        this.contactError = new ContactErrorDriver(network);
-        this.acceptanceError = new AcceptanceErrorDriver(portIgnore, network);
+        this.communicationError = new CommunicationErrorDriver(outlawReportSink);
+        this.contactError = new ContactErrorDriver(network, outlawReportSink);
+        this.acceptanceError = new AcceptanceErrorDriver(portIgnore, outlawReportSink);
         this.unsentMail = new UnsentMailDriver(sessionManager);
         this.closePortWarning = new ClosePortWarningDriver(network);
     }

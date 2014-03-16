@@ -37,9 +37,10 @@ public final class NetworkManagerTest {
         this.network = NetworkWrapperTest.sample(this.random, new HashingCalculator(1_000));
         this.executor = Executors.newCachedThreadPool();
         final SessionManager sessionManager = new SessionManager();
-        final PeerAccessDriver peerRemoteDriver = new PeerAccessDriver(sessionManager, this.network);
+        final BlockingQueue<OutlawReport> outlawReportQueue = new LinkedBlockingQueue<>();
+        final PeerAccessDriver peerRemoteDriver = new PeerAccessDriver(sessionManager, this.network, outlawReportQueue);
         this.peerDriver = new PeerAccessNonBlockingDriver(new OperationAggregator<PeerAccessOperation, PeerAccessResult>(), peerRemoteDriver, this.executor);
-        final AddressAccessDriver addressRemoteDriver = new AddressAccessDriver(sessionManager, this.network);
+        final AddressAccessDriver addressRemoteDriver = new AddressAccessDriver(sessionManager, this.network, outlawReportQueue);
         this.addressDriver = new AddressAccessNonBlockingDriver(new OperationAggregator<AddressAccessOperation, AddressAccessResult>(), addressRemoteDriver,
                 this.executor);
     }

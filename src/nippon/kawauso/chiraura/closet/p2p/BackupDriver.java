@@ -3,10 +3,12 @@ package nippon.kawauso.chiraura.closet.p2p;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import nippon.kawauso.chiraura.closet.Mountain;
+import nippon.kawauso.chiraura.lib.concurrent.ConcurrentFunctions;
 import nippon.kawauso.chiraura.lib.converter.TypeRegistry;
 import nippon.kawauso.chiraura.messenger.ConnectionTypes;
 import nippon.kawauso.chiraura.messenger.Message;
@@ -25,8 +27,10 @@ final class BackupDriver {
     private final StorageWrapper storage;
     private final SessionManager sessionManager;
     private final TypeRegistry<Chunk> chunkRegistry;
+    private final BlockingQueue<OutlawReport> outlawReportSink;
 
-    BackupDriver(final NetworkWrapper network, final StorageWrapper storage, final SessionManager sessionManager, final TypeRegistry<Chunk> chunkRegistry) {
+    BackupDriver(final NetworkWrapper network, final StorageWrapper storage, final SessionManager sessionManager, final TypeRegistry<Chunk> chunkRegistry,
+            final BlockingQueue<OutlawReport> outlawReportSink) {
         if (network == null) {
             throw new IllegalArgumentException("Null network.");
         } else if (storage == null) {
@@ -35,11 +39,14 @@ final class BackupDriver {
             throw new IllegalArgumentException("Null session manager.");
         } else if (chunkRegistry == null) {
             throw new IllegalArgumentException("Null chunk registry.");
+        } else if (outlawReportSink == null) {
+            throw new IllegalArgumentException("Null outlaw report sink.");
         }
         this.network = network;
         this.storage = storage;
         this.sessionManager = sessionManager;
         this.chunkRegistry = chunkRegistry;
+        this.outlawReportSink = outlawReportSink;
     }
 
     BackupResult execute(final BackupOperation operation, final long timeout) throws InterruptedException, IOException {
@@ -130,7 +137,7 @@ final class BackupDriver {
                 // プロトコル違反。
                 LOG.log(Level.WARNING, "{0} からの返事の型 {1} は期待する型 {2} と異なります。", new Object[] { operation.getDestination(),
                         receivedMail.getMail().get(0).getClass(), BackupReply.class });
-                this.network.removeInvalidPeer(operation.getDestination());
+                ConcurrentFunctions.completePut(new OutlawReport(operation.getDestination()), this.outlawReportSink);
                 return BackupResult.newGiveUp();
             }
         }

@@ -38,7 +38,7 @@ public final class LonelyTest {
         this.network = NetworkWrapperTest.sample(this.random, new HashingCalculator(1_000));
         this.executor = Executors.newCachedThreadPool();
         final SessionManager sessionManager = new SessionManager();
-        final FirstAccessDriver coreDriver = new FirstAccessDriver(sessionManager, this.network);
+        final FirstAccessDriver coreDriver = new FirstAccessDriver(sessionManager, this.network, new LinkedBlockingQueue<OutlawReport>());
         this.driver = new FirstAccessSelectDriver(new OperationAggregator<FirstAccessOperation, FirstAccessResult>(), coreDriver);
     }
 

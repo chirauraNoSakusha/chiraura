@@ -32,9 +32,10 @@ final class PatchChunkDriver {
     private final BlockingQueue<Operation> operationSink;
     private final SessionManager sessionManager;
     private final TypeRegistry<Chunk.Id<?>> idRegistry;
+    private final BlockingQueue<OutlawReport> outlawReportSink;
 
     PatchChunkDriver(final NetworkWrapper network, final StorageWrapper storage, final BlockingQueue<Operation> operationSink,
-            final SessionManager sessionManager, final TypeRegistry<Chunk.Id<?>> idRegistry) {
+            final SessionManager sessionManager, final TypeRegistry<Chunk.Id<?>> idRegistry, final BlockingQueue<OutlawReport> outlawReportSink) {
         if (network == null) {
             throw new IllegalArgumentException("Null network.");
         } else if (storage == null) {
@@ -45,12 +46,15 @@ final class PatchChunkDriver {
             throw new IllegalArgumentException("Null session manager.");
         } else if (idRegistry == null) {
             throw new IllegalArgumentException("Null id registry.");
+        } else if (outlawReportSink == null) {
+            throw new IllegalArgumentException("Null outlaw report sink.");
         }
         this.network = network;
         this.storage = storage;
         this.operationSink = operationSink;
         this.sessionManager = sessionManager;
         this.idRegistry = idRegistry;
+        this.outlawReportSink = outlawReportSink;
     }
 
     <T extends Mountain> PatchChunkResult execute(final PatchChunkOperation<T> operation, final long timeout) throws InterruptedException, IOException {
@@ -132,7 +136,7 @@ final class PatchChunkDriver {
                     // プロトコル違反。
                     LOG.log(Level.WARNING, "{0} からの返事の型 {1} は期待する型 {2} と異なります。", new Object[] { destination, receivedMail.getMail().get(0).getClass(),
                             PatchChunkReply.class });
-                    this.network.removeInvalidPeer(destination.getPeer());
+                    ConcurrentFunctions.completePut(new OutlawReport(destination.getPeer()), this.outlawReportSink);
                     continue;
                 }
             }
