@@ -96,6 +96,8 @@ final class Environment {
     private final long trafficSizeLimit;
     private final int trafficCountLimit;
     private final long trafficPenalty;
+    private final long outlawDuration;
+    private final int outlawCountLimit;
     private final int blacklistCapacity;
     private final long blacklistTimeout;
     private final int potCapacity;
@@ -227,6 +229,8 @@ final class Environment {
         this.trafficSizeLimit = getDefaultLong(option, Option.Item.trafficSizeLimit);
         this.trafficCountLimit = getDefaultInt(option, Option.Item.trafficCountLimit);
         this.trafficPenalty = getDefaultLong(option, Option.Item.trafficPenalty);
+        this.outlawDuration = getDefaultLong(option, Option.Item.outlawDuration);
+        this.outlawCountLimit = getDefaultInt(option, Option.Item.outlawCountLimit);
         this.blacklistCapacity = getLargerInt(option, Option.Item.blacklistCapacity);
         this.blacklistTimeout = getDefaultLong(option, Option.Item.blacklistTimeout);
         this.potCapacity = getLargerInt(option, Option.Item.potCapacity);
@@ -405,6 +409,14 @@ final class Environment {
 
     long getTrafficPenalty() {
         return this.trafficPenalty;
+    }
+
+    long getOutlawDuration() {
+        return this.outlawDuration;
+    }
+
+    int getOutlawCountLimit() {
+        return this.outlawCountLimit;
     }
 
     int getBlacklistCapacity() {

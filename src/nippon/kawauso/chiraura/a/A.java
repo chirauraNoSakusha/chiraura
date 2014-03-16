@@ -75,6 +75,8 @@ public final class A implements AutoCloseable {
                         .setTrafficSizeLimit(environment.getTrafficSizeLimit())
                         .setTrafficCountLimit(environment.getTrafficCountLimit())
                         .setTrafficPenalty(environment.getTrafficPenalty())
+                        .setOutlawDuration(environment.getOutlawDuration())
+                        .setOutlawCountLimit(environment.getOutlawCountLimit())
                         .setBlacklistCapacity(environment.getBlacklistCapacity())
                         .setBlacklistTimeout(environment.getBlacklistTimeout())
                         .setPotCapacity(environment.getPotCapacity())

@@ -31,11 +31,16 @@ public final class BossTest {
     private final Random random;
     private final BlockingQueue<Operation> operationQueue;
     private final BlockingQueue<ClosetReport> closetReportQueue;
+    private final BlockingQueue<OutlawReport> outlawReportQueue;
     private final NetworkWrapper network;
     private final StorageWrapper storage;
     private final SessionManager sessionManager;
     private final ExecutorService executor;
     private final DriverSet drivers;
+
+    private static final boolean portIgnore = true;
+    private static final long outlawDuration = 1_000L;
+    private static final int outlawCountLimit = 10;
 
     /**
      * 初期化。
@@ -44,6 +49,7 @@ public final class BossTest {
         this.random = new Random();
         this.operationQueue = new LinkedBlockingQueue<>();
         this.closetReportQueue = new LinkedBlockingQueue<>();
+        this.outlawReportQueue = new LinkedBlockingQueue<>();
         this.network = NetworkWrapperTest.sample(this.random, new HashingCalculator(1_000));
         this.storage = StorageWrapperTest.sample(this.random, this.operationQueue);
         this.sessionManager = new SessionManager();
@@ -61,7 +67,7 @@ public final class BossTest {
     @Test
     public void testBoot() throws Exception {
         final Boss instance = new Boss(this.network, this.sessionManager, interval, sleepTime, backupInterval, timeout, versionGapThreshold, this.executor,
-                this.operationQueue, this.closetReportQueue, this.drivers);
+                this.operationQueue, this.closetReportQueue, this.drivers, this.outlawReportQueue, portIgnore, outlawDuration, outlawCountLimit);
         final Future<Void> future = this.executor.submit(instance);
         Thread.sleep(100);
         this.executor.shutdownNow();

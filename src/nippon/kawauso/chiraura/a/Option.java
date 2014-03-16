@@ -61,6 +61,8 @@ final class Option {
         trafficSizeLimit(Long.toString(10 * 1024 * 1024) /* 10 MB */, "通信を制限する通信量 (バイト)"),
         trafficCountLimit(Integer.toString(500), "通信を制限する通信回数"),
         trafficPenalty(Long.toString(10 * Duration.SECOND), "通信を制限する時間 (ミリ秒)"),
+        outlawDuration(Long.toString(10 * Duration.MINUTE), "おかしな個体を弾くための単位監視時間 (ミリ秒)"),
+        outlawCountLimit(Integer.toString(10), "おかしな挙動を許容する単位監視時間あたりの回数"),
         blacklistCapacity(Integer.toString(200), "拒否対象の個体を保持する数"),
         blacklistTimeout(Long.toString(30 * Duration.MINUTE), "個体の拒否を解除するまでの時間 (ミリ秒)"),
         potCapacity(Integer.toString(1_000), "予備として個体を保持する数"),

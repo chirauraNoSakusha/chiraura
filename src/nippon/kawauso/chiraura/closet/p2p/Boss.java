@@ -1,8 +1,12 @@
 package nippon.kawauso.chiraura.closet.p2p;
 
+import java.net.InetSocketAddress;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
@@ -10,6 +14,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import nippon.kawauso.chiraura.closet.ClosetReport;
+import nippon.kawauso.chiraura.lib.connection.BasicConstantTrafficLimiter;
+import nippon.kawauso.chiraura.lib.connection.Limiter;
+import nippon.kawauso.chiraura.lib.connection.PortIgnoringConstantTrafficLimiter;
 import nippon.kawauso.chiraura.lib.process.Chief;
 import nippon.kawauso.chiraura.lib.process.Reporter;
 import nippon.kawauso.chiraura.network.AddressedPeer;
@@ -33,13 +40,17 @@ final class Boss extends Chief {
     private final ExecutorService executor;
     private final BlockingQueue<Operation> operationQueue;
     private final BlockingQueue<ClosetReport> closetReportSink;
+    private final BlockingQueue<OutlawReport> outlawReportQueue;
     private final DriverSet drivers;
 
     private final Map<AddressedPeer, BackupperMaster.BackupperUnit> backupeerPool;
+    private final Limiter<InetSocketAddress> outlawLimiter;
+    private final Set<InetSocketAddress> outlawRemovers;
 
     Boss(final NetworkWrapper network, final SessionManager sessionManager, final long maintenanceInterval, final long sleepTime, final long backupInterval,
             final long operationTimeout, final long versionGapThreshold, final ExecutorService executor, final BlockingQueue<Operation> operationQueue,
-            final BlockingQueue<ClosetReport> closetReportSink, final DriverSet drivers) {
+            final BlockingQueue<ClosetReport> closetReportSink, final DriverSet drivers, final BlockingQueue<OutlawReport> outlawReportQueue,
+            final boolean portIgnore, final long outlawDuration, final int outlawCountLimit) {
         super(new LinkedBlockingQueue<Reporter.Report>());
 
         if (network == null) {
@@ -62,8 +73,14 @@ final class Boss extends Chief {
             throw new IllegalArgumentException("Null operation queue.");
         } else if (closetReportSink == null) {
             throw new IllegalArgumentException("Null closet report sink.");
+        } else if (outlawReportQueue == null) {
+            throw new IllegalArgumentException("Null outlaw report queue.");
         } else if (drivers == null) {
             throw new IllegalArgumentException("Null drivers.");
+        } else if (outlawDuration < 0) {
+            throw new IllegalArgumentException("Negative outlaw duration ( " + outlawDuration + " ).");
+        } else if (outlawCountLimit < 0) {
+            throw new IllegalArgumentException("Negative outlaw count limit ( " + outlawCountLimit + " ).");
         }
 
         this.network = network;
@@ -76,9 +93,16 @@ final class Boss extends Chief {
         this.executor = executor;
         this.operationQueue = operationQueue;
         this.closetReportSink = closetReportSink;
+        this.outlawReportQueue = outlawReportQueue;
         this.drivers = drivers;
 
         this.backupeerPool = new HashMap<>();
+        if (portIgnore) {
+            this.outlawLimiter = new PortIgnoringConstantTrafficLimiter(outlawDuration, Long.MAX_VALUE, outlawCountLimit, 0);
+        } else {
+            this.outlawLimiter = new BasicConstantTrafficLimiter(outlawDuration, Long.MAX_VALUE, outlawCountLimit, 0);
+        }
+        this.outlawRemovers = Collections.newSetFromMap(new ConcurrentHashMap<InetSocketAddress, Boolean>());
     }
 
     private MailReader newMailReader() {
@@ -112,6 +136,10 @@ final class Boss extends Chief {
                 this.executor, this.drivers);
     }
 
+    private Blacklister newBlacklister() {
+        return new Blacklister(getReportQueue(), this.outlawReportQueue, this.outlawLimiter, this.network, this.outlawRemovers, this.executor);
+    }
+
     @Override
     protected void before() {
         this.executor.submit(newMailReader());
@@ -121,6 +149,7 @@ final class Boss extends Chief {
         this.executor.submit(newLonely());
         this.executor.submit(newUnpartitioner());
         this.executor.submit(newBackupperMaster());
+        this.executor.submit(newBlacklister());
     }
 
     @Override
@@ -141,6 +170,8 @@ final class Boss extends Chief {
                 this.executor.submit(newUnpartitioner());
             } else if (report.getSource() == BackupperMaster.class) {
                 this.executor.submit(newBackupperMaster());
+            } else if (report.getSource() == Blacklister.class) {
+                this.executor.submit(newBlacklister());
             } else {
                 done = false;
             }

@@ -93,6 +93,8 @@ public final class P2pCloset implements Closet {
         private long trafficSizeLimit = 10 * 1024 * 1024; // 10MB.
         private int trafficCountLimit = 500;
         private long trafficPenalty = 10 * Duration.SECOND;
+        private long outlawDuration = 10 * Duration.MINUTE;
+        private int outlawCountLimit = 10;
         private int blacklistCapacity = 200;
         private long blacklistTimeout = 30 * Duration.MINUTE;
         private int potCapacity = 1_000;
@@ -328,6 +330,26 @@ public final class P2pCloset implements Closet {
         }
 
         /**
+         * おかしな挙動の個体を弾くための単位監視時間を変える。
+         * @param value 新しい値 (ミリ秒)
+         * @return this
+         */
+        public Parameters setOutlawDuration(final long value) {
+            this.outlawDuration = value;
+            return this;
+        }
+
+        /**
+         * おかしな挙動を許容する単位監視時間あたりの回数。
+         * @param value 新しい値
+         * @return this
+         */
+        public Parameters setOutlawCountLimit(final int value) {
+            this.outlawCountLimit = value;
+            return this;
+        }
+
+        /**
          * 拒否対象の個体を保持する数を変える。
          * @param value 新しい値
          * @return this
@@ -467,6 +489,11 @@ public final class P2pCloset implements Closet {
     private final long backupInterval;
     private final long operationTimeout;
 
+    private final BlockingQueue<OutlawReport> outlawReportQueue;
+    private final boolean portIgnore;
+    private final long outlawDuration;
+    private final int outlawCountLimit;
+
     /**
      * 作成する。
      * @param param 設定値
@@ -511,12 +538,18 @@ public final class P2pCloset implements Closet {
                 this.network.reservePeer(host);
             }
         }
+
+        this.outlawReportQueue = new LinkedBlockingQueue<>();
+        this.portIgnore = param.portIgnore;
+        this.outlawDuration = param.outlawDuration;
+        this.outlawCountLimit = param.outlawCountLimit;
     }
 
     @Override
     public void start(final ExecutorService executor) {
         executor.submit(new Boss(this.network, this.sessionManager, this.maintenanceInterval, this.sleepTime, this.backupInterval, this.operationTimeout,
-                VERSION_GAP_THRESHOLD, executor, this.operationQueue, this.closetReportQueue, this.drivers));
+                VERSION_GAP_THRESHOLD, executor, this.operationQueue, this.closetReportQueue, this.drivers, this.outlawReportQueue, this.portIgnore,
+                this.outlawDuration, this.outlawCountLimit));
         this.network.start(executor);
     }
 
