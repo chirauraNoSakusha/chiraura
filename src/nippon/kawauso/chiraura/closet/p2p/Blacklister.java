@@ -73,14 +73,12 @@ final class Blacklister extends Reporter<Void> {
 
                         /*
                          * 上の limiter.remove と上の removers.remove の間に limiter.addValueAndCheckPenalty が行われ得る。
-                         * そのため、本当に資源が解放されているかもう一度 limiter.remove で確認する。
+                         * そのため、本当に資源が解放されているかもう一度確認する。
                          * これで、資源が確保されているのに remover が居ない状態は避けられる。
                          * しかし、上の removers.remove と下の removers.add の間に removers.contains され、remover が重複する可能性はある。
-                         * ただし、下の limiter.remove で待機するのは、上の limiter.remove と下の limter.remove の間に
-                         * limiter.addValueAndCheckPenalty された場合だけだから、そんなに頻繁に起こることは無いはず。
                          */
 
-                        if (Blacklister.this.limiter.remove(report.getOutlaw())) {
+                        if (Blacklister.this.limiter.checkCount(report.getOutlaw()) == 0) {
                             LOG.log(Level.FINER, "{0} を監視対象から除外しました。", report.getOutlaw());
                             break;
                         }
