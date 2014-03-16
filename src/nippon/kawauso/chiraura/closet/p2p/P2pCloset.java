@@ -490,7 +490,7 @@ public final class P2pCloset implements Closet {
         final AddressableNetwork rawNetwork = AddressableNetworks.newInstance(param.calculator.calculate(param.id.getPublic()), param.peerCapacity,
                 param.maintenanceInterval);
         final PeerBlacklist blacklist = new TimeLimitedPeerBlacklist(param.blacklistCapacity, param.blacklistTimeout);
-        final PeerBlacklist lostPeers = new TimeLimitedPeerBlacklist(param.blacklistCapacity, param.maintenanceInterval * 3 / 2);
+        final PeerBlacklist lostPeers = new TimeLimitedPeerBlacklist(param.blacklistCapacity, param.maintenanceInterval * 2); // TODO 時間はかなりてきとう。
         final PeerPot pot = new FifoPeerPot(param.potCapacity);
         this.network = new NetworkWrapper(P2pCloset.VERSION, rawNetwork, messenger, blacklist, lostPeers, pot, this.operationQueue, param.calculator,
                 param.activeAddressLogCapacity, param.activeAddressDuration);
