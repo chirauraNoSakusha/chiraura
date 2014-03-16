@@ -285,7 +285,7 @@ final class DriverSet implements MessageDriverSet, ReplyDriverSet, NonBlockingDr
         this.contactError = new ContactErrorDriver(network, outlawReportSink);
         this.acceptanceError = new AcceptanceErrorDriver(portIgnore, outlawReportSink);
         this.unsentMail = new UnsentMailDriver(sessionManager);
-        this.closePortWarning = new ClosePortWarningDriver(network);
+        this.closePortWarning = new ClosePortWarningDriver(network, outlawReportSink);
     }
 
     PeerAccessDriver getPeerAccess() {

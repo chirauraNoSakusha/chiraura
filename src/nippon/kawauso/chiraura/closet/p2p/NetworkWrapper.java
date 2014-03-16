@@ -162,7 +162,7 @@ final class NetworkWrapper {
         }
     }
 
-    boolean removePeer(final InetSocketAddress peer) {
+    private boolean removePeer(final InetSocketAddress peer) {
         final Address removed = this.network.removePeer(peer);
         this.messenger.removeConnection(peer);
         this.activeAddressLog.remove(peer);
