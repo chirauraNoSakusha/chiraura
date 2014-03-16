@@ -1,4 +1,4 @@
-package nippon.kawauso.chiraura.storage;
+package nippon.kawauso.chiraura.lib.concurrent;
 
 import java.util.ArrayList;
 import java.util.Collection;

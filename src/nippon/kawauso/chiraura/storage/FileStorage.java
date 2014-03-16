@@ -21,6 +21,7 @@ import java.util.logging.Logger;
 
 import nippon.kawauso.chiraura.lib.base.Address;
 import nippon.kawauso.chiraura.lib.base.HashValue;
+import nippon.kawauso.chiraura.lib.concurrent.LockPool;
 import nippon.kawauso.chiraura.lib.converter.Base64;
 import nippon.kawauso.chiraura.lib.converter.BytesConversion;
 import nippon.kawauso.chiraura.lib.converter.BytesConvertible;

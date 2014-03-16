@@ -1,4 +1,4 @@
-package nippon.kawauso.chiraura.storage;
+package nippon.kawauso.chiraura.lib.concurrent;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -11,7 +11,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * @param <T> 鍵のクラス
  * @author chirauraNoSakusha
  */
-final class LockPool<T> {
+public final class LockPool<T> {
 
     // private static final Logger LOG = Logger.getLogger(LockPool.class.getName());
 
@@ -25,7 +25,7 @@ final class LockPool<T> {
     /**
      * 作成する。
      */
-    LockPool() {
+    public LockPool() {
         this.locks = new ConcurrentHashMap<>();
     }
 
@@ -35,7 +35,7 @@ final class LockPool<T> {
      * @param key ロックの鍵
      * @throws InterruptedException 待機中にインタラプトされた場合
      */
-    void lock(final T key) throws InterruptedException {
+    public void lock(final T key) throws InterruptedException {
         // LOG.log(Level.SEVERE, "lock in " + key);
         while (true) {
             ReentrantLock lock = this.locks.get(key);
@@ -70,7 +70,7 @@ final class LockPool<T> {
      * @param key ロックの鍵
      * @return ロックできたら true
      */
-    boolean tryLock(final T key) {
+    public boolean tryLock(final T key) {
         while (true) {
             ReentrantLock lock = this.locks.get(key);
             if (lock == null) {
@@ -107,7 +107,7 @@ final class LockPool<T> {
      *         false なら時間切れ
      * @throws InterruptedException 待機中にインタラプトされた場合
      */
-    boolean tryLock(final T key, final long timeout) throws InterruptedException {
+    public boolean tryLock(final T key, final long timeout) throws InterruptedException {
         while (true) {
             ReentrantLock lock = this.locks.get(key);
             if (lock == null) {
@@ -140,7 +140,7 @@ final class LockPool<T> {
      * @param key 解放する鍵
      * @throws IllegalArgumentException key によるロックがされていない場合
      */
-    void unlock(final T key) {
+    public void unlock(final T key) {
         // LOG.log(Level.SEVERE, "unlock in " + key);
 
         final ReentrantLock lock = this.locks.get(key);
@@ -165,7 +165,7 @@ final class LockPool<T> {
      * 空かどうか検査する。
      * @return 空の場合のみ true
      */
-    boolean isEmpty() {
+    public boolean isEmpty() {
         return this.locks.isEmpty();
     }
 

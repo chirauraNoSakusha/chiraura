@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 import nippon.kawauso.chiraura.lib.base.Address;
+import nippon.kawauso.chiraura.lib.concurrent.LockPool;
 import nippon.kawauso.chiraura.lib.converter.BytesConvertible;
 import nippon.kawauso.chiraura.lib.converter.TypeRegistries;
 import nippon.kawauso.chiraura.lib.converter.TypeRegistry;
