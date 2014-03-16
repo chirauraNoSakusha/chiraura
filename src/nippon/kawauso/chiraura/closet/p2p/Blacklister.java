@@ -1,8 +1,8 @@
 package nippon.kawauso.chiraura.closet.p2p;
 
 import java.net.InetSocketAddress;
-import java.util.Set;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -21,11 +21,12 @@ final class Blacklister extends Reporter<Void> {
     private final BlockingQueue<OutlawReport> outlawReportSource;
     private final Limiter<InetSocketAddress> limiter;
     private final NetworkWrapper network;
-    private final Set<InetSocketAddress> removers; // 並列処理対応とする。
+    private final ConcurrentMap<InetSocketAddress, Boolean> removers; // 並列処理対応とする。
     private final ExecutorService executor;
 
     Blacklister(final BlockingQueue<? super Reporter.Report> reportSink, final BlockingQueue<OutlawReport> outlawReportSource,
-            final Limiter<InetSocketAddress> limiter, final NetworkWrapper network, final Set<InetSocketAddress> removers, final ExecutorService executor) {
+            final Limiter<InetSocketAddress> limiter, final NetworkWrapper network, final ConcurrentMap<InetSocketAddress, Boolean> removers,
+            final ExecutorService executor) {
         super(reportSink);
 
         if (outlawReportSource == null) {
@@ -58,7 +59,9 @@ final class Blacklister extends Reporter<Void> {
                 LOG.log(Level.FINER, "{0} を拒否対象に加えました。", report.getOutlaw());
             }
 
-            if (this.removers.contains(report.getOutlaw())) {
+            final Boolean exists = this.removers.putIfAbsent(report.getOutlaw(), true);
+            if (exists != null) {
+                // 既に対応する remover がいる。
                 continue;
             }
 
@@ -75,7 +78,6 @@ final class Blacklister extends Reporter<Void> {
                          * 上の limiter.remove と上の removers.remove の間に limiter.addValueAndCheckPenalty が行われ得る。
                          * そのため、本当に資源が解放されているかもう一度確認する。
                          * これで、資源が確保されているのに remover が居ない状態は避けられる。
-                         * しかし、上の removers.remove と下の removers.add の間に removers.contains され、remover が重複する可能性はある。
                          */
 
                         if (Blacklister.this.limiter.checkCount(report.getOutlaw()) == 0) {
@@ -83,7 +85,11 @@ final class Blacklister extends Reporter<Void> {
                             break;
                         }
 
-                        Blacklister.this.removers.add(report.getOutlaw());
+                        final Boolean exists2 = Blacklister.this.removers.putIfAbsent(report.getOutlaw(), true);
+                        if (exists2 != null) {
+                            // 既に別の remover がいる。
+                            break;
+                        }
                     }
                     return null;
                 }

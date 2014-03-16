@@ -1,12 +1,11 @@
 package nippon.kawauso.chiraura.closet.p2p;
 
 import java.net.InetSocketAddress;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
@@ -45,7 +44,7 @@ final class Boss extends Chief {
 
     private final Map<AddressedPeer, BackupperMaster.BackupperUnit> backupeerPool;
     private final Limiter<InetSocketAddress> outlawLimiter;
-    private final Set<InetSocketAddress> outlawRemovers;
+    private final ConcurrentMap<InetSocketAddress, Boolean> outlawRemovers;
 
     Boss(final NetworkWrapper network, final SessionManager sessionManager, final long maintenanceInterval, final long sleepTime, final long backupInterval,
             final long operationTimeout, final long versionGapThreshold, final ExecutorService executor, final BlockingQueue<Operation> operationQueue,
@@ -102,7 +101,7 @@ final class Boss extends Chief {
         } else {
             this.outlawLimiter = new BasicConstantTrafficLimiter(outlawDuration, Long.MAX_VALUE, outlawCountLimit, 0);
         }
-        this.outlawRemovers = Collections.newSetFromMap(new ConcurrentHashMap<InetSocketAddress, Boolean>());
+        this.outlawRemovers = new ConcurrentHashMap<>();
     }
 
     private MailReader newMailReader() {
