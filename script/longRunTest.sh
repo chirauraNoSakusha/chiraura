@@ -18,7 +18,7 @@ SCRIPT_BODY=${SCRIPT%.*}
 
 NUM_OF_RUN_PEERS=${NUM_OF_RUN_PEERS:=10}
 CLASSPATH=${CLASSPATH:=${PROJECT_ROOT}/bin}
-WORK_DIR=${WORK_DIR:=${PROJECT_ROOT}/tmp/${SCRIPT_BODY}}
+WORK_DIR=${WORK_DIR:=${PROJECT_ROOT}/tmp}
 
 if [ -z "${NUM_OF_RUN_PEERS}" ]; then echo ${USAGE} 1>&2; exit 1; fi
 if [ -z "${CLASSPATH}" ]; then echo ${USAGE} 1>&2; exit 1; fi
@@ -43,7 +43,7 @@ MAIN_GUI=${MAIN_GUI:=true}
 
 java -classpath ${CLASSPATH} nippon.kawauso.chiraura.a.TestUnit ${MAIN_LIFETIME} \
     Rom ${INTERVAL} ${MAIN_BOARD_RATE} \
-    -root ${WORK_DIR}/${MAIN_ID} \
+    -root ${WORK_DIR}/${SCRIPT_BODY}_${MAIN_ID} \
     -port ${MAIN_PORT} \
     -bbsPort ${MAIN_BBS_PORT} \
     -publicKeyLifetime ${PUBLIC_KEY_LIFETIME} \
@@ -55,14 +55,15 @@ MAIN_PEER=${MAIN_PEER:="$(java -classpath ${CLASSPATH} nippon.kawauso.chiraura.l
 NUM_OF_PEERS=$((NUM_OF_RUN_PEERS * 5))
 WRITE_RATE=0.666
 
-rm -f ${WORK_DIR}/master.log
+MASTER_LOG=${WORK_DIR}/${SCRIPT_BODY}_master.log
+rm -f ${MASTER_LOG}
 
 sleep 3
 
 RUN_IDS=()
 while true; do
     # SEVERE が出てたら停止．
-    if [ $(grep -R SEVERE ${WORK_DIR}/*/log | wc -l) -gt 0 ]; then
+    if [ $(grep -R SEVERE ${WORK_DIR}/${SCRIPT_BODY}_*/log | wc -l) -gt 0 ]; then
         kill $(jobs -rp)
         sleep 3
         echo "何か SEVERE ってます．"
@@ -110,24 +111,24 @@ while true; do
 
 
     # 初期個体の追加．
-    if ! [ -d ${WORK_DIR}/${ID} ]; then
-        mkdir -p ${WORK_DIR}/${ID}
+    if ! [ -d ${WORK_DIR}/${SCRIPT_BODY}${ID} ]; then
+        mkdir -p ${WORK_DIR}/${SCRIPT_BODY}${ID}
     fi
-    echo ${MAIN_PEER} > ${WORK_DIR}/${ID}/peers.txt
+    echo ${MAIN_PEER} > ${WORK_DIR}/${SCRIPT_BODY}${ID}/peers.txt
 
     PORT=$((PORT_OFFSET + ID))
     BBS_PORT=$((BBS_PORT_OFFSET + ID))
     java -classpath ${CLASSPATH} nippon.kawauso.chiraura.a.TestUnit ${LIFETIME} \
         Sequential ${INTERVAL} ${WRITE_RATE} "${AUTHOR}" \
-        -root ${WORK_DIR}/${ID} \
+        -root ${WORK_DIR}/${SCRIPT_BODY}_${ID} \
         -port ${PORT} \
         -bbsPort ${BBS_PORT} \
         -publicKeyLifetime ${PUBLIC_KEY_LIFETIME} \
         -commonKeyLifetime ${COMMON_KEY_LIFETIME} \
         -gui false &
 
-    echo $(date) ID ${ID} RUN_IDS ${RUN_IDS[@]} >> ${WORK_DIR}/master.log
-    jobs -pl >> ${WORK_DIR}/master.log
+    echo $(date) ID ${ID} RUN_IDS ${RUN_IDS[@]} >> ${MASTER_LOG}
+    jobs -pl >> ${MASTER_LOG}
 
     sleep $((LIFETIME / NUM_OF_RUN_PEERS / 1000))
 done
