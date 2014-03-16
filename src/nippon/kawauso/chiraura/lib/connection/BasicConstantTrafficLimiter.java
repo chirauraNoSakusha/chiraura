@@ -29,8 +29,8 @@ public final class BasicConstantTrafficLimiter extends ConstantLimiter<InetSocke
     }
 
     @Override
-    public void remove(final InetSocketAddress destination) throws InterruptedException {
-        super.remove(destination);
+    public boolean remove(final InetSocketAddress destination) throws InterruptedException {
+        return super.remove(destination);
     }
 
 }

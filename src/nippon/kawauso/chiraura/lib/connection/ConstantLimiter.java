@@ -249,7 +249,7 @@ abstract class ConstantLimiter<T> implements Limiter<T> {
     }
 
     @Override
-    public void remove(final T key) throws InterruptedException {
+    public boolean remove(final T key) throws InterruptedException {
         long curPenalty = 0L;
 
         Sum sum = null;
@@ -259,7 +259,7 @@ abstract class ConstantLimiter<T> implements Limiter<T> {
                 sum = this.sums.get(key);
                 if (sum == null) {
                     // 解放済み。
-                    return;
+                    return true;
                 }
 
                 // ロック結合。
@@ -292,6 +292,7 @@ abstract class ConstantLimiter<T> implements Limiter<T> {
                 try {
                     if (sum.isEmpty() || sum.getLastDate() <= System.currentTimeMillis()) {
                         this.sums.remove(key);
+                        return true;
                     }
                 } finally {
                     sum.unlock();
@@ -300,6 +301,8 @@ abstract class ConstantLimiter<T> implements Limiter<T> {
         } finally {
             this.lock.unlock();
         }
+
+        return false;
     }
 
 }

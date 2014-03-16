@@ -28,8 +28,9 @@ public interface Limiter<T> {
     /**
      * 必要なければ、key に関するリソースを解放する。
      * @param key 識別子
+     * @return 解放されたもしくは解放されていた場合のみ true
      * @throws InterruptedException 割り込まれた場合
      */
-    public void remove(T key) throws InterruptedException;
+    public boolean remove(T key) throws InterruptedException;
 
 }
