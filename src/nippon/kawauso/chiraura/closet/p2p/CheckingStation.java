@@ -11,6 +11,8 @@ import java.util.concurrent.TimeUnit;
  */
 final class CheckingStation<K, V> {
 
+    // private static final Logger LOG = Logger.getLogger(CheckingStation.class.getName());
+
     /**
      * 結果取得用の手形。
      * @author chirauraNoSakusha

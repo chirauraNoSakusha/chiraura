@@ -19,6 +19,8 @@ import org.junit.Test;
  */
 public final class OperationAggregatorTest {
 
+    // private static final Logger LOG = Logger.getLogger(OperationAggregatorTest.class.getName());
+
     private final Random random;
     private final OperationAggregator<OperationAggregator.TestOperation, OperationAggregator.TestResult> instance;
 
@@ -125,7 +127,9 @@ public final class OperationAggregatorTest {
      */
     @Test
     public void testConcurrency() throws Exception {
-        final long timeout = 100;
+        // 100 だと間に合わないこともある。
+        // 1 つ始めるのに 500 マイクロ秒以上掛かってることになるけど、妥当かどうか知らない。
+        final long timeout = 200L;
         final int numOfProcesses = 100;
         final OperationAggregator.TestOperation operation = new OperationAggregator.TestOperation(this.random.nextInt());
         final OperationAggregator.TestResult result = new OperationAggregator.TestResult(this.random.nextInt());
@@ -134,7 +138,7 @@ public final class OperationAggregatorTest {
         for (int i = 0; i < numOfProcesses; i++) {
             workers.add(new Reporter<Integer>(Level.SEVERE) {
                 @Override
-                public Integer subCall() throws Exception {
+                public Integer subCall() throws InterruptedException {
                     final CheckingStation.Instrument<OperationAggregator.TestResult> instrument = OperationAggregatorTest.this.instance.register(operation);
                     if (instrument == null) {
                         Thread.sleep(timeout / 2);
@@ -162,6 +166,18 @@ public final class OperationAggregatorTest {
         Assert.assertEquals(1, sum);
         Assert.assertTrue(timeout / 2 <= (end - start) / 1_000_000);
         Assert.assertTrue((end - start) / 1_000_000 <= timeout);
+    }
+
+    /**
+     * 徹底的。
+     * @throws Exception 異常
+     */
+    // @Test
+    public void testLoopConcurrency() throws Exception {
+        // LoggingFunctions.startLogging();
+        while (true) {
+            testConcurrency();
+        }
     }
 
 }
