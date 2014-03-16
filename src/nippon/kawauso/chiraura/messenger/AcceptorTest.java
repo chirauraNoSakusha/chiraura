@@ -433,5 +433,10 @@ public final class AcceptorTest {
         for (int i = 0; i < connectionLimit; i++) {
             this.subjectAcceptedConnectionPool.remove(this.subjectConnection.getIdNumber() + i + 1);
         }
+
+        Thread.sleep(1L);
+
+        final ConnectionOverflow report = (ConnectionOverflow) this.subjectMessengerReportQueue.poll();
+        Assert.assertNotNull(report);
     }
 }

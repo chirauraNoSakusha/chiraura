@@ -110,7 +110,7 @@ final class Boss extends Chief {
     }
 
     private MessengerMonitor newMessengerMonitor() {
-        return new MessengerMonitor(getReportQueue(), this.network, this.closetReportSink, this.versionGapThreshold, this.drivers);
+        return new MessengerMonitor(getReportQueue(), this.network, this.closetReportSink, this.versionGapThreshold, this.drivers, this.outlawReportQueue);
     }
 
     private NetworkManager newNetworkManager() {

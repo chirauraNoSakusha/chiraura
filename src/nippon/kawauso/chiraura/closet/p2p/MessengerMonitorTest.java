@@ -47,10 +47,11 @@ public final class MessengerMonitorTest {
         final StorageWrapper storage = StorageWrapperTest.sample(this.random, this.operationQueue);
 
         final Set<Class<? extends Chunk>> backupTypes = new HashSet<>();
-        final DriverSet drivers = new DriverSet(network, storage, new SessionManager(), this.operationQueue, new LinkedBlockingQueue<OutlawReport>(),
-                this.executor, portIgnore, entryLimit, backupTypes);
+        final LinkedBlockingQueue<OutlawReport> outlawReportQueue = new LinkedBlockingQueue<>();
+        final DriverSet drivers = new DriverSet(network, storage, new SessionManager(), this.operationQueue, outlawReportQueue, this.executor, portIgnore,
+                entryLimit, backupTypes);
 
-        this.instance = new MessengerMonitor(this.reportQueue, network, this.closerReportQueue, versionGapThreshold, drivers);
+        this.instance = new MessengerMonitor(this.reportQueue, network, this.closerReportQueue, versionGapThreshold, drivers, outlawReportQueue);
         this.shutdownTimeout = Duration.SECOND;
     }
 

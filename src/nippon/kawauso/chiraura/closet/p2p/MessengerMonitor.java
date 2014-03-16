@@ -10,8 +10,10 @@ import nippon.kawauso.chiraura.lib.process.Reporter;
 import nippon.kawauso.chiraura.messenger.AcceptanceError;
 import nippon.kawauso.chiraura.messenger.CommunicationError;
 import nippon.kawauso.chiraura.messenger.ConnectReport;
+import nippon.kawauso.chiraura.messenger.ConnectionOverflow;
 import nippon.kawauso.chiraura.messenger.ContactError;
 import nippon.kawauso.chiraura.messenger.MessengerReport;
+import nippon.kawauso.chiraura.messenger.TrafficOverflow;
 import nippon.kawauso.chiraura.messenger.UnsentMail;
 
 /**
@@ -25,6 +27,7 @@ final class MessengerMonitor extends Reporter<Void> {
     // 参照。
     private final NetworkWrapper errorSource;
     private final BlockingQueue<ClosetReport> closetReportSink;
+    private final BlockingQueue<OutlawReport> outlawReportSink;
 
     private final long versionGapThreshold;
 
@@ -32,7 +35,7 @@ final class MessengerMonitor extends Reporter<Void> {
     private final MessengerReportDriverSet drivers;
 
     MessengerMonitor(final BlockingQueue<Reporter.Report> reportSink, final NetworkWrapper errorSource, final BlockingQueue<ClosetReport> closetReportSink,
-            final long versionGapThreshold, final MessengerReportDriverSet drivers) {
+            final long versionGapThreshold, final MessengerReportDriverSet drivers, final BlockingQueue<OutlawReport> outlawReportSink) {
         super(reportSink);
 
         if (errorSource == null) {
@@ -43,11 +46,14 @@ final class MessengerMonitor extends Reporter<Void> {
             throw new IllegalArgumentException("Too small version gap threshold ( " + versionGapThreshold + " ).");
         } else if (drivers == null) {
             throw new IllegalArgumentException("Null drivers.");
+        } else if (outlawReportSink == null) {
+            throw new IllegalArgumentException("Null outlaw report sink.");
         }
         this.errorSource = errorSource;
         this.closetReportSink = closetReportSink;
         this.versionGapThreshold = versionGapThreshold;
         this.drivers = drivers;
+        this.outlawReportSink = outlawReportSink;
     }
 
     @Override
@@ -78,6 +84,10 @@ final class MessengerMonitor extends Reporter<Void> {
                 ConcurrentFunctions.completePut(new NewProtocolWarning(majorDiff, minorDiff), this.closetReportSink);
             } else if (report instanceof nippon.kawauso.chiraura.messenger.SelfReport) {
                 ConcurrentFunctions.completePut(new SelfReport((nippon.kawauso.chiraura.messenger.SelfReport) report), this.closetReportSink);
+            } else if (report instanceof TrafficOverflow) {
+                ConcurrentFunctions.completePut(new OutlawReport(((TrafficOverflow) report).getDestination()), this.outlawReportSink);
+            } else if (report instanceof ConnectionOverflow) {
+                ConcurrentFunctions.completePut(new OutlawReport(((ConnectionOverflow) report).getDestination()), this.outlawReportSink);
             } else {
                 done = false;
             }

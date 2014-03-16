@@ -11,6 +11,7 @@ import nippon.kawauso.chiraura.lib.connection.Limiter;
 import nippon.kawauso.chiraura.lib.process.Reporter;
 
 /**
+ * blacklist を司る最強の下っ端。
  * @author chirauraNoSakusha
  */
 final class Blacklister extends Reporter<Void> {

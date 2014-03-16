@@ -170,6 +170,7 @@ final class Receiver implements Callable<Void> {
     private void limitSleep(final int size) throws InterruptedException {
         long sleep = this.limiter.addValueAndCheckPenalty(this.connection.getDestination(), size);
         while (sleep > 0) {
+            ConcurrentFunctions.completePut(new TrafficOverflow(this.connection.getDestination()), this.messengerReportSink);
             LOG.log(Level.WARNING, "{0}: {1} ミリ秒さぼります。", new Object[] { this.connection, sleep });
             Thread.sleep(sleep);
             sleep = this.limiter.checkPenalty(this.connection.getDestination());

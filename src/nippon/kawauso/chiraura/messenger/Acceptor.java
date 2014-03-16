@@ -185,6 +185,7 @@ final class Acceptor implements Callable<Void> {
         // ポートを気にしないなら、ここで接続数制限。
         if (this.portIgnore && isOverPortIgnoringConnectionLimit()) {
             this.acceptedConnection.close();
+            ConcurrentFunctions.completePut(new ConnectionOverflow(this.acceptedConnection.getDestination()), this.messengerReportSink);
             return;
         }
 
@@ -271,6 +272,7 @@ final class Acceptor implements Callable<Void> {
             // ポートを気にする接続数制限。
             if (!this.portIgnore && isOverConnectionLimit(destination)) {
                 this.acceptedConnection.close();
+                ConcurrentFunctions.completePut(new ConnectionOverflow(destination), this.messengerReportSink);
                 return;
             }
 
