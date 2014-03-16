@@ -18,19 +18,4 @@ public final class BasicConstantTrafficLimiter extends ConstantLimiter<InetSocke
         super(duration, sizeLimit, countLimit, penalty);
     }
 
-    @Override
-    public long addValueAndCheckPenalty(final InetSocketAddress destination, final long size) throws InterruptedException {
-        return super.addValueAndCheckPenalty(destination, size);
-    }
-
-    @Override
-    public long checkPenalty(final InetSocketAddress destination) throws InterruptedException {
-        return super.checkPenalty(destination);
-    }
-
-    @Override
-    public boolean remove(final InetSocketAddress destination) throws InterruptedException {
-        return super.remove(destination);
-    }
-
 }
