@@ -13,7 +13,8 @@ import nippon.kawauso.chiraura.storage.Storages;
 public final class StorageWrapperTest {
 
     static StorageWrapper sample(@SuppressWarnings("unused") final Random random, final BlockingQueue<Operation> operationSink) {
-        final File root = new File(System.getProperty("java.io.tmpdir") + File.separator + StorageWrapperTest.class.getSimpleName() + System.nanoTime());
+        final File root = new File(System.getProperty("java.io.tmpdir") + File.separator + StorageWrapperTest.class.getSimpleName() + File.separator
+                + System.nanoTime());
         final int chunkSizeLimit = 1024 * 1024;
         final int directoryBitSize = 8;
         final int chunkCacheCapacity = 100;

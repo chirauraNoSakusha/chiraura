@@ -27,7 +27,7 @@ public final class ChiefTest {
      * 初期化。
      */
     public ChiefTest() {
-        TestFunctions.testLogging(this.getClass().getName());
+        TestFunctions.testLogging(this.getClass().getSimpleName());
         this.reportQueue = new LinkedBlockingQueue<>();
         this.executor = Executors.newCachedThreadPool();
     }

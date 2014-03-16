@@ -19,7 +19,7 @@ public final class Base64Test {
      * 初期化。
      */
     public Base64Test() {
-        TestFunctions.testLogging(this.getClass().getName());
+        TestFunctions.testLogging(this.getClass().getSimpleName());
     }
 
     private static final byte[][] ogiginalList = new byte[][] { new byte[] { 0, 1, 2, 3, 4 }, new byte[] {}, new byte[] { 127, (byte) 128, (byte) 129 } };

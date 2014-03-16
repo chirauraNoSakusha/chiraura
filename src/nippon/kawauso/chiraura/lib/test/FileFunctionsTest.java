@@ -22,8 +22,9 @@ public final class FileFunctionsTest {
     @Test
     public void testDeleteContents() throws Exception {
         final Random random = new Random();
-        final File root = new File(System.getProperty("java.io.tmpdir") + File.separator + "aho" + System.nanoTime());
-        Assert.assertTrue(root.mkdir());
+        final File root = new File(System.getProperty("java.io.tmpdir") + File.separator + this.getClass().getSimpleName() + File.separator + System.nanoTime());
+        root.mkdirs();
+        Assert.assertTrue(root.exists());
 
         final Queue<File> directories = new LinkedList<>();
         directories.add(root);
@@ -36,7 +37,8 @@ public final class FileFunctionsTest {
             for (int j = 0; j < 10; j++) {
                 final File file = new File(directory, Integer.toString(j));
                 if (random.nextInt(2) == 0) {
-                    Assert.assertTrue(file.mkdir());
+                    file.mkdirs();
+                    Assert.assertTrue(file.exists());
                     directories.add(file);
                 } else {
                     Assert.assertTrue(file.createNewFile());

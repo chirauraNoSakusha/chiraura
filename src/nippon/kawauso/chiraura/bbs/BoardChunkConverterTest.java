@@ -15,7 +15,7 @@ import org.junit.Test;
 public class BoardChunkConverterTest {
 
     private static final File root = new File(System.getProperty("java.io.tmpdir") + File.separator + BoardChunkConverterTest.class.getSimpleName()
-            + System.nanoTime());
+            + File.separator + System.nanoTime());
     private static final int chunkSizeLimit = 1 << 16;
     private static final int directoryBitSize = 8;
     private static final int chunkCacheCapacity = 10;

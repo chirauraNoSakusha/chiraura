@@ -30,7 +30,7 @@ public final class HashValueTest extends BytesConvertibleTest<HashValue> {
      * 初期化。
      */
     public HashValueTest() {
-        TestFunctions.testLogging(this.getClass().getName());
+        TestFunctions.testLogging(this.getClass().getSimpleName());
     }
 
     /**

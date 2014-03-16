@@ -16,7 +16,7 @@ public final class RandomStringTest {
      * 初期化
      */
     public RandomStringTest() {
-        TestFunctions.testLogging(this.getClass().getName());
+        TestFunctions.testLogging(this.getClass().getSimpleName());
     }
 
     /**

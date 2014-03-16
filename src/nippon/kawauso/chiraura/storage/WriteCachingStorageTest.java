@@ -28,12 +28,12 @@ public final class WriteCachingStorageTest {
      * 初期化。
      */
     public WriteCachingStorageTest() {
-        this.root = new File(System.getProperty("java.io.tmpdir") + File.separator + FileStorageTest.class.getSimpleName() + System.nanoTime());
+        this.root = new File(System.getProperty("java.io.tmpdir") + File.separator + FileStorageTest.class.getSimpleName() + File.separator + System.nanoTime());
         this.chunkSizeLimit = 1024 * 1024 + 1024;
         this.directoryBitSize = 6;
         this.factor = 0.1;
         this.prefix = WriteCachingStorage.class.getName() + " on " + FileStorage.class.getSimpleName() + String.format(" %.2f", this.factor);
-        TestFunctions.testLogging(this.getClass().getName());
+        TestFunctions.testLogging(this.getClass().getSimpleName());
     }
 
     /**

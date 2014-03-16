@@ -59,7 +59,9 @@ public final class TestFunctions {
 
             // ファイル。
             if (fileLevel != Level.OFF) {
-                final String pattern = "tmp" + File.separator + fileTag + ".log";
+                final File dir = new File(System.getProperty("java.io.tmpdir") + File.separator + fileTag);
+                dir.mkdirs();
+                final String pattern = dir.getPath() + File.separator + System.nanoTime() + ".log";
                 try {
                     handlers.add(new FileHandler(pattern, true));
                 } catch (SecurityException | IOException e) {

@@ -16,7 +16,7 @@ public final class BitReversalTest {
      * 初期化。
      */
     public BitReversalTest() {
-        TestFunctions.testLogging(this.getClass().getName());
+        TestFunctions.testLogging(this.getClass().getSimpleName());
     }
 
     /*--------------------------------------------------------------------------------

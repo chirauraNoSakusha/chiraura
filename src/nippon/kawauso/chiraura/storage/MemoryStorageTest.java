@@ -17,7 +17,7 @@ public final class MemoryStorageTest {
      */
     public MemoryStorageTest() {
         this.prefix = this.getClass().getName() + ":";
-        TestFunctions.testLogging(this.getClass().getName());
+        TestFunctions.testLogging(this.getClass().getSimpleName());
     }
 
     /**

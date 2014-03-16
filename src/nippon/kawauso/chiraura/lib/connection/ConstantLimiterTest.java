@@ -27,7 +27,7 @@ public final class ConstantLimiterTest {
      * 初期化。
      */
     public ConstantLimiterTest() {
-        TestFunctions.testLogging(this.getClass().getName());
+        TestFunctions.testLogging(this.getClass().getSimpleName());
     }
 
     /**
