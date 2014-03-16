@@ -32,6 +32,11 @@ public final class PortIgnoringConstantTrafficLimiter implements Limiter<InetSoc
     }
 
     @Override
+    public int checkCount(final InetSocketAddress destination) throws InterruptedException {
+        return this.base.checkCount(destination.getAddress());
+    }
+
+    @Override
     public boolean remove(final InetSocketAddress destination) throws InterruptedException {
         return this.base.remove(destination.getAddress());
     }

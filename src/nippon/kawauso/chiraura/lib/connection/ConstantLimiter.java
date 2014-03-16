@@ -249,6 +249,57 @@ abstract class ConstantLimiter<T> implements Limiter<T> {
     }
 
     @Override
+    public int checkCount(final T key) throws InterruptedException {
+        int curCount = 0;
+
+        Sum sum = null;
+        try { // 個別のロック。
+            this.lock.lockInterruptibly();
+            try { // 全体のロック。
+                sum = this.sums.get(key);
+                if (sum == null) {
+                    return 0;
+                }
+
+                // ロック結合。
+                sum.lock();
+            } finally {
+                this.lock.unlock();
+            }
+
+            final long cur = System.currentTimeMillis();
+            sum.trim(cur - this.duration);
+            curCount = sum.getCount();
+        } finally {
+            if (sum != null) {
+                sum.unlock();
+            }
+        }
+
+        if (curCount == 0) {
+            // 空なので削除。
+            this.lock.lockInterruptibly();
+            try {
+                sum = this.sums.get(key);
+                if (sum != null) {
+                    sum.lock();
+                    try {
+                        if (sum.isEmpty()) {
+                            this.sums.remove(key);
+                        }
+                    } finally {
+                        sum.unlock();
+                    }
+                }
+            } finally {
+                this.lock.unlock();
+            }
+        }
+
+        return curCount;
+    }
+
+    @Override
     public boolean remove(final T key) throws InterruptedException {
         long curPenalty = 0L;
 

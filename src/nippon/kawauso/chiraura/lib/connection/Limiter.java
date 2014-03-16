@@ -26,6 +26,14 @@ public interface Limiter<T> {
     public long checkPenalty(T key) throws InterruptedException;
 
     /**
+     * 現在の回数を得る。
+     * @param key 識別子
+     * @return 回数。
+     * @throws InterruptedException 割り込まれた場合
+     */
+    public int checkCount(T key) throws InterruptedException;
+
+    /**
      * 必要なければ、key に関するリソースを解放する。
      * @param key 識別子
      * @return 解放されたもしくは解放されていた場合のみ true
