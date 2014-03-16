@@ -73,8 +73,9 @@ final class MessengerMonitor extends Reporter<Void> {
             } else if (report instanceof nippon.kawauso.chiraura.messenger.NewProtocolWarning) {
                 final nippon.kawauso.chiraura.messenger.NewProtocolWarning lowWarning = (nippon.kawauso.chiraura.messenger.NewProtocolWarning) report;
                 final long diff = lowWarning.getNewVersion() - lowWarning.getVersion();
-                ConcurrentFunctions
-                        .completePut(new NewProtocolWarning(diff / this.versionGapThreshold, diff % this.versionGapThreshold), this.closetReportSink);
+                final long majorDiff = diff / this.versionGapThreshold;
+                final long minorDiff = diff % this.versionGapThreshold;
+                ConcurrentFunctions.completePut(new NewProtocolWarning(majorDiff, minorDiff), this.closetReportSink);
             } else if (report instanceof nippon.kawauso.chiraura.messenger.SelfReport) {
                 ConcurrentFunctions.completePut(new SelfReport((nippon.kawauso.chiraura.messenger.SelfReport) report), this.closetReportSink);
             } else {

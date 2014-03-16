@@ -85,6 +85,7 @@ final class CheckStockDriver {
                 LOG.log(Level.FINEST, "{0} は時間切れになりました。", operation);
                 // 非リレーの時間切れは懲罰対象。
                 this.network.removeLostPeer(operation.getDestination());
+                ConcurrentFunctions.completePut(new OutlawReport(operation.getDestination()), this.outlawReportSink);
             } else {
                 // 通信異常。
                 // エラー報告が別に上がっているはずなので、ここで個体の削除はしない。

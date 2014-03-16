@@ -104,6 +104,7 @@ final class BackupDriver {
                 LOG.log(Level.FINEST, "{0} は時間切れになりました。", operation);
                 // 非リレーの時間切れは懲罰対象。
                 this.network.removeLostPeer(operation.getDestination());
+                ConcurrentFunctions.completePut(new OutlawReport(operation.getDestination()), this.outlawReportSink);
             } else {
                 // エラー報告が別に上がっているはずなので、ここで個体の削除はしない。
                 LOG.log(Level.FINER, "なぜか {0} は失敗しました。", operation);

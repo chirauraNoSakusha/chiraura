@@ -90,6 +90,7 @@ final class SimpleRecoveryDriver {
                 LOG.log(Level.FINEST, "{0} は時間切れになりました。", operation);
                 // 非リレーの時間切れは懲罰対象。
                 this.network.removeLostPeer(destination);
+                ConcurrentFunctions.completePut(new OutlawReport(destination), this.outlawReportSink);
             } else {
                 // エラー報告が別に上がっているはずなので、ここで個体の削除はしない。
                 LOG.log(Level.FINER, "なぜか {0} は失敗しました。", operation);
