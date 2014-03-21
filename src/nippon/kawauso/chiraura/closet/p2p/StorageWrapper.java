@@ -654,7 +654,7 @@ final class StorageWrapper {
         this.base.lock(chunk.getId());
         try {
             final CacheLog.Entry entry = this.cacheLog.get(chunk.getId());
-            if (entry != null && !entry.isNotFound() && accessDate <= entry.getAccessDate()) {
+            if (entry != null && !entry.isNotFound() && accessDate < entry.getAccessDate()) {
                 T cur = null;
                 @SuppressWarnings("unchecked")
                 final Chunk.Id<T> id = (Chunk.Id<T>) chunk.getId();
@@ -666,6 +666,7 @@ final class StorageWrapper {
                     LOG.log(Level.INFO, "壊れていた {0} を削除しました。", chunk.getId());
                     ConcurrentFunctions.completePut(new SimpleRecoveryOperation(id), this.operationSink);
                 }
+
                 if (cur != null) {
                     return new CacheResult<>(false, cur, entry.getAccessDate());
                 }
@@ -713,7 +714,7 @@ final class StorageWrapper {
                     if (cur != null) {
                         return new CacheResult<>(false, cur, entry.getAccessDate());
                     }
-                } else if (accessDate <= entry.getAccessDate()) {
+                } else if (accessDate < entry.getAccessDate()) {
                     return CacheResult.newNoFound(entry.getAccessDate());
                 }
             }
