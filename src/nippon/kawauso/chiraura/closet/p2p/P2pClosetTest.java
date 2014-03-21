@@ -27,7 +27,6 @@ import nippon.kawauso.chiraura.lib.exception.MyRuleException;
 import nippon.kawauso.chiraura.lib.logging.LoggingFunctions;
 import nippon.kawauso.chiraura.lib.math.MathFunctions;
 import nippon.kawauso.chiraura.lib.test.FileFunctions;
-import nippon.kawauso.chiraura.lib.test.TestFunctions;
 import nippon.kawauso.chiraura.messenger.CryptographicKeys;
 import nippon.kawauso.chiraura.network.AddressedPeer;
 import nippon.kawauso.chiraura.storage.Chunk;
@@ -40,6 +39,8 @@ import org.junit.Test;
  * @author chirauraNoSakusha
  */
 public final class P2pClosetTest {
+
+    // private static final Logger LOG = Logger.getLogger(P2pClosetTest.class.getName());
 
     private static final int FIRST_PORT = 10_000;
     private static final File ROOT = new File(System.getProperty("java.io.tmpdir") + File.separator + P2pClosetTest.class.getName() + File.separator
@@ -282,6 +283,7 @@ public final class P2pClosetTest {
                     .setBackupInterval(backupInterval)
                     .setCacheDuration(cacheDuration)
                     .setPeerCapacity(numOfPeers)
+                    // .setCacheDuration(0L)
                     .setPortIgnore(false);
             if (i == 0) {
                 port0 = port;
@@ -643,8 +645,20 @@ public final class P2pClosetTest {
      */
     @Test
     public void testPatchAndGetOrUpdateCache20() throws Exception {
-        TestFunctions.testLogging(Level.OFF, Level.ALL, "Yo-Debug");
         testPatchAndGetOrUpdateCache(20);
+    }
+
+    /**
+     * データ片への差分適用兼復号取得のしつこい試験。
+     * @throws Exception 異常
+     */
+    // @Test
+    public void testPatchAndGetOrUpdateCache20Loop() throws Exception {
+        // TestFunctions.testLogging(Level.SEVERE, Level.ALL, "Yo-Debug");
+        for (int i = 0; i < 100; i++) {
+            testPatchAndGetOrUpdateCache(20);
+        }
+        Thread.sleep(Duration.SECOND);
     }
 
     private static void testPatchAndGetOrUpdateCache(final int numOfPeers) throws Exception {
@@ -671,11 +685,15 @@ public final class P2pClosetTest {
             final PatchAndGetOrUpdateCacheResult result = instances[i].patchAndGetOrUpdateCache(chunk.getId(), diff, Duration.SECOND);
             Assert.assertFalse(result.isSuccess());
             Assert.assertEquals(chunk, result.getChunk());
+
+            final GrowingBytes chunk1 = instances[i].getLocal(chunk.getId());
+            Assert.assertEquals(chunk, chunk1);
         }
 
         // キャッシュされていることを確認。
-        for (final P2pCloset instance : instances) {
-            Assert.assertEquals(chunk, instance.getLocal(chunk.getId()));
+        for (int i = 0; i < instances.length; i++) {
+            final GrowingBytes chunk1 = instances[i].getLocal(chunk.getId());
+            Assert.assertEquals(chunk, chunk1);
         }
 
         afterOperation(executor, instances);
