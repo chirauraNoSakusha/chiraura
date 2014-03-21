@@ -18,7 +18,7 @@ public final class LoggingFunctionsTest {
      * 初期化
      */
     public LoggingFunctionsTest() {
-        TestFunctions.testLogging(this.getClass().getSimpleName());
+        TestFunctions.testLogging(this.getClass().getName());
     }
 
     /**

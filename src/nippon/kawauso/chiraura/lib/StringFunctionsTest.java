@@ -23,7 +23,7 @@ public final class StringFunctionsTest {
      * 初期化
      */
     public StringFunctionsTest() {
-        TestFunctions.testLogging(this.getClass().getSimpleName());
+        TestFunctions.testLogging(this.getClass().getName());
     }
 
     /**

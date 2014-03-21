@@ -31,7 +31,7 @@ public final class BasicSendQueuePoolTest {
      * 初期化
      */
     public BasicSendQueuePoolTest() {
-        TestFunctions.testLogging(this.getClass().getSimpleName());
+        TestFunctions.testLogging(this.getClass().getName());
     }
 
     /**

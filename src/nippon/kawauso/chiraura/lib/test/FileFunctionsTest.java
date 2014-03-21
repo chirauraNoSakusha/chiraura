@@ -22,7 +22,7 @@ public final class FileFunctionsTest {
     @Test
     public void testDeleteContents() throws Exception {
         final Random random = new Random();
-        final File root = new File(System.getProperty("java.io.tmpdir") + File.separator + this.getClass().getSimpleName() + File.separator + System.nanoTime());
+        final File root = new File(System.getProperty("java.io.tmpdir") + File.separator + this.getClass().getName() + File.separator + System.nanoTime());
         root.mkdirs();
         Assert.assertTrue(root.exists());
 
@@ -60,11 +60,11 @@ public final class FileFunctionsTest {
     @Test
     public void equalsTest() throws Exception {
         final Random random = new Random();
-
-        final File root1 = new File(System.getProperty("java.io.tmpdir") + File.separator + "aho1" + System.nanoTime());
-        final File root2 = new File(System.getProperty("java.io.tmpdir") + File.separator + "aho2" + System.nanoTime());
-        Assert.assertTrue(root1.mkdir());
-        Assert.assertTrue(root2.mkdir());
+        final long date = System.nanoTime();
+        final File root1 = new File(System.getProperty("java.io.tmpdir") + File.separator + this.getClass().getName() + File.separator + date);
+        final File root2 = new File(System.getProperty("java.io.tmpdir") + File.separator + this.getClass().getName() + File.separator + (date + 1));
+        Assert.assertTrue(root1.mkdirs());
+        Assert.assertTrue(root2.mkdirs());
 
         final Queue<File> directories1 = new LinkedList<>();
         final Queue<File> directories2 = new LinkedList<>();
@@ -113,10 +113,11 @@ public final class FileFunctionsTest {
      */
     @Test
     public void notEqualsTest() throws Exception {
-        final File root1 = new File(System.getProperty("java.io.tmpdir") + File.separator + "aho1" + System.nanoTime());
-        final File root2 = new File(System.getProperty("java.io.tmpdir") + File.separator + "aho2" + System.nanoTime());
-        Assert.assertTrue(root1.mkdir());
-        Assert.assertTrue(root2.mkdir());
+        final long date = System.nanoTime();
+        final File root1 = new File(System.getProperty("java.io.tmpdir") + File.separator + this.getClass().getName() + File.separator + date);
+        final File root2 = new File(System.getProperty("java.io.tmpdir") + File.separator + this.getClass().getName() + File.separator + (date + 1));
+        Assert.assertTrue(root1.mkdirs());
+        Assert.assertTrue(root2.mkdirs());
 
         Assert.assertTrue(FileFunctions.directoryEquals(root1, root2));
         Assert.assertTrue(FileFunctions.directoryEquals(root2, root1));

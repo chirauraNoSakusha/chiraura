@@ -22,12 +22,12 @@ public final class ReadCachingStorageTest {
      * 初期化。
      */
     public ReadCachingStorageTest() {
-        this.root = new File(System.getProperty("java.io.tmpdir") + File.separator + FileStorageTest.class.getSimpleName() + File.separator + System.nanoTime());
+        this.root = new File(System.getProperty("java.io.tmpdir") + File.separator + FileStorageTest.class.getName() + File.separator + System.nanoTime());
         this.chunkSizeLimit = 1024 * 1024 + 1024;
         this.directoryBitSize = 6;
         this.factor = 0.1;
         this.prefix = ReadCachingStorage.class.getName() + " on " + FileStorage.class.getSimpleName() + String.format(" %.2f", this.factor);
-        TestFunctions.testLogging(this.getClass().getSimpleName());
+        TestFunctions.testLogging(this.getClass().getName());
     }
 
     /**

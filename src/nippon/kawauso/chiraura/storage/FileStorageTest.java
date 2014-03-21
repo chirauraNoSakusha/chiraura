@@ -21,11 +21,11 @@ public final class FileStorageTest {
      * 初期化。
      */
     public FileStorageTest() {
-        this.root = new File(System.getProperty("java.io.tmpdir") + File.separator + FileStorageTest.class.getSimpleName() + File.separator + System.nanoTime());
+        this.root = new File(System.getProperty("java.io.tmpdir") + File.separator + FileStorageTest.class.getName() + File.separator + System.nanoTime());
 
         this.chunkSizeLimit = 1024 * 4;
         this.directoryBitSize = 7;
-        TestFunctions.testLogging(this.getClass().getSimpleName());
+        TestFunctions.testLogging(this.getClass().getName());
         // TestFunctions.testLogging(Level.ALL, Level.OFF);
     }
 

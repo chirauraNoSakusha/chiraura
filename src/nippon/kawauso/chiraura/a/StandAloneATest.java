@@ -21,7 +21,7 @@ import org.junit.Assert;
  */
 public final class StandAloneATest {
 
-    private static final File root = new File(System.getProperty("java.io.tmpdir") + File.separator + StandAloneATest.class.getSimpleName() + File.separator
+    private static final File root = new File(System.getProperty("java.io.tmpdir") + File.separator + StandAloneATest.class.getName() + File.separator
             + System.nanoTime());
 
     /**

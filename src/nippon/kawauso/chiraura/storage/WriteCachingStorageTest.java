@@ -28,12 +28,12 @@ public final class WriteCachingStorageTest {
      * 初期化。
      */
     public WriteCachingStorageTest() {
-        this.root = new File(System.getProperty("java.io.tmpdir") + File.separator + FileStorageTest.class.getSimpleName() + File.separator + System.nanoTime());
+        this.root = new File(System.getProperty("java.io.tmpdir") + File.separator + FileStorageTest.class.getName() + File.separator + System.nanoTime());
         this.chunkSizeLimit = 1024 * 1024 + 1024;
         this.directoryBitSize = 6;
         this.factor = 0.1;
         this.prefix = WriteCachingStorage.class.getName() + " on " + FileStorage.class.getSimpleName() + String.format(" %.2f", this.factor);
-        TestFunctions.testLogging(this.getClass().getSimpleName());
+        TestFunctions.testLogging(this.getClass().getName());
     }
 
     /**
@@ -103,9 +103,9 @@ public final class WriteCachingStorageTest {
         final Random uniform = new Random(seed);
         final BiasedRandom bias = new BiasedRandom(uniform);
         final File root1 = new File(this.root.getPath() + "a");
-        Assert.assertTrue(root1.mkdir());
+        Assert.assertTrue(root1.mkdirs());
         final File root2 = new File(this.root.getPath() + "b");
-        Assert.assertTrue(root2.mkdir());
+        Assert.assertTrue(root2.mkdirs());
 
         try (final Storage instance1 = new FileStorage(root1, this.chunkSizeLimit, this.directoryBitSize);
                 final Storage instance2 = new WriteCachingStorage(new FileStorage(root2, this.chunkSizeLimit, this.directoryBitSize),

@@ -38,7 +38,7 @@ public final class ATest {
     }
 
     private static final int FIRST_PORT = 10_000;
-    private static final File ROOT = new File(System.getProperty("java.io.tmpdir") + File.separator + ATest.class.getSimpleName() + File.separator
+    private static final File ROOT = new File(System.getProperty("java.io.tmpdir") + File.separator + ATest.class.getName() + File.separator
             + System.nanoTime());
 
     private static final AtomicInteger portOffset = new AtomicInteger(0);

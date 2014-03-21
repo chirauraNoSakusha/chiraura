@@ -39,7 +39,7 @@ public abstract class BytesConvertibleTest<T extends BytesConvertible> {
      * 初期化
      */
     public BytesConvertibleTest() {
-        TestFunctions.testLogging(this.getClass().getSimpleName());
+        TestFunctions.testLogging(this.getClass().getName());
         // LoggingFunctions.startDebugLogging();
     }
 

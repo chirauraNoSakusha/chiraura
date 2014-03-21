@@ -42,7 +42,7 @@ import org.junit.Test;
 public final class P2pClosetTest {
 
     private static final int FIRST_PORT = 10_000;
-    private static final File ROOT = new File(System.getProperty("java.io.tmpdir") + File.separator + P2pClosetTest.class.getSimpleName() + File.separator
+    private static final File ROOT = new File(System.getProperty("java.io.tmpdir") + File.separator + P2pClosetTest.class.getName() + File.separator
             + System.nanoTime());
 
     private static final AtomicInteger portOffset = new AtomicInteger(0);

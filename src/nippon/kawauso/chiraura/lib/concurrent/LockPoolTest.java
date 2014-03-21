@@ -27,7 +27,7 @@ public final class LockPoolTest {
      * 初期化
      */
     public LockPoolTest() {
-        TestFunctions.testLogging(this.getClass().getSimpleName());
+        TestFunctions.testLogging(this.getClass().getName());
     }
 
     /**

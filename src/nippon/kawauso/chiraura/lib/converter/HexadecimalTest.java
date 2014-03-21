@@ -19,7 +19,7 @@ public final class HexadecimalTest {
      * 初期化。
      */
     public HexadecimalTest() {
-        TestFunctions.testLogging(this.getClass().getSimpleName());
+        TestFunctions.testLogging(this.getClass().getName());
     }
 
     private static final byte[][] ogiginalList = new byte[][] { new byte[] { 0, 1, 2, 3, 4 }, new byte[] {}, new byte[] { 127, (byte) 128, (byte) 129 } };
