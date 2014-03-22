@@ -593,6 +593,8 @@ final class ThreadChunk extends SkeletalChunk implements Mountain, Content {
         System.out.println("[" + instance.toNetworkString("localhost", 80) + "]");
         instance.patch(Entry.newInstance("メシア", "sage", System.currentTimeMillis(), 987654321L, "くそスレ乙"));
         System.out.println("[" + instance.toNetworkString("192.168.0.1", 22222) + "]");
+
+        System.out.println("[" + new Id("chiraura", 1390711613L).getAddress() + "]");
     }
 
 }

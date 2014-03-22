@@ -591,6 +591,10 @@ final class OrderingBoardChunk extends SkeletalChunk implements BoardChunk {
         System.out.println("[" + instance.toNetworkString() + "]");
 
         System.out.println("[" + instance + "]");
+
+        System.out.println("[" + new Id("pore").getAddress() + "]");
+        System.out.println("[" + new Id("lesbian").getAddress() + "]");
+
     }
 
 }

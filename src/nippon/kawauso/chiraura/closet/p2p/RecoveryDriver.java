@@ -8,7 +8,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import nippon.kawauso.chiraura.closet.Mountain;
+import nippon.kawauso.chiraura.lib.base.Address;
 import nippon.kawauso.chiraura.lib.concurrent.ConcurrentFunctions;
+import nippon.kawauso.chiraura.lib.container.Pair;
 import nippon.kawauso.chiraura.lib.converter.TypeRegistry;
 import nippon.kawauso.chiraura.messenger.ConnectionTypes;
 import nippon.kawauso.chiraura.messenger.Message;
@@ -55,6 +57,9 @@ final class RecoveryDriver {
 
         if (!this.network.dominates(operation.getDestinationStock().getId().getAddress())) {
             LOG.log(Level.FINEST, "{0} の担当は自分じゃありませんでした。", operation.getDestinationStock().getId());
+            final Pair<Address, Address> domain = this.network.getDomain();
+            LOG.log(Level.FINEST, "{0} は [{1}, {2}] に含まれません。", new Object[] { domain.getFirst(), domain.getSecond(),
+                    operation.getDestinationStock().getId().getAddress() });
             // 同期が必要無いから成功。
             return new RecoveryResult();
         }

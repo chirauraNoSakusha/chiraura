@@ -73,6 +73,8 @@ final class SimpleRecoveryDriver {
             return SimpleRecoveryResult.newFailure();
         }
 
+        LOG.log(Level.FINEST, "{0} から {1} を取り寄せます。", new Object[] { destination, operation.getId() });
+
         // やりとりの準備。
         final Session session = this.sessionManager.newSession(destination);
 

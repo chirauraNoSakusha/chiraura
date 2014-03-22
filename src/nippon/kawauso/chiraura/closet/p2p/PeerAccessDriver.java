@@ -50,6 +50,8 @@ final class PeerAccessDriver {
         mail.add(PeerAccessMessage.INSTANCE);
         mail.add(new SessionMessage(session));
 
+        LOG.log(Level.FINEST, "{0} に挨拶します。", operation.getDestination());
+
         // 送受信。
         this.network.sendMail(operation.getDestination(), ConnectionTypes.CONTROL, mail);
         final ReceivedMail receivedMail = this.sessionManager.waitReply(session, start + timeout - System.currentTimeMillis());

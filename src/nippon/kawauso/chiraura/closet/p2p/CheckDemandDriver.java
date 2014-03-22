@@ -81,6 +81,8 @@ final class CheckDemandDriver {
         mail.add(new CheckDemandMessage(domain.getFirst(), domain.getSecond(), entries));
         mail.add(new SessionMessage(session));
 
+        LOG.log(Level.FINEST, "{0} に [{1}, {2}] の需要を確認します。", new Object[] { operation.getDestination(), domain.getFirst(), domain.getSecond() });
+
         // 送受信。
         this.network.sendMail(operation.getDestination(), ConnectionTypes.DATA, mail);
         final ReceivedMail receivedMail = this.sessionManager.waitReply(session, start + timeout - System.currentTimeMillis());
