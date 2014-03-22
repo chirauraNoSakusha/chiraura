@@ -65,15 +65,6 @@ final class RecoveryDriver {
         }
 
         final Storage.Index index = this.storage.getIndex(operation.getDestinationStock().getId());
-        if (index != null) {
-            if (index.getDate() > operation.getDestinationStock().getDate()) {
-                LOG.log(Level.FINEST, "自分の方が新しい {0} でした。", operation.getDestinationStock().getId());
-                return new RecoveryResult();
-            } else if (index.getHashValue().equals(operation.getDestinationStock().getHashValue())) {
-                LOG.log(Level.FINEST, "自分の {0} と同じでした。", operation.getDestinationStock().getId());
-                return new RecoveryResult();
-            }
-        }
 
         // やりとりの準備。
         final Session session = this.sessionManager.newSession(operation.getDestination());
@@ -83,6 +74,9 @@ final class RecoveryDriver {
         if (index == null) {
             mail.add(new RecoveryMessage(this.idRegistry, operation.getDestinationStock().getId()));
             LOG.log(Level.FINEST, "{0} から {1} を取り寄せます。", new Object[] { operation.getDestination(), operation.getDestinationStock().getId() });
+        } else if (index.getDate() > operation.getDestinationStock().getDate()) {
+            LOG.log(Level.FINEST, "自分の方が新しい {0} でした。", operation.getDestinationStock().getId());
+            return new RecoveryResult();
         } else if (index.getDate() < operation.getDestinationStock().getDate()) {
             if (Mountain.class.isAssignableFrom(index.getId().getChunkClass())) {
                 mail.add(new RecoveryMessage(this.idRegistry, index.getId(), index.getDate()));
@@ -91,7 +85,10 @@ final class RecoveryDriver {
                 mail.add(new RecoveryMessage(this.idRegistry, index.getId()));
                 LOG.log(Level.FINEST, "{0} から新しい {1} を取り寄せます。", new Object[] { operation.getDestination(), index.getId() });
             }
-        } else if (index.getDate() == operation.getDestinationStock().getDate() && !index.getHashValue().equals(operation.getDestinationStock().getHashValue())) {
+        } else if (index.getHashValue().equals(operation.getDestinationStock().getHashValue())) {
+            LOG.log(Level.FINEST, "自分の {0} と同じでした。", operation.getDestinationStock().getId());
+            return new RecoveryResult();
+        } else {
             mail.add(new RecoveryMessage(this.idRegistry, index.getId()));
             LOG.log(Level.FINEST, "{0} から異なる {1} を取り寄せます。", new Object[] { operation.getDestination(), index.getId() });
         }
