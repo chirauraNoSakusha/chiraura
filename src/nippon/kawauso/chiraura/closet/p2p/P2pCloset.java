@@ -19,6 +19,7 @@ import nippon.kawauso.chiraura.closet.ClosetReport;
 import nippon.kawauso.chiraura.closet.Mountain;
 import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.base.Address;
+import nippon.kawauso.chiraura.lib.container.Pair;
 import nippon.kawauso.chiraura.lib.converter.BytesConvertible;
 import nippon.kawauso.chiraura.lib.exception.MyRuleException;
 import nippon.kawauso.chiraura.messenger.Messenger;
@@ -573,6 +574,10 @@ public final class P2pCloset implements Closet {
 
     Address getSelfAddress() {
         return this.network.getSelfAddress();
+    }
+
+    Pair<Address, Address> getDomain() {
+        return this.network.getDomain();
     }
 
     /**

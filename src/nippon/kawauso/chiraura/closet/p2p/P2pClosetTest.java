@@ -23,6 +23,7 @@ import nippon.kawauso.chiraura.closet.Mountain;
 import nippon.kawauso.chiraura.lib.Duration;
 import nippon.kawauso.chiraura.lib.base.Address;
 import nippon.kawauso.chiraura.lib.base.HashValue;
+import nippon.kawauso.chiraura.lib.container.Pair;
 import nippon.kawauso.chiraura.lib.exception.MyRuleException;
 import nippon.kawauso.chiraura.lib.logging.LoggingFunctions;
 import nippon.kawauso.chiraura.lib.math.MathFunctions;
@@ -753,6 +754,63 @@ public final class P2pClosetTest {
     }
 
     /**
+     * 在庫確認試験。
+     * 自分の管轄だけ報告されることの検査。
+     * @throws Exception 異常
+     */
+    @Test
+    public void testCheckStock2_20() throws Exception {
+        testCheckStock2(20);
+    }
+
+    /**
+     * 自分の管轄だけ報告されることのしつこい検査。
+     * @throws Exception 異常
+     */
+    // @Test
+    public void testCheckStock2_20Loop() throws Exception {
+        for (int i = 0; i < 100; i++) {
+            testCheckStock2(20);
+        }
+    }
+
+    private static void testCheckStock2(final int numOfPeers) throws Exception {
+        final String label = "checkStock2";
+        final ExecutorService executor = Executors.newCachedThreadPool();
+        final P2pCloset[] instances = beforeOperation(numOfPeers, label, executor);
+
+        // データ片をてきとうに追加する。
+        for (int i = 0; i < instances.length * instances.length; i++) {
+            final GrowingBytes chunk = new GrowingBytes(Integer.toString(i), i);
+            instances[ThreadLocalRandom.current().nextInt(instances.length)].addLocal(chunk);
+        }
+
+        for (int i = 0; i < instances.length; i++) {
+            for (int j = 0; j < instances.length; j++) {
+                if (j == i) {
+                    continue;
+                }
+
+                final CheckStockResult result = instances[i].checkStock(instances[j].getSelf(), Duration.SECOND);
+                for (final StockEntry stock : result.getStockedEntries()) {
+                    final Pair<Address, Address> domain = instances[i].getDomain();
+                    if (domain.getFirst().compareTo(domain.getSecond()) < 0) {
+                        if (stock.getId().getAddress().compareTo(domain.getFirst()) < 0 || domain.getSecond().compareTo(stock.getId().getAddress()) < 0) {
+                            Assert.fail(domain + " " + stock + " " + stock.getId().getAddress());
+                        }
+                    } else {
+                        if (domain.getFirst().compareTo(stock.getId().getAddress()) < 0 && stock.getId().getAddress().compareTo(domain.getSecond()) < 0) {
+                            Assert.fail(domain + " " + stock + " " + stock.getId().getAddress());
+                        }
+                    }
+                }
+            }
+        }
+
+        afterOperation(executor, instances);
+    }
+
+    /**
      * 復元試験。
      * @throws Exception 異常
      */
@@ -862,6 +920,63 @@ public final class P2pClosetTest {
                 Assert.assertTrue(result.getDemandedEntries().get(0).isStocked());
                 Assert.assertEquals(chunk.getFirstDate(), result.getDemandedEntries().get(0).getStockDate());
                 Assert.assertEquals(firstHashValue, result.getDemandedEntries().get(0).getStockHashValue());
+            }
+        }
+
+        afterOperation(executor, instances);
+    }
+
+    /**
+     * 発注試験。
+     * 自分の管轄だけ報告されることの検査。
+     * @throws Exception 異常
+     */
+    @Test
+    public void testCheckDemand2_20() throws Exception {
+        testCheckDemand2(20);
+    }
+
+    /**
+     * 自分の管轄だけ報告されることのしつこい検査。
+     * @throws Exception 異常
+     */
+    // @Test
+    public void testCheckDemand2_20Loop() throws Exception {
+        for (int i = 0; i < 100; i++) {
+            testCheckDemand2(20);
+        }
+    }
+
+    private static void testCheckDemand2(final int numOfPeers) throws Exception {
+        final String label = "checkDemand2";
+        final ExecutorService executor = Executors.newCachedThreadPool();
+        final P2pCloset[] instances = beforeOperation(numOfPeers, label, executor);
+
+        // データ片をてきとうに追加する。
+        for (int i = 0; i < instances.length * instances.length; i++) {
+            final GrowingBytes chunk = new GrowingBytes(Integer.toString(i), i);
+            instances[ThreadLocalRandom.current().nextInt(instances.length)].addLocal(chunk);
+        }
+
+        for (int i = 0; i < instances.length; i++) {
+            for (int j = 0; j < instances.length; j++) {
+                if (j == i) {
+                    continue;
+                }
+
+                final CheckDemandResult result = instances[i].checkDemand(instances[j].getSelf(), Duration.SECOND);
+                for (final DemandEntry stock : result.getDemandedEntries()) {
+                    final Pair<Address, Address> domain = instances[i].getDomain();
+                    if (domain.getFirst().compareTo(domain.getSecond()) < 0) {
+                        if (stock.getId().getAddress().compareTo(domain.getFirst()) < 0 || domain.getSecond().compareTo(stock.getId().getAddress()) < 0) {
+                            Assert.fail(domain + " " + stock + " " + stock.getId().getAddress());
+                        }
+                    } else {
+                        if (domain.getFirst().compareTo(stock.getId().getAddress()) < 0 && stock.getId().getAddress().compareTo(domain.getSecond()) < 0) {
+                            Assert.fail(domain + " " + stock + " " + stock.getId().getAddress());
+                        }
+                    }
+                }
             }
         }
 
