@@ -178,16 +178,24 @@ final class BackupperMaster extends Reporter<Void> {
                 final Future<Void> future = this.executor.submit(backupper);
                 this.backupperPool.put(peer, new BackupperUnit(future));
                 LOG.log(Level.FINEST, "{0} との同期を開始しました。", peer);
+
+                // タイミングずらし。
+                Thread.sleep(this.interval / (newPeers.size() + product.size()));
+                continue;
             }
 
             // 事故死に対応。
-            for (final Map.Entry<AddressedPeer, BackupperUnit> entry : this.backupperPool.entrySet()) {
-                if (entry.getValue().isClosed()) {
-                    final Backupper backupper = new Backupper(entry.getKey().getPeer(), this.network, this.backupInterval, this.timeout,
-                            this.drivers);
+            for (final AddressedPeer peer : product) {
+                final BackupperUnit unit = this.backupperPool.get(peer);
+                if (unit.isClosed()) {
+                    final Backupper backupper = new Backupper(peer.getPeer(), this.network, this.backupInterval, this.timeout, this.drivers);
                     final Future<Void> future = this.executor.submit(backupper);
-                    this.backupperPool.put(entry.getKey(), new BackupperUnit(future));
-                    LOG.log(Level.FINEST, "{0} との同期を再開しました。", entry.getKey());
+                    this.backupperPool.put(peer, new BackupperUnit(future));
+                    LOG.log(Level.FINEST, "{0} との同期を再開しました。", peer);
+
+                    // タイミングずらし。
+                    Thread.sleep(this.interval / (newPeers.size() + product.size()));
+                    continue;
                 }
             }
 
