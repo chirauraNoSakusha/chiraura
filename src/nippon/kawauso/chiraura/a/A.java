@@ -22,6 +22,7 @@ import nippon.kawauso.chiraura.gui.TrayGui;
 import nippon.kawauso.chiraura.lib.exception.MyRuleException;
 import nippon.kawauso.chiraura.lib.logging.LoggingFunctions;
 import nippon.kawauso.chiraura.network.AddressedPeer;
+import nippon.kawauso.chiraura.storage.FileStorageConverter;
 import nippon.kawauso.chiraura.storage.Storage;
 import nippon.kawauso.chiraura.storage.Storages;
 
@@ -285,6 +286,7 @@ public final class A implements AutoCloseable {
 
     static void preprocess(final Environment env) throws IOException, InterruptedException, MyRuleException {
         // 旧板データを削除する。
+        FileStorageConverter.convert(env.getStorageRoot(), env.getChunkSizeLimit(), env.getStorageDirectoryBitSize());
         final Storage storage = Storages.newInstance(env.getStorageRoot(), env.getChunkSizeLimit(), env.getStorageDirectoryBitSize(),
                 env.getChunkCacheCapacity(), env.getIndexCacheCapacity(), env.getRangeCacheCapacity());
         BoardChunkConverter.remove(storage);
