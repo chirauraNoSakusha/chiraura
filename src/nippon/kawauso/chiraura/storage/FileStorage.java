@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -549,7 +550,7 @@ abstract class FileStorage implements Storage {
 
         this.locks.lock(base);
         try {
-            Files.move(file.toPath(), dest.toPath());
+            Files.move(file.toPath(), dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } catch (final Exception e) {
             LOG.log(Level.WARNING, "{0} を除外できませんでした。", base);
             return false;
