@@ -86,21 +86,25 @@ public final class Base64 {
         for (int writeIndex = 0; writeIndex < output.length; writeIndex++) {
             final int readIndex = (writeIndex * 6) / 8;
             final int value;
-            if (writeIndex % 4 == 0) {
+            switch (writeIndex % 4) {
+            case 0:
                 value = (input[readIndex] & 0xff) >> 2;
-            } else if (writeIndex % 4 == 1) {
+                break;
+            case 1:
                 if (readIndex < input.length - 1) {
                     value = ((input[readIndex] & 0x3) << 4) + ((input[readIndex + 1] & 0xf0) >> 4);
                 } else {
-                    value = ((input[readIndex] & 0x3) << 4);
+                    value = (input[readIndex] & 0x3) << 4;
                 }
-            } else if (writeIndex % 4 == 2) {
+                break;
+            case 2:
                 if (readIndex < input.length - 1) {
                     value = ((input[readIndex] & 0xf) << 2) + ((input[readIndex + 1] & 0xc0) >> 6);
                 } else {
-                    value = ((input[readIndex] & 0xf) << 2);
+                    value = (input[readIndex] & 0xf) << 2;
                 }
-            } else {
+                break;
+            default:
                 value = input[readIndex] & 0x3f;
             }
             output[writeIndex] = getChar(value, c63, c64);
@@ -129,34 +133,41 @@ public final class Base64 {
          * |-+-+-+-+-+-|-+-+-+-+-+-|-+-+-+-+-+-|-+-+-+-+-+-|-... 入力文字列の表すビットの区切り
          * |-+-+-+-+-+-+-+-|-+-+-+-+-+-+-+-|-+-+-+-+-+-+-+-|-... 出力バイト列のビットの区切り
          */
-        if (input.length() % 4 == 1) {
-            /*
-             * 出力バイト列の長さが 0 (mod 3) のときは入力文字列の長さは 0 (mod 4)。
-             * 出力バイト列の長さが 1 (mod 3) のときは入力文字列の長さは 2 (mod 4)。
-             * 出力バイト列の長さが 2 (mod 3) のときは入力文字列の長さは 3 (mod 4)。
-             */
+        switch (input.length() % 4) {
+        /*
+         * 出力バイト列の長さが 0 (mod 3) のときは入力文字列の長さは 0 (mod 4)。
+         * 出力バイト列の長さが 1 (mod 3) のときは入力文字列の長さは 2 (mod 4)。
+         * 出力バイト列の長さが 2 (mod 3) のときは入力文字列の長さは 3 (mod 4)。
+         */
+        case 1:
             throw new MyRuleException("Invalid input length ( " + input.length() + " ).");
-        } else if (input.length() % 4 == 2) {
-            final byte remain = (byte) (getValue(input.charAt(input.length() - 1), c63, c64) & 0xf);
-            if (remain != 0) {
+        case 2:
+            final byte remain2 = (byte) (getValue(input.charAt(input.length() - 1), c63, c64) & 0xf);
+            if (remain2 != 0) {
                 throw new MyRuleException("Cannot use the lower bits of last character ( " + input.charAt(input.length() - 1) + " ).");
             }
-        } else if (input.length() % 4 == 3) {
-            final byte remain = (byte) (getValue(input.charAt(input.length() - 1), c63, c64) & 0x3);
-            if (remain != 0) {
+            break;
+        case 3:
+            final byte remain3 = (byte) (getValue(input.charAt(input.length() - 1), c63, c64) & 0x3);
+            if (remain3 != 0) {
                 throw new MyRuleException("Cannot use the lower bits of last character ( " + input.charAt(input.length() - 1) + " ).");
             }
+            break;
         }
 
         final byte[] output = new byte[input.length() * 3 / 4];
         for (int writeIndex = 0; writeIndex < output.length; writeIndex++) {
             final int readIndex = (writeIndex * 8) / 6;
-            if (writeIndex % 3 == 0) {
+            switch (writeIndex % 3) {
+            case 0:
                 output[writeIndex] = (byte) ((getValue(input.charAt(readIndex), c63, c64) << 2) + (getValue(input.charAt(readIndex + 1), c63, c64) >> 4));
-            } else if (writeIndex % 3 == 1) {
+                break;
+            case 1:
                 output[writeIndex] = (byte) ((getValue(input.charAt(readIndex), c63, c64) << 4) + (getValue(input.charAt(readIndex + 1), c63, c64) >> 2));
-            } else {
+                break;
+            default:
                 output[writeIndex] = (byte) ((getValue(input.charAt(readIndex), c63, c64) << 6) + getValue(input.charAt(readIndex + 1), c63, c64));
+                break;
             }
         }
         return output;
