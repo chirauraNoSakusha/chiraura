@@ -239,7 +239,7 @@ public final class BossTest {
             Assert.assertEquals(connectionType, message2.getType());
 
             // 二言目への相槌を送信。
-            final InetSocketAddress declaredSubject = (subject != null ? subject : new InetSocketAddress(testerSocket.getInetAddress(), subjectPort));
+            final InetSocketAddress declaredSubject = (subject != null ? subject : new InetSocketAddress(InetAddress.getLoopbackAddress(), subjectPort));
             StartingProtocol.sendSecondReply(testerTransceiver, communicationKey, testerId, watchword, testerPublicKeyPair.getPublic(), version,
                     declaredSubject);
 
