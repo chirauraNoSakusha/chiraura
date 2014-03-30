@@ -359,7 +359,7 @@ final class Transceiver {
             final ParserGenerator<?> parserGenerator = this.share.idToParserGenerator.get(id[0]);
             if (parserGenerator == null) {
                 StreamFunctions.completeSkip(this.input, envelopeSize);
-                LOG.log(Level.WARNING, "不明な封筒種別 ( {0} ) なので {1} バイト分無視します。", new Object[] { id, size + envelopeSize });
+                LOG.log(Level.WARNING, "不明な封筒種別 ( {0} ) なので {1} バイト分無視します。", new Object[] { id[0], size + envelopeSize });
                 continue;
             }
 
