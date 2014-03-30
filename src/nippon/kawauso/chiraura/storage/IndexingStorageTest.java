@@ -57,7 +57,7 @@ public final class IndexingStorageTest {
         final int numOfChunks = 100;
         final int numOfProcesses = 1_000;
         final int chunkSize = 2 * (int) ((MathFunctions.log2(numOfChunks) + Byte.SIZE - 1) / Byte.SIZE);
-        StorageTest.testConcurrencyPerformanceByConstantChunk(new IndexingStorage(new FileStorage64(this.root, this.chunkSizeLimit, this.directoryBitSize),
+        StorageTest.testConcurrencyPerformanceByConstantChunk(new IndexingStorage(new FileStorage32(this.root, this.chunkSizeLimit, this.directoryBitSize),
                 (int) (this.factor * numOfChunks)), numOfLoops, numOfChunks, numOfProcesses, chunkSize, this.prefix);
     }
 
@@ -69,7 +69,7 @@ public final class IndexingStorageTest {
         final int numOfLoops = 100;
         final int numOfChunks = 100;
         final int numOfProcesses = 1_000;
-        StorageTest.testConcurrencyByVariableChunk(new IndexingStorage(new FileStorage64(this.root, this.chunkSizeLimit, this.directoryBitSize),
+        StorageTest.testConcurrencyByVariableChunk(new IndexingStorage(new FileStorage32(this.root, this.chunkSizeLimit, this.directoryBitSize),
                 (int) (this.factor * numOfChunks)),
                 numOfLoops, numOfChunks, numOfProcesses, this.prefix);
     }

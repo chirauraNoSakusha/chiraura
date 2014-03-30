@@ -13,7 +13,7 @@ import nippon.kawauso.chiraura.lib.exception.MyRuleException;
 final class FileStorage32 extends FileStorage {
 
     /*
-     * データ片は、その論理位置を BASE32 エンコードした名前のファイルに保存する。
+     * データ片は、その論理位置を Base32 エンコードした名前のファイルに保存する。
      */
 
     FileStorage32(final File root, final int fileSizeLimit, final int directoryBitSize) {

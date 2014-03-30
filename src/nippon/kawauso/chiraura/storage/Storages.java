@@ -23,7 +23,7 @@ public final class Storages {
      */
     public static Storage newInstance(final File root, final int chunkSizeLimit, final int directoryBitSize, final int chunkCacheCapacity,
             final int indexCacheCapacity, final int rangeCacheCapacity) {
-        Storage instance = new FileStorage64(root, chunkSizeLimit, directoryBitSize);
+        Storage instance = new FileStorage32(root, chunkSizeLimit, directoryBitSize);
         instance = new WriteCachingStorage(instance, chunkCacheCapacity);
         instance = new RangeIndexingStorage(instance, rangeCacheCapacity);
         instance = new IndexingStorage(instance, indexCacheCapacity);
