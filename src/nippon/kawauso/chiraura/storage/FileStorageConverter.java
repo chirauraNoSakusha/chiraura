@@ -78,7 +78,7 @@ public final class FileStorageConverter {
                     continue;
                 }
 
-                LOG.log(Level.WARNING, id + " を変換しました。");
+                LOG.log(Level.INFO, id + " を変換しました。");
             }
         }
     }
