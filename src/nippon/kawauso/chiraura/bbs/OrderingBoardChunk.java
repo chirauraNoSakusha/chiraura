@@ -29,13 +29,15 @@ import nippon.kawauso.chiraura.storage.SkeletalChunk;
  * 差分取得を妨げず、sage でも更新できるように、表示順位と日時を別に持つ。
  * @author chirauraNoSakusha
  */
-final class OrderingBoardChunk extends SkeletalChunk implements BoardChunk {
+public final class OrderingBoardChunk extends SkeletalChunk implements BoardChunk {
+    // TODO public なのは FileStorageConverter のための一時的処置。
 
     /**
      * 識別子。
      * @author chirauraNoSakusha
      */
-    static final class Id implements Chunk.Id<OrderingBoardChunk> {
+    public static final class Id implements Chunk.Id<OrderingBoardChunk> {
+        // TODO public なのは FileStorageConverter のための一時的処置。
         private final String name;
         private final Address address;
 
@@ -73,7 +75,9 @@ final class OrderingBoardChunk extends SkeletalChunk implements BoardChunk {
             return (new Utf8Cell(this.name)).toStream(output);
         }
 
-        static BytesConvertible.Parser<Id> getParser() {
+        @SuppressWarnings("javadoc")
+        public static BytesConvertible.Parser<Id> getParser() {
+            // TODO public なのは FileStorageConverter のための一時的処置。
             return new BytesConvertible.Parser<Id>() {
                 @Override
                 public int fromStream(final InputStream input, final int maxByteSize, final List<? super Id> output) throws MyRuleException, IOException {
@@ -482,7 +486,9 @@ final class OrderingBoardChunk extends SkeletalChunk implements BoardChunk {
         return size;
     }
 
-    static BytesConvertible.Parser<OrderingBoardChunk> getParser() {
+    @SuppressWarnings("javadoc")
+    public static BytesConvertible.Parser<OrderingBoardChunk> getParser() {
+        // TODO public なのは FileStorageConverter のための一時的処置。
         return new BytesConvertible.Parser<OrderingBoardChunk>() {
             @Override
             public int fromStream(final InputStream input, final int maxByteSize, final List<? super OrderingBoardChunk> output) throws MyRuleException,
@@ -564,6 +570,7 @@ final class OrderingBoardChunk extends SkeletalChunk implements BoardChunk {
                 .append(']').toString();
     }
 
+    @SuppressWarnings("javadoc")
     public static void main(final String[] args) throws InterruptedException {
         final String name = "test";
         final OrderingBoardChunk instance = new OrderingBoardChunk(name);

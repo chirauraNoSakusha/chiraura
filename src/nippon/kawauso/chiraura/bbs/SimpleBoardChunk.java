@@ -28,13 +28,15 @@ import nippon.kawauso.chiraura.storage.SkeletalChunk;
  * 板 (スレ一覧)。
  * @author chirauraNoSakusha
  */
-final class SimpleBoardChunk extends SkeletalChunk implements BoardChunk {
+public final class SimpleBoardChunk extends SkeletalChunk implements BoardChunk {
+    // TODO public なのは FileStorageConverter のための一時的処置。
 
     /**
      * 識別子。
      * @author chirauraNoSakusha
      */
-    static final class Id implements Chunk.Id<SimpleBoardChunk> {
+    public static final class Id implements Chunk.Id<SimpleBoardChunk> {
+        // TODO public なのは FileStorageConverter のための一時的処置。
         private final String name;
         private final Address address;
 
@@ -76,7 +78,9 @@ final class SimpleBoardChunk extends SkeletalChunk implements BoardChunk {
             return (new Utf8Cell(this.name)).toStream(output);
         }
 
-        static BytesConvertible.Parser<Id> getParser() {
+        @SuppressWarnings("javadoc")
+        public static BytesConvertible.Parser<Id> getParser() {
+            // TODO public なのは FileStorageConverter のための一時的処置。
             return new BytesConvertible.Parser<Id>() {
                 @Override
                 public int fromStream(final InputStream input, final int maxByteSize, final List<? super Id> output) throws MyRuleException, IOException {
@@ -462,7 +466,9 @@ final class SimpleBoardChunk extends SkeletalChunk implements BoardChunk {
         return size;
     }
 
-    static BytesConvertible.Parser<SimpleBoardChunk> getParser() {
+    // TODO public なのは FileStorageConverter のための一時的処置。
+    @SuppressWarnings("javadoc")
+    public static BytesConvertible.Parser<SimpleBoardChunk> getParser() {
         return new BytesConvertible.Parser<SimpleBoardChunk>() {
             @Override
             public int fromStream(final InputStream input, final int maxByteSize, final List<? super SimpleBoardChunk> output) throws MyRuleException,
@@ -544,6 +550,7 @@ final class SimpleBoardChunk extends SkeletalChunk implements BoardChunk {
                 .append(']').toString();
     }
 
+    @SuppressWarnings("javadoc")
     public static void main(final String[] args) throws InterruptedException {
         final String name = "test";
         final SimpleBoardChunk instance = new SimpleBoardChunk(name);

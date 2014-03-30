@@ -30,13 +30,15 @@ import nippon.kawauso.chiraura.storage.SkeletalChunk;
  * スレ。
  * @author chirauraNoSakusha
  */
-final class ThreadChunk extends SkeletalChunk implements Mountain, Content {
+public final class ThreadChunk extends SkeletalChunk implements Mountain, Content {
+    // TODO public なのは FileStorageConverter のための一時的処置。
 
     /**
      * 識別子。
      * @author chirauraNoSakusha
      */
-    static final class Id implements Chunk.Id<ThreadChunk> {
+    public static final class Id implements Chunk.Id<ThreadChunk> {
+        // TODO public なのは FileStorageConverter のための一時的処置。
         private final String board;
         private final long thread;
         private final Address address;
@@ -73,7 +75,9 @@ final class ThreadChunk extends SkeletalChunk implements Mountain, Content {
             return BytesConversion.toStream(output, "ol", new Utf8Cell(this.board), this.thread);
         }
 
-        static BytesConvertible.Parser<Id> getParser() {
+        @SuppressWarnings("javadoc")
+        public static BytesConvertible.Parser<Id> getParser() {
+            // TODO public なのは FileStorageConverter のための一時的処置。
             return new BytesConvertible.Parser<Id>() {
                 @Override
                 public int fromStream(final InputStream input, final int maxByteSize, final List<? super Id> output) throws MyRuleException, IOException {
@@ -467,7 +471,9 @@ final class ThreadChunk extends SkeletalChunk implements Mountain, Content {
         return size;
     }
 
-    static BytesConvertible.Parser<ThreadChunk> getParser() {
+    @SuppressWarnings("javadoc")
+    public static BytesConvertible.Parser<ThreadChunk> getParser() {
+        // TODO public なのは FileStorageConverter のための一時的処置。
         return new BytesConvertible.Parser<ThreadChunk>() {
             @Override
             public int fromStream(final InputStream input, final int maxByteSize, final List<? super ThreadChunk> output) throws MyRuleException,
@@ -584,6 +590,7 @@ final class ThreadChunk extends SkeletalChunk implements Mountain, Content {
                 .append(']').toString();
     }
 
+    @SuppressWarnings("javadoc")
     public static void main(final String[] args) {
         System.out.println(ContentConstants.BYTE_SIZE_LIMIT + " " + Entry.BYTE_SIZE_MAX + " " + (ContentConstants.BYTE_SIZE_LIMIT - Entry.BYTE_SIZE_MAX) + " "
                 + (Entry.BYTE_SIZE_MAX / (double) ContentConstants.BYTE_SIZE_LIMIT));
