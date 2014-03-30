@@ -23,7 +23,7 @@ public final class InetAddressFunctions {
             return oldOne;
         } else if (oldOne.getAddress().isLoopbackAddress()) {
             if (newOne.getAddress().isLoopbackAddress()) {
-                // 両方ループバックの場合は馴染みのある方を選ぶ。
+                // 同程度の場合は馴染みのある方を選ぶ。
                 return oldOne;
             } else {
                 return newOne;
@@ -31,8 +31,22 @@ public final class InetAddressFunctions {
         } else if (newOne.getAddress().isLoopbackAddress()) {
             return oldOne;
         } else if (oldOne.getAddress().isLinkLocalAddress()) {
-            return newOne;
+            if (newOne.getAddress().isLinkLocalAddress()) {
+                // 同程度の場合は馴染みのある方を選ぶ。
+                return oldOne;
+            } else {
+                return newOne;
+            }
         } else if (newOne.getAddress().isLinkLocalAddress()) {
+            return oldOne;
+        } else if (oldOne.getAddress().isSiteLocalAddress()) {
+            if (newOne.getAddress().isSiteLocalAddress()) {
+                // 同程度の場合は馴染みのある方を選ぶ。
+                return oldOne;
+            } else {
+                return newOne;
+            }
+        } else if (newOne.getAddress().isSiteLocalAddress()) {
             return oldOne;
         } else {
             return newOne;
