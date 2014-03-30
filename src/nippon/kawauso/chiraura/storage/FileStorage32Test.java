@@ -26,7 +26,7 @@ public final class FileStorage32Test {
         this.chunkSizeLimit = 1024 * 4;
         this.directoryBitSize = 7;
         TestFunctions.testLogging(this.getClass().getName());
-        // TestFunctions.testLogging(Level.ALL, Level.OFF);
+        // TestFunctions.testLogging(Level.OFF, Level.ALL, this.getClass().getName());
     }
 
     private void checkTrash() {

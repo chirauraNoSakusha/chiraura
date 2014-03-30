@@ -4,6 +4,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -455,12 +456,18 @@ abstract class FileStorage implements Storage {
             return false;
         }
 
-        final int size;
+        int size;
         this.locks.lock(base);
         try {
-            try (final OutputStream output = new BufferedOutputStream(new FileOutputStream(file))) {
-                size = BytesConversion.toStream(output, "oo", index, chunk);
-                output.flush();
+            while (true) {
+                try (final OutputStream output = new BufferedOutputStream(new FileOutputStream(file))) {
+                    size = BytesConversion.toStream(output, "oo", index, chunk);
+                    output.flush();
+                    break;
+                } catch (final FileNotFoundException ignored) {
+                    // TODO 何故か Windows ではここに来る。
+                    Thread.sleep(1L);
+                }
             }
         } finally {
             this.locks.unlock(base);
@@ -490,12 +497,18 @@ abstract class FileStorage implements Storage {
         }
 
         final Index index = new SimpleIndex(chunk);
-        final int size;
+        int size;
         this.locks.lock(base);
         try {
-            try (final OutputStream output = new BufferedOutputStream(new FileOutputStream(file))) {
-                size = BytesConversion.toStream(output, "oo", index, chunk);
-                output.flush();
+            while (true) {
+                try (final OutputStream output = new BufferedOutputStream(new FileOutputStream(file))) {
+                    size = BytesConversion.toStream(output, "oo", index, chunk);
+                    output.flush();
+                    break;
+                } catch (final FileNotFoundException ignored) {
+                    // TODO 何故か Windows ではここに来る。
+                    Thread.sleep(1L);
+                }
             }
         } finally {
             this.locks.unlock(base);
@@ -513,10 +526,7 @@ abstract class FileStorage implements Storage {
         final File file = new File(this.root, base);
         this.locks.lock(base);
         try {
-            if (!file.exists()) {
-                return false;
-            }
-            if (file.delete()) {
+            if (Files.deleteIfExists(file.toPath())) {
                 LOG.log(Level.FINEST, "{0} のデータ片 ( {1} ) を消しました。", new Object[] { id.getAddress(), base });
                 return true;
             } else {
