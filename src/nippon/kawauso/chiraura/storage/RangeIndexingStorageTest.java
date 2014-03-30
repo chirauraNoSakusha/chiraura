@@ -21,7 +21,7 @@ public final class RangeIndexingStorageTest {
      * 初期化。
      */
     public RangeIndexingStorageTest() {
-        this.root = new File(System.getProperty("java.io.tmpdir") + File.separator + FileStorageTest.class.getName() + File.separator + System.nanoTime());
+        this.root = new File(System.getProperty("java.io.tmpdir") + File.separator + FileStorage64Test.class.getName() + File.separator + System.nanoTime());
         this.chunkSizeLimit = 1024 * 1024 + 1024;
         this.directoryBitSize = 6;
         this.prefix = RangeIndexingStorage.class.getName() + " on " + FileStorage.class.getSimpleName();
@@ -43,7 +43,7 @@ public final class RangeIndexingStorageTest {
     public void testRandom() throws Exception {
         final int numOfLoops = 100_000;
         final int numOfChunks = 100;
-        final Storage instance = new RangeIndexingStorage(new FileStorage(this.root, this.chunkSizeLimit, this.directoryBitSize), numOfChunks / 5);
+        final Storage instance = new RangeIndexingStorage(new FileStorage64(this.root, this.chunkSizeLimit, this.directoryBitSize), numOfChunks / 5);
         StorageTest.testRandom(new MemoryStorage(), instance, numOfLoops, numOfChunks);
     }
 
@@ -56,7 +56,7 @@ public final class RangeIndexingStorageTest {
         final int numOfChunks = 100;
         final int numOfProcesses = 1_000;
         final int chunkSize = 2 * (int) ((MathFunctions.log2(numOfChunks) + Byte.SIZE - 1) / Byte.SIZE);
-        final Storage instance = new RangeIndexingStorage(new FileStorage(this.root, this.chunkSizeLimit, this.directoryBitSize), numOfChunks / 5);
+        final Storage instance = new RangeIndexingStorage(new FileStorage64(this.root, this.chunkSizeLimit, this.directoryBitSize), numOfChunks / 5);
         StorageTest.testConcurrencyPerformanceByConstantChunk(instance, numOfLoops, numOfChunks, numOfProcesses, chunkSize, this.prefix);
     }
 
@@ -68,7 +68,7 @@ public final class RangeIndexingStorageTest {
         final int numOfLoops = 100;
         final int numOfChunks = 100;
         final int numOfProcesses = 1_000;
-        final Storage instance = new RangeIndexingStorage(new FileStorage(this.root, this.chunkSizeLimit, this.directoryBitSize), numOfChunks / 5);
+        final Storage instance = new RangeIndexingStorage(new FileStorage64(this.root, this.chunkSizeLimit, this.directoryBitSize), numOfChunks / 5);
         StorageTest.testConcurrencyByVariableChunk(instance, numOfLoops, numOfChunks, numOfProcesses, this.prefix);
     }
 

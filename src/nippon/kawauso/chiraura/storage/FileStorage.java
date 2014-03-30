@@ -22,7 +22,6 @@ import java.util.logging.Logger;
 import nippon.kawauso.chiraura.lib.base.Address;
 import nippon.kawauso.chiraura.lib.base.HashValue;
 import nippon.kawauso.chiraura.lib.concurrent.LockPool;
-import nippon.kawauso.chiraura.lib.converter.Base64;
 import nippon.kawauso.chiraura.lib.converter.BytesConversion;
 import nippon.kawauso.chiraura.lib.converter.BytesConvertible;
 import nippon.kawauso.chiraura.lib.converter.Hexadecimal;
@@ -34,15 +33,11 @@ import nippon.kawauso.chiraura.lib.exception.MyRuleException;
  * 操作毎にファイルを読み書きする倉庫。
  * @author chirauraNoSakusha
  */
-final class FileStorage implements Storage {
+abstract class FileStorage implements Storage {
 
     private static final Logger LOG = Logger.getLogger(FileStorage.class.getName());
 
-    private static final int INDEX_READ_BUFFER_SIZE = 512;
-
-    /*
-     * データ片は、その論理位置を BASE64 エンコードした名前のファイルに保存する。
-     */
+    private static final int INDEX_READ_BUFFER_SIZE = 2048;
 
     /*
      * データ片に対するロックをファイルロックとしても使う。
@@ -64,13 +59,12 @@ final class FileStorage implements Storage {
     private final File trash;
 
     FileStorage(final File root, final int fileSizeLimit, final int directoryBitSize) {
-        final int maxDirectoryBitSize = (Address.SIZE / 6) * 6;// ディレクトリ名が論理位置以外の影響を受けない長さ。
         if (root == null) {
             throw new IllegalArgumentException("Null root.");
         } else if (fileSizeLimit < 0) {
             throw new IllegalArgumentException("Invalid file size limit ( " + fileSizeLimit + " ).");
-        } else if (directoryBitSize <= 0 || maxDirectoryBitSize < directoryBitSize) {
-            throw new IllegalArgumentException("Invalid directory bit size ( " + directoryBitSize + " ) not in [ 1, " + maxDirectoryBitSize + " ].");
+        } else if (directoryBitSize <= 0) {
+            throw new IllegalArgumentException("Not positive directory bit size ( " + directoryBitSize + " ).");
         }
 
         this.root = root;
@@ -159,22 +153,12 @@ final class FileStorage implements Storage {
         return buff;
     }
 
-    /*
-     * ファイル名に使う記号。
-     * '/' は Unix のディレクトリ区切りなので '+' に。
-     * '-' はファイル名の先頭だとコマンドラインオプションと混同するので '_' に。
-     */
-    private static final char BASE64_63 = '+';
-    private static final char BASE64_64 = '_';
-
     /**
      * バイト列をファイル名にする。
      * @param bytes バイト列
      * @return ファイル名
      */
-    private static String toFileString(final byte[] bytes) {
-        return Base64.toBase64(bytes, BASE64_63, BASE64_64);
-    }
+    abstract String toFileString(final byte[] bytes);
 
     /**
      * ファイル名をバイト列にする。
@@ -182,14 +166,12 @@ final class FileStorage implements Storage {
      * @return バイト列
      * @throws MyRuleException おかしなファイル名だった場合
      */
-    private static byte[] fromFileString(final String string) throws MyRuleException {
-        return Base64.fromBase64(string, BASE64_63, BASE64_64);
-    }
+    abstract byte[] fromFileString(final String string) throws MyRuleException;
 
-    static String getBase(final int directoryBitSize, final Chunk.Id<?> id, final long type) {
+    private String getBase(final Chunk.Id<?> id, final long type) {
         final byte[] buff = BytesConversion.toBytes("ol", id.getAddress(), type);
-        final String dir = toFileString(getFront(buff, directoryBitSize));
-        final String file = toFileString(getBack(buff, directoryBitSize));
+        final String dir = toFileString(getFront(buff, this.directoryBitSize));
+        final String file = toFileString(getBack(buff, this.directoryBitSize));
         return (new StringBuilder(dir)).append(File.separator).append(file).toString();
     }
 
@@ -199,22 +181,22 @@ final class FileStorage implements Storage {
      * @return データ片が保存されるファイル
      */
     private File getFile(final Chunk.Id<?> id) {
-        return new File(this.root, getBase(this.directoryBitSize, id, this.idRegistry.getId(id)));
+        return new File(this.root, getBase(id, this.idRegistry.getId(id)));
     }
 
     @Override
     public void lock(final Chunk.Id<?> id) throws InterruptedException {
-        this.locks.lock(getBase(this.directoryBitSize, id, this.idRegistry.getId(id)));
+        this.locks.lock(getBase(id, this.idRegistry.getId(id)));
     }
 
     @Override
     public boolean tryLock(final Chunk.Id<?> id) {
-        return this.locks.tryLock(getBase(this.directoryBitSize, id, this.idRegistry.getId(id)));
+        return this.locks.tryLock(getBase(id, this.idRegistry.getId(id)));
     }
 
     @Override
     public void unlock(final Chunk.Id<?> id) {
-        this.locks.unlock(getBase(this.directoryBitSize, id, this.idRegistry.getId(id)));
+        this.locks.unlock(getBase(id, this.idRegistry.getId(id)));
     }
 
     @Override
@@ -230,7 +212,7 @@ final class FileStorage implements Storage {
             throw new IllegalArgumentException("Not registered chunk id type ( " + id.getClass() + " ).");
         }
 
-        final String base = getBase(this.directoryBitSize, id, this.idRegistry.getId(id));
+        final String base = getBase(id, this.idRegistry.getId(id));
         final File file = new File(this.root, base);
         this.locks.lock(base);
         try {
@@ -291,6 +273,7 @@ final class FileStorage implements Storage {
         if (files == null || files.length <= 0) {
             return null;
         }
+
         final Map<Chunk.Id<?>, Storage.Index> indices = new HashMap<>();
         for (final File file : files) {
             if (file.isDirectory()) {
@@ -345,6 +328,7 @@ final class FileStorage implements Storage {
                 }
             }
         }
+
         return indices;
     }
 
@@ -413,7 +397,7 @@ final class FileStorage implements Storage {
         // 読み込み。
         final List<Storage.Index> index = new ArrayList<>(1);
         final List<Chunk> chunk = new ArrayList<>(1);
-        final String base = getBase(this.directoryBitSize, id, this.idRegistry.getId(id));
+        final String base = getBase(id, this.idRegistry.getId(id));
         final File file = new File(this.root, base);
         this.locks.lock(base);
         try {
@@ -438,7 +422,7 @@ final class FileStorage implements Storage {
 
     @Override
     public boolean write(final Chunk chunk) throws IOException, InterruptedException {
-        final String base = getBase(this.directoryBitSize, chunk.getId(), this.idRegistry.getId(chunk.getId()));
+        final String base = getBase(chunk.getId(), this.idRegistry.getId(chunk.getId()));
         final File file = new File(this.root, base);
 
         // ディレクトリ存在検査。
@@ -489,7 +473,7 @@ final class FileStorage implements Storage {
 
     @Override
     public void forceWrite(final Chunk chunk) throws IOException, InterruptedException {
-        final String base = getBase(this.directoryBitSize, chunk.getId(), this.idRegistry.getId(chunk.getId()));
+        final String base = getBase(chunk.getId(), this.idRegistry.getId(chunk.getId()));
         final File file = new File(this.root, base);
 
         // ディレクトリ存在検査。
@@ -524,7 +508,7 @@ final class FileStorage implements Storage {
 
     @Override
     public boolean delete(final Chunk.Id<?> id) throws IOException, InterruptedException {
-        final String base = getBase(this.directoryBitSize, id, this.idRegistry.getId(id));
+        final String base = getBase(id, this.idRegistry.getId(id));
         final File file = new File(this.root, base);
         this.locks.lock(base);
         try {

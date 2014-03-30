@@ -28,7 +28,7 @@ public final class WriteCachingStorageTest {
      * 初期化。
      */
     public WriteCachingStorageTest() {
-        this.root = new File(System.getProperty("java.io.tmpdir") + File.separator + FileStorageTest.class.getName() + File.separator + System.nanoTime());
+        this.root = new File(System.getProperty("java.io.tmpdir") + File.separator + FileStorage64Test.class.getName() + File.separator + System.nanoTime());
         this.chunkSizeLimit = 1024 * 1024 + 1024;
         this.directoryBitSize = 6;
         this.factor = 0.1;
@@ -51,7 +51,7 @@ public final class WriteCachingStorageTest {
     public void testRandom() throws Exception {
         final int numOfLoops = 100_000;
         final int numOfChunks = 100;
-        final Storage instance = new WriteCachingStorage(new FileStorage(this.root, this.chunkSizeLimit, this.directoryBitSize),
+        final Storage instance = new WriteCachingStorage(new FileStorage64(this.root, this.chunkSizeLimit, this.directoryBitSize),
                 (int) (this.factor * numOfChunks));
         StorageTest.testRandom(new MemoryStorage(), instance, numOfLoops, numOfChunks);
     }
@@ -65,7 +65,7 @@ public final class WriteCachingStorageTest {
         final int numOfChunks = 100;
         final int numOfProcesses = 1_000;
         final int chunkSize = 2 * (int) ((MathFunctions.log2(numOfChunks) + Byte.SIZE - 1) / Byte.SIZE);
-        final Storage instance = new WriteCachingStorage(new FileStorage(this.root, this.chunkSizeLimit, this.directoryBitSize),
+        final Storage instance = new WriteCachingStorage(new FileStorage64(this.root, this.chunkSizeLimit, this.directoryBitSize),
                 (int) (this.factor * numOfChunks));
         StorageTest.testConcurrencyPerformanceByConstantChunk(instance, numOfLoops, numOfChunks, numOfProcesses, chunkSize, this.prefix);
     }
@@ -78,7 +78,7 @@ public final class WriteCachingStorageTest {
         final int numOfLoops = 100;
         final int numOfChunks = 100;
         final int numOfProcesses = 1_000;
-        final Storage instance = new WriteCachingStorage(new FileStorage(this.root, this.chunkSizeLimit, this.directoryBitSize),
+        final Storage instance = new WriteCachingStorage(new FileStorage64(this.root, this.chunkSizeLimit, this.directoryBitSize),
                 (int) (this.factor * numOfChunks));
         StorageTest.testConcurrencyByVariableChunk(instance, numOfLoops, numOfChunks, numOfProcesses, this.prefix);
     }
@@ -107,8 +107,8 @@ public final class WriteCachingStorageTest {
         final File root2 = new File(this.root.getPath() + "b");
         Assert.assertTrue(root2.mkdirs());
 
-        try (final Storage instance1 = new FileStorage(root1, this.chunkSizeLimit, this.directoryBitSize);
-                final Storage instance2 = new WriteCachingStorage(new FileStorage(root2, this.chunkSizeLimit, this.directoryBitSize),
+        try (final Storage instance1 = new FileStorage64(root1, this.chunkSizeLimit, this.directoryBitSize);
+                final Storage instance2 = new WriteCachingStorage(new FileStorage64(root2, this.chunkSizeLimit, this.directoryBitSize),
                         (int) (this.factor * numOfChunks))) {
             instance1.registerChunk(0, VariableChunk.class, VariableChunk.getParser(), VariableChunk.Id.class, VariableChunk.Id.getParser());
             instance2.registerChunk(0, VariableChunk.class, VariableChunk.getParser(), VariableChunk.Id.class, VariableChunk.Id.getParser());
@@ -154,8 +154,8 @@ public final class WriteCachingStorageTest {
             }
         }
 
-        try (final Storage instance1 = new FileStorage(root1, this.chunkSizeLimit, this.directoryBitSize);
-                final Storage instance2 = new WriteCachingStorage(new FileStorage(root2, this.chunkSizeLimit, this.directoryBitSize),
+        try (final Storage instance1 = new FileStorage64(root1, this.chunkSizeLimit, this.directoryBitSize);
+                final Storage instance2 = new WriteCachingStorage(new FileStorage64(root2, this.chunkSizeLimit, this.directoryBitSize),
                         (int) (this.factor * numOfChunks))) {
             instance1.registerChunk(0, VariableChunk.class, VariableChunk.getParser(), VariableChunk.Id.class, VariableChunk.Id.getParser());
             instance2.registerChunk(0, VariableChunk.class, VariableChunk.getParser(), VariableChunk.Id.class, VariableChunk.Id.getParser());

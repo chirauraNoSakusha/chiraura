@@ -1,10 +1,7 @@
 package nippon.kawauso.chiraura.closet.p2p;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.security.KeyPair;
 import java.util.ArrayList;
@@ -31,7 +28,6 @@ import nippon.kawauso.chiraura.lib.test.FileFunctions;
 import nippon.kawauso.chiraura.messenger.CryptographicKeys;
 import nippon.kawauso.chiraura.network.AddressedPeer;
 import nippon.kawauso.chiraura.storage.Chunk;
-import nippon.kawauso.chiraura.storage.FileStorageTest;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -1244,86 +1240,4 @@ public final class P2pClosetTest {
         }
     }
 
-    /**
-     * 異常復元の試験。
-     * @throws Exception 異常
-     */
-    @Test
-    public void testErrorRecovery20() throws Exception {
-        testErrorRecovery(20);
-    }
-
-    private static void testErrorRecovery(final int numOfPeers) throws Exception {
-        final String label = "errorRecovery";
-        final ExecutorService executor = Executors.newCachedThreadPool();
-        final P2pCloset[] instances = new P2pCloset[numOfPeers];
-        final File[] roots = new File[numOfPeers];
-
-        final int directoryBitSize = 8;
-        final long operationTimeout = 750L;
-        final long maintenanceInterval = Duration.SECOND;
-        final long backupInterval = 100 * Duration.SECOND;
-        int port0 = 0;
-        for (int i = 0; i < numOfPeers; i++) {
-            final File root = new File(ROOT, label + getLabel(numOfPeers, i));
-            final KeyPair id = CryptographicKeys.newPublicKeyPair();
-            final int port = FIRST_PORT + portOffset.getAndIncrement();
-            final P2pCloset.Parameters param = new P2pCloset.Parameters(root, id, port, executor)
-                    .setStorageDirectoryBitSize(directoryBitSize)
-                    .setMaintenanceInterval(maintenanceInterval)
-                    .setOperationTimeout(operationTimeout)
-                    .setBackupInterval(backupInterval)
-                    .setCacheDuration(cacheDuration)
-                    .setChunkCacheCapacity(0)
-                    .setPeerCapacity(numOfPeers)
-                    .setPortIgnore(false);
-            if (i == 0) {
-                port0 = port;
-            } else {
-                param.setPeers(getPeers(port0));
-            }
-
-            // 倉庫の初期化。
-            root.mkdirs();
-            Assert.assertTrue(root.exists());
-            FileFunctions.deleteContents(root);
-
-            roots[i] = root;
-            instances[i] = new P2pCloset(param);
-            register(instances[i]);
-            instances[i].start(executor);
-
-            // 起動待ちの遅延。
-            Thread.sleep(100L);
-        }
-
-        // 安定待ち。
-        waitStable(instances, maintenanceInterval);
-
-        // データ片の追加。
-        final Mountain chunk = new GrowingBytes(label);
-        Assert.assertTrue(instances[0].addOriginal(chunk, Duration.SECOND).isSuccess());
-        for (final P2pCloset instance : instances) {
-            instance.getCache(chunk.getId(), operationTimeout);
-        }
-
-        final int manager = searchManager(instances, chunk.getId().getAddress());
-        final File file = FileStorageTest.getFile(roots[manager], directoryBitSize, chunk.getId(), 0);
-        Assert.assertTrue(file.exists());
-
-        try (OutputStream output = new BufferedOutputStream(new FileOutputStream(file))) {
-            output.write(new byte[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, });
-        }
-
-        LoggingFunctions.startLogging(Level.SEVERE);
-
-        Assert.assertNull(instances[manager].getLocal(chunk.getId()));
-
-        // 復元待ち。
-        Thread.sleep(100L);
-
-        Assert.assertEquals(chunk, instances[manager].getLocal(chunk.getId()));
-
-        afterOperation(executor, instances);
-    }
 }

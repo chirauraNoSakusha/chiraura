@@ -3,8 +3,8 @@ package nippon.kawauso.chiraura.lib.converter;
 import nippon.kawauso.chiraura.lib.exception.MyRuleException;
 
 /**
- * バイト列からBase64形式の文字列への変換・復号。
- * Base64形式の文字列の長さは、バイト列の全ビットを表すに足る最短の長さとする。
+ * バイト列から Base64 形式の文字列への変換・復号。
+ * Base64 形式の文字列の長さは、バイト列の全ビットを表すに足る最短の長さとする。
  * @author chirauraNoSakusha
  */
 public final class Base64 {

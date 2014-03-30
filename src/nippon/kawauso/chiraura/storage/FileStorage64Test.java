@@ -11,7 +11,7 @@ import org.junit.Test;
 /**
  * @author chirauraNoSakusha
  */
-public final class FileStorageTest {
+public final class FileStorage64Test {
 
     private final File root;
     private final int chunkSizeLimit;
@@ -20,8 +20,8 @@ public final class FileStorageTest {
     /**
      * 初期化。
      */
-    public FileStorageTest() {
-        this.root = new File(System.getProperty("java.io.tmpdir") + File.separator + FileStorageTest.class.getName() + File.separator + System.nanoTime());
+    public FileStorage64Test() {
+        this.root = new File(System.getProperty("java.io.tmpdir") + File.separator + FileStorage64Test.class.getName() + File.separator + System.nanoTime());
 
         this.chunkSizeLimit = 1024 * 4;
         this.directoryBitSize = 7;
@@ -41,7 +41,7 @@ public final class FileStorageTest {
     @Test
     public void testMinimum() throws Exception {
         // LoggingFunctions.startDebugLogging();
-        StorageTest.testMinimum(new FileStorage(this.root, this.chunkSizeLimit, this.directoryBitSize));
+        StorageTest.testMinimum(new FileStorage64(this.root, this.chunkSizeLimit, this.directoryBitSize));
         checkTrash();
     }
 
@@ -52,7 +52,7 @@ public final class FileStorageTest {
     public void testRandom() throws Exception {
         final int numOfLoops = 100_000;
         final int numOfChunks = 100;
-        StorageTest.testRandom(new MemoryStorage(), new FileStorage(this.root, this.chunkSizeLimit, this.directoryBitSize), numOfLoops, numOfChunks);
+        StorageTest.testRandom(new MemoryStorage(), new FileStorage64(this.root, this.chunkSizeLimit, this.directoryBitSize), numOfLoops, numOfChunks);
         checkTrash();
     }
 
@@ -68,7 +68,8 @@ public final class FileStorageTest {
         final int numOfProcesses = 1_000;
         final int chunkSize = 2 * (int) ((MathFunctions.log2(numOfChunks) + Byte.SIZE - 1) / Byte.SIZE);
         // LoggingFunctions.startLogging(Level.SEVERE);
-        StorageTest.testConcurrencyPerformanceByConstantChunk(new FileStorage(this.root, this.chunkSizeLimit, this.directoryBitSize), numOfLoops, numOfChunks,
+        StorageTest.testConcurrencyPerformanceByConstantChunk(new FileStorage64(this.root, this.chunkSizeLimit, this.directoryBitSize), numOfLoops,
+                numOfChunks,
                 numOfProcesses, chunkSize, PREFIX);
         checkTrash();
     }
@@ -81,21 +82,9 @@ public final class FileStorageTest {
         final int numOfLoops = 100;
         final int numOfChunks = 100;
         final int numOfProcesses = 1_000;
-        StorageTest.testConcurrencyByVariableChunk(new FileStorage(this.root, this.chunkSizeLimit, this.directoryBitSize), numOfLoops, numOfChunks,
+        StorageTest.testConcurrencyByVariableChunk(new FileStorage64(this.root, this.chunkSizeLimit, this.directoryBitSize), numOfLoops, numOfChunks,
                 numOfProcesses, PREFIX);
         checkTrash();
-    }
-
-    /**
-     * ファイルを返す。
-     * @param root トップディレクトリ
-     * @param directoryBitSize ディレクトリ用のビット数
-     * @param id データ片の識別子
-     * @param type データ片の識別子の型
-     * @return データ片を保存するファイル
-     */
-    public static File getFile(final File root, final int directoryBitSize, final Chunk.Id<?> id, final long type) {
-        return new File(root, FileStorage.getBase(directoryBitSize, id, type));
     }
 
 }

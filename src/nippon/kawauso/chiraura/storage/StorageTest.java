@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -64,11 +65,11 @@ final class StorageTest {
         // 除外チラ見して、
         if (Address.ZERO.compareTo(chunk.getId().getAddress()) < 0) {
             indices = instance.getIndices(Address.ZERO, chunk.getId().getAddress().subtractOne());
-            Assert.assertEquals(0, indices.size());
+            Assert.assertEquals(new HashMap<>(), indices);
         }
         if (chunk.getId().getAddress().compareTo(Address.MAX) < 0) {
             indices = instance.getIndices(chunk.getId().getAddress().addPowerOfTwo(0), Address.MAX);
-            Assert.assertEquals(0, indices.size());
+            Assert.assertEquals(new HashMap<>(), indices);
         }
 
         // 無駄に書いて、
@@ -97,11 +98,11 @@ final class StorageTest {
         // 除外チラ見して、
         if (Address.ZERO.compareTo(chunk.getId().getAddress()) < 0) {
             indices = instance.getIndices(Address.ZERO, chunk.getId().getAddress().subtractOne());
-            Assert.assertEquals(0, indices.size());
+            Assert.assertEquals(new HashMap<>(), indices);
         }
         if (chunk.getId().getAddress().compareTo(Address.MAX) < 0) {
             indices = instance.getIndices(chunk.getId().getAddress().addPowerOfTwo(0), Address.MAX);
-            Assert.assertEquals(0, indices.size());
+            Assert.assertEquals(new HashMap<>(), indices);
         }
 
         // 書いて、
@@ -129,11 +130,11 @@ final class StorageTest {
         // 除外チラ見して、
         if (Address.ZERO.compareTo(chunk.getId().getAddress()) < 0) {
             indices = instance.getIndices(Address.ZERO, chunk.getId().getAddress().subtractOne());
-            Assert.assertEquals(0, indices.size());
+            Assert.assertEquals(new HashMap<>(), indices);
         }
         if (chunk.getId().getAddress().compareTo(Address.MAX) < 0) {
             indices = instance.getIndices(chunk.getId().getAddress().addPowerOfTwo(0), Address.MAX);
-            Assert.assertEquals(0, indices.size());
+            Assert.assertEquals(new HashMap<>(), indices);
         }
 
         // 無駄に書いて、
@@ -493,4 +494,5 @@ final class StorageTest {
 
         instance.close();
     }
+
 }
