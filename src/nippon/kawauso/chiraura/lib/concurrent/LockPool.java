@@ -71,6 +71,7 @@ public final class LockPool<T> {
      * @return ロックできたら true
      */
     public boolean tryLock(final T key) {
+        // LOG.log(Level.SEVERE, "trylock in " + key);
         while (true) {
             ReentrantLock lock = this.locks.get(key);
             if (lock == null) {
@@ -108,6 +109,7 @@ public final class LockPool<T> {
      * @throws InterruptedException 待機中にインタラプトされた場合
      */
     public boolean tryLock(final T key, final long timeout) throws InterruptedException {
+        // LOG.log(Level.SEVERE, "trylock in " + key);
         while (true) {
             ReentrantLock lock = this.locks.get(key);
             if (lock == null) {
