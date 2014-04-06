@@ -20,7 +20,7 @@ public final class Global {
      * バージョン。
      * ISO 8601 形式の日付。
      */
-    public static final String VERSION = "2014-03-31";
+    public static final String VERSION = "2014-04-07";
 
     /**
      * 内部で使う文字コード。
