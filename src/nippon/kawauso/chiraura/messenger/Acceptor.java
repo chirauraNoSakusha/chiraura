@@ -348,11 +348,13 @@ final class Acceptor implements Callable<Void> {
         this.acceptedConnection.close();
     }
 
-    private void updateSelf(final InetSocketAddress declaredSelf, final InetSocketAddress destination) {
+    private void updateSelf(final InetSocketAddress declaredSelf, final InetSocketAddress destination) throws MyRuleException {
         // 外聞の更新。
         final InetSocketAddress oldSelf = this.self.get();
         final InetSocketAddress newSelf = InetAddressFunctions.selectBetter(oldSelf, declaredSelf);
-        if (!newSelf.equals(oldSelf)) {
+        if (destination.equals(newSelf)) {
+            throw new MyRuleException("Loop message.");
+        } else if (!newSelf.equals(oldSelf)) {
             this.self.set(newSelf);
             ConcurrentFunctions.completePut(new SelfReport(newSelf, destination), this.messengerReportSink);
         }

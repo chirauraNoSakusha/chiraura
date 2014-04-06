@@ -6,6 +6,8 @@ import java.security.PublicKey;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import nippon.kawauso.chiraura.lib.base.Address;
 import nippon.kawauso.chiraura.lib.concurrent.ConcurrentFunctions;
@@ -25,7 +27,7 @@ import nippon.kawauso.chiraura.network.NetworkTask;
  */
 final class NetworkWrapper {
 
-    // private static final Logger LOG = Logger.getLogger(NetworkWrapper.class.getName());
+    private static final Logger LOG = Logger.getLogger(NetworkWrapper.class.getName());
 
     private final long version;
     private final AddressableNetwork network;
@@ -136,6 +138,9 @@ final class NetworkWrapper {
         } else if (this.activeAddressLog.containsAndNotEquals(peer.getPeer(), peer.getAddress())) {
             // 別の論理位置で登録されている場合はスルー。
             return false;
+        } else if (peer.getAddress().equals(this.network.getSelf())) {
+            // 論理位置が重複してると他人が言っている。
+            return false;
         } else {
             this.backup.put(peer.getPeer());
             if (this.network.addPeer(peer)) {
@@ -155,6 +160,11 @@ final class NetworkWrapper {
             return false;
         } else {
             final Address address = this.calculator.calculate(peerId);
+            if (address.equals(this.network.getSelf())) {
+                LOG.log(Level.FINER, "ループを検知しました。");
+                removePeer(peer);
+                return false;
+            }
             this.lostPeers.remove(peer);
             this.backup.put(peer);
             this.activeAddressLog.add(peer, address);

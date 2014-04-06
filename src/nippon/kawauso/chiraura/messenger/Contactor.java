@@ -169,11 +169,13 @@ final class Contactor implements Callable<Void> {
         }
     }
 
-    private void updateSelf(final InetSocketAddress declaredSelf, final InetSocketAddress destination) {
+    private void updateSelf(final InetSocketAddress declaredSelf, final InetSocketAddress destination) throws MyRuleException {
         // 外聞の更新。
         final InetSocketAddress oldSelf = this.self.get();
         final InetSocketAddress newSelf = InetAddressFunctions.selectBetter(oldSelf, declaredSelf);
-        if (!newSelf.equals(oldSelf)) {
+        if (destination.equals(newSelf)) {
+            throw new MyRuleException("Loop message.");
+        } else if (!newSelf.equals(oldSelf)) {
             this.self.set(newSelf);
         }
         // Contactor で発生するポート警告を打ち消すために、Contactor では毎回報告する。
