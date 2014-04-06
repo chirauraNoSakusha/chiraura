@@ -56,7 +56,7 @@ final class SelfWriter extends Reporter<Void> {
                 }
                 try {
                     cur = this.environment.storeSelf(report.getSelf());
-                    source = report.getDestination();
+                    source = report.getDestination().getAddress();
                 } catch (final IOException e) {
                     LOG.log(Level.WARNING, "異常が発生しました", e);
                     LOG.log(Level.INFO, "公開用個体情報の書き出しに失敗しました。");

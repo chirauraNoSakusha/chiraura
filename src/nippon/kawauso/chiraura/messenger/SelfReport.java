@@ -1,6 +1,5 @@
 package nippon.kawauso.chiraura.messenger;
 
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 /**
@@ -9,9 +8,9 @@ import java.net.InetSocketAddress;
 public final class SelfReport implements MessengerReport {
 
     private final InetSocketAddress self;
-    private final InetAddress destination;
+    private final InetSocketAddress destination;
 
-    SelfReport(final InetSocketAddress self, final InetAddress destination) {
+    SelfReport(final InetSocketAddress self, final InetSocketAddress destination) {
         if (self == null) {
             throw new IllegalArgumentException("Null self.");
         } else if (destination == null) {
@@ -33,7 +32,7 @@ public final class SelfReport implements MessengerReport {
      * 通信先を返す。
      * @return 通信先
      */
-    public InetAddress getDestination() {
+    public InetSocketAddress getDestination() {
         return this.destination;
     }
 

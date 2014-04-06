@@ -5,7 +5,6 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketTimeoutException;
 import java.security.Key;
@@ -170,7 +169,7 @@ final class Contactor implements Callable<Void> {
         }
     }
 
-    private void updateSelf(final InetSocketAddress declaredSelf, final InetAddress destination) {
+    private void updateSelf(final InetSocketAddress declaredSelf, final InetSocketAddress destination) {
         // 外聞の更新。
         final InetSocketAddress oldSelf = this.self.get();
         final InetSocketAddress newSelf = InetAddressFunctions.selectBetter(oldSelf, declaredSelf);
@@ -283,7 +282,7 @@ final class Contactor implements Callable<Void> {
         }
 
         // 渡りをつけたので報告。
-        updateSelf(declaredSelf, this.contactingConnection.getDestination().getAddress());
+        updateSelf(declaredSelf, this.contactingConnection.getDestination());
         ConcurrentFunctions.completePut(new ConnectReport(destinationId, destination, this.contactingConnection.getType()), this.messengerReportSink);
 
         // 受信の時間制限を設定。

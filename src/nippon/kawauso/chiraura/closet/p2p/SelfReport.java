@@ -1,6 +1,5 @@
 package nippon.kawauso.chiraura.closet.p2p;
 
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 import nippon.kawauso.chiraura.closet.ClosetReport;
@@ -11,7 +10,7 @@ import nippon.kawauso.chiraura.closet.ClosetReport;
 public final class SelfReport implements ClosetReport {
 
     private final InetSocketAddress self;
-    private final InetAddress destination;
+    private final InetSocketAddress destination;
 
     SelfReport(final nippon.kawauso.chiraura.messenger.SelfReport base) {
         if (base == null) {
@@ -33,7 +32,7 @@ public final class SelfReport implements ClosetReport {
      * 通信先を返す。
      * @return 通信先
      */
-    public InetAddress getDestination() {
+    public InetSocketAddress getDestination() {
         return this.destination;
     }
 
