@@ -275,6 +275,7 @@ public final class TrayGui implements Gui {
         suicideButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(final ActionEvent e) {
+                LOG.log(Level.FINER, "終了信号を出しました。");
                 ConcurrentFunctions.completePut(new ShutdownCommand(), TrayGui.this.taskQueue);
                 TrayGui.this.suicideDialog.setVisible(false);
             }
