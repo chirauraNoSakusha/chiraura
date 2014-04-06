@@ -254,7 +254,7 @@ final class Option {
 
         final EnumMap<Item, String> items = new EnumMap<>(Item.class);
         for (final Item item : Item.values()) {
-            if (properties.contains(item.name())) {
+            if (properties.containsKey(item.name())) {
                 if (item == Item.help || item == Item.config) {
                     LOG.log(Level.WARNING, "設定ファイルによる \"{0}\" の指定はできません。", item.name());
                     throw new RuntimeException("Invalid option.");
