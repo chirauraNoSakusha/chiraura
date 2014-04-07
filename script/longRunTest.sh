@@ -111,10 +111,10 @@ while true; do
 
 
     # 初期個体の追加．
-    if ! [ -d ${WORK_DIR}/${SCRIPT_BODY}${ID} ]; then
-        mkdir -p ${WORK_DIR}/${SCRIPT_BODY}${ID}
+    if ! [ -d ${WORK_DIR}/${SCRIPT_BODY}_${ID} ]; then
+        mkdir -p ${WORK_DIR}/${SCRIPT_BODY}_${ID}
     fi
-    echo ${MAIN_PEER} > ${WORK_DIR}/${SCRIPT_BODY}${ID}/peers.txt
+    echo ${MAIN_PEER} > ${WORK_DIR}/${SCRIPT_BODY}_${ID}/peers.txt
 
     PORT=$((PORT_OFFSET + ID))
     BBS_PORT=$((BBS_PORT_OFFSET + ID))
