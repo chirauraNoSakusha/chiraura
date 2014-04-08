@@ -3,6 +3,7 @@ package nippon.kawauso.chiraura.gui;
 import java.awt.AWTException;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.SystemTray;
 import java.awt.Toolkit;
@@ -28,8 +29,10 @@ import java.util.logging.Logger;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 
 import nippon.kawauso.chiraura.Global;
@@ -264,9 +267,8 @@ public final class TrayGui implements Gui {
          * 右クリックのメニューから該当項目を選んだら、
          * 独立ウィンドウで確認して、確認できたらアプリを終了する。
          */
-        this.suicideDialog = new JDialog((JFrame) null, "本気で止めますか？");
-        this.suicideDialog.setMinimumSize(new Dimension(180, 60));
-        this.suicideDialog.setLocationRelativeTo(null);
+        this.suicideDialog = new JDialog((JFrame) null, "確認");
+        this.suicideDialog.setLayout(new GridLayout(0, 1));
 
         // 閉じたら消える。
         this.suicideDialog.addWindowListener(new WindowAdapter() {
@@ -275,8 +277,14 @@ public final class TrayGui implements Gui {
                 TrayGui.this.suicideDialog.setVisible(false);
             }
         });
+
+        final JLabel label = new JLabel("本当に閉じますか？");
+        final JPanel panel1 = new JPanel();
+        panel1.setLayout(new FlowLayout());
+        panel1.add(label);
+        this.suicideDialog.add(panel1);
+
         // 良くある見た目。
-        this.suicideDialog.setLayout(new FlowLayout());
         final JButton suicideButton = new JButton("はい");
         suicideButton.addActionListener(new ActionListener() {
             @Override
@@ -286,7 +294,10 @@ public final class TrayGui implements Gui {
                 TrayGui.this.suicideDialog.setVisible(false);
             }
         });
-        this.suicideDialog.add(suicideButton);
+        final JPanel panel2 = new JPanel();
+        panel2.setLayout(new FlowLayout());
+        panel2.add(suicideButton);
+        this.suicideDialog.add(panel2);
 
         final JMenuItem suicideItem = new JMenuItem("終了");
         suicideItem.addActionListener(new ActionListener() {
@@ -296,6 +307,10 @@ public final class TrayGui implements Gui {
             }
         });
         popup.add(suicideItem);
+
+        final Dimension dim = this.suicideDialog.getPreferredSize();
+        this.suicideDialog.setMinimumSize(new Dimension((int) dim.getWidth() * 3 / 2, (int) dim.getHeight() * 3 / 2));
+        this.suicideDialog.setLocationRelativeTo(null);
 
         try {
             this.tray.add(this.icon);
