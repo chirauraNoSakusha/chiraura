@@ -1,14 +1,9 @@
 package nippon.kawauso.chiraura.gui;
 
 import java.awt.AWTException;
-import java.awt.Button;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Frame;
 import java.awt.Image;
-import java.awt.Menu;
-import java.awt.MenuItem;
-import java.awt.PopupMenu;
 import java.awt.SystemTray;
 import java.awt.Toolkit;
 import java.awt.TrayIcon;
@@ -30,7 +25,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
 
 import nippon.kawauso.chiraura.Global;
 import nippon.kawauso.chiraura.lib.Duration;
@@ -180,13 +180,13 @@ public final class TrayGui implements Gui {
 
         this.executor = executor0;
 
-        final PopupMenu popup = new PopupMenu();
+        final JPopupMenu popup = new JPopupMenu();
 
         /*
          * 俺の環境だとなぜか背景サイズが 24x24 になるし、透けないけど、
          * Windows だと大丈夫っぽいので気にしない。
          */
-        this.icon = new TrayIcon(this.normalImage, "ちらしの裏", popup);
+        this.icon = new TrayIcon(this.normalImage, "ちらしの裏", null);
 
         /*
          * 個体情報の表示。
@@ -195,7 +195,13 @@ public final class TrayGui implements Gui {
         this.icon.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(final MouseEvent e) {
-                TrayGui.this.icon.displayMessage("個体情報", makePeerInfo(), TrayIcon.MessageType.NONE);
+                if (e.getButton() == MouseEvent.BUTTON3) {
+                    popup.setLocation(e.getX(), e.getY());
+                    popup.setInvoker(popup);
+                    popup.setVisible(true);
+                } else {
+                    TrayGui.this.icon.displayMessage("個体情報", makePeerInfo(), TrayIcon.MessageType.NONE);
+                }
             }
         });
 
@@ -204,7 +210,7 @@ public final class TrayGui implements Gui {
          * 右クリックのポップアップメニューから選ぶ。
          * 公開用個体情報をシステムのクリップボードにコピーする。
          */
-        final MenuItem peerCopyItem = new MenuItem("公開用の個体情報をコピー");
+        final JMenuItem peerCopyItem = new JMenuItem("公開用の個体情報をコピー");
         peerCopyItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(final ActionEvent e) {
@@ -225,7 +231,7 @@ public final class TrayGui implements Gui {
          * 右クリックのポップアップメニューから選ぶ。
          * 更新間隔一覧のポップアップメニューを開く。
          */
-        final Menu intervalMenu = new Menu("警告を表示する間隔");
+        final JMenu intervalMenu = new JMenu("警告を表示する間隔");
         for (final Pair<String, Long> entry : Arrays.asList(
                 new Pair<>("5 分", 5 * Duration.MINUTE),
                 new Pair<>("10 分", 10 * Duration.MINUTE),
@@ -237,7 +243,7 @@ public final class TrayGui implements Gui {
                 new Pair<>("1 日", Duration.DAY),
                 new Pair<>("定期報告しない", 0L)
                 )) {
-            final MenuItem intervalItem = new MenuItem(entry.getFirst());
+            final JMenuItem intervalItem = new JMenuItem(entry.getFirst());
             intervalItem.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(final ActionEvent e) {
@@ -258,7 +264,7 @@ public final class TrayGui implements Gui {
          * 右クリックのメニューから該当項目を選んだら、
          * 独立ウィンドウで確認して、確認できたらアプリを終了する。
          */
-        this.suicideDialog = new JDialog((Frame) null, "本気で止めますか？");
+        this.suicideDialog = new JDialog((JFrame) null, "本気で止めますか？");
         this.suicideDialog.setMinimumSize(new Dimension(180, 60));
         this.suicideDialog.setLocationRelativeTo(null);
 
@@ -271,7 +277,7 @@ public final class TrayGui implements Gui {
         });
         // 良くある見た目。
         this.suicideDialog.setLayout(new FlowLayout());
-        final Button suicideButton = new Button("はい");
+        final JButton suicideButton = new JButton("はい");
         suicideButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(final ActionEvent e) {
@@ -282,7 +288,7 @@ public final class TrayGui implements Gui {
         });
         this.suicideDialog.add(suicideButton);
 
-        final MenuItem suicideItem = new MenuItem("終了");
+        final JMenuItem suicideItem = new JMenuItem("終了");
         suicideItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(final ActionEvent e) {
